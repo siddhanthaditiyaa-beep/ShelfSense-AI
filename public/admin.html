@@ -1,288 +1,926 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Admin Dashboard | Smart Inventory</title>
+  <title>Admin Dashboard | Retail Mart AI</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; }
+
+    .admin-header {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #334155;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .admin-header h1 { font-size: 1.4rem; color: #38bdf8; }
+    .admin-header span { font-size: 0.85rem; color: #94a3b8; }
+
+    .logout-btn {
+      background: #ef4444;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .tab-nav {
+      display: flex;
+      gap: 4px;
+      padding: 16px 24px 0;
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      padding: 10px 20px;
+      background: transparent;
+      color: #94a3b8;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active { color: #38bdf8; border-bottom-color: #38bdf8; }
+    .tab-btn:hover { color: #e2e8f0; }
+
+    .tab-content { display: none; padding: 24px; }
+    .tab-content.active { display: block; }
+
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .card h2 {
+      font-size: 1rem;
+      color: #38bdf8;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .stat-card .number { font-size: 2rem; font-weight: 700; color: #38bdf8; }
+    .stat-card .label { font-size: 0.8rem; color: #94a3b8; margin-top: 4px; }
+
+    input, select {
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #e2e8f0;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
+    button {
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: opacity 0.2s;
+    }
+
+    button:hover { opacity: 0.85; }
+    .btn-primary { background: #38bdf8; color: #0f172a; }
+    .btn-danger { background: #ef4444; color: white; }
+    .btn-success { background: #22c55e; color: #0f172a; }
+    .btn-warning { background: #f59e0b; color: #0f172a; }
+
+    table { width: 100%; border-collapse: collapse; }
+    th { background: #0f172a; color: #94a3b8; padding: 10px; text-align: left; font-size: 0.8rem; }
+    td { padding: 10px; border-bottom: 1px solid #1e293b; font-size: 0.9rem; }
+    tr:hover td { background: #0f172a; }
+
+    .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+    .badge-red { background: #450a0a; color: #fca5a5; }
+    .badge-yellow { background: #451a03; color: #fcd34d; }
+    .badge-green { background: #052e16; color: #86efac; }
+    .badge-blue { background: #0c1a2e; color: #7dd3fc; }
+
+    .upload-area {
+      border: 2px dashed #334155;
+      border-radius: 12px;
+      padding: 40px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      margin-bottom: 16px;
+    }
+
+    .upload-area:hover { border-color: #38bdf8; }
+    .upload-area p { color: #94a3b8; margin-top: 8px; font-size: 0.9rem; }
+
+    .shelf-result { display: none; margin-top: 20px; }
+
+    .slot-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 16px 0;
+    }
+
+    .slot {
+      width: 80px;
+      height: 80px;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 4px;
+      text-align: center;
+    }
+
+    .slot.occupied { background: #052e16; border: 2px solid #22c55e; color: #86efac; }
+    .slot.empty { background: #450a0a; border: 2px solid #ef4444; color: #fca5a5; }
+    .slot-number { font-size: 0.65rem; opacity: 0.7; margin-bottom: 4px; }
+
+    .product-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .product-tag { padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+
+    .franchise-card {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .franchise-card h3 { font-size: 0.95rem; color: #e2e8f0; }
+    .franchise-card p { font-size: 0.8rem; color: #94a3b8; margin-top: 4px; }
+
+    .distance-badge {
+      background: #1e3a5f;
+      color: #38bdf8;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+
+    .log-item {
+      padding: 10px;
+      border-left: 3px solid #334155;
+      margin-bottom: 8px;
+      background: #0f172a;
+      border-radius: 0 8px 8px 0;
+      font-size: 0.85rem;
+    }
+
+    .log-item.monitoring { border-left-color: #ef4444; }
+    .log-item.forecasting { border-left-color: #22c55e; }
+    .log-time { font-size: 0.75rem; color: #94a3b8; margin-top: 4px; }
+
+    .planogram-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .planogram-slot { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 10px; }
+    .planogram-slot label { font-size: 0.75rem; color: #94a3b8; display: block; margin-bottom: 4px; }
+    .planogram-slot select { margin-bottom: 0; font-size: 0.8rem; }
+
+    #toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 14px 20px;
+      border-radius: 10px;
+      font-weight: 600;
+      display: none;
+      z-index: 9999;
+      max-width: 300px;
+    }
+
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 768px) { .row { grid-template-columns: 1fr; } }
+
+    .scan-img { width: 100%; border-radius: 8px; margin-top: 12px; border: 1px solid #334155; }
+    #fileInput { display: none; }
+
+    .fill-bar {
+      height: 12px;
+      background: #0f172a;
+      border-radius: 6px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+
+    .fill-bar-inner {
+      height: 100%;
+      border-radius: 6px;
+      transition: width 0.5s ease;
+    }
+
+    .slot-config {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .slot-config label { color: #94a3b8; font-size: 0.85rem; white-space: nowrap; }
+    .slot-config input { width: 80px; margin-bottom: 0; }
+    .slot-config select { width: 160px; margin-bottom: 0; }
+  </style>
 </head>
 
-<body class="admin-body">
+<body>
 
 <div class="admin-header">
-  <h1>📊 Admin Dashboard</h1>
+  <div>
+    <h1>🏪 Retail Mart AI Dashboard</h1>
+    <span>Admin Panel</span>
+  </div>
   <button class="logout-btn" onclick="logout()">Logout</button>
 </div>
 
-<div class="admin-container">
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="showTab('overview', this)">📊 Overview</button>
+  <button class="tab-btn" onclick="showTab('inventory', this)">📦 Inventory</button>
+  <button class="tab-btn" onclick="showTab('shelf-scan', this)">🔍 Shelf Scan</button>
+  <button class="tab-btn" onclick="showTab('planogram', this)">🗺️ Planogram</button>
+  <button class="tab-btn" onclick="showTab('franchise', this)">📍 Franchises</button>
+  <button class="tab-btn" onclick="showTab('logs', this)">📋 Logs</button>
+</div>
 
-  <!-- ADD ITEM -->
-  <div class="card">
-    <h2>➕ Add Item</h2>
-    <input id="itemName" placeholder="Item name">
-    <input id="itemStock" type="number" placeholder="Initial stock">
-    <button onclick="addItem()">Add Item</button>
+<!-- OVERVIEW -->
+<div id="tab-overview" class="tab-content active">
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="number" id="statTotal">-</div>
+      <div class="label">Total Items</div>
+    </div>
+    <div class="stat-card">
+      <div class="number" id="statLow" style="color:#f59e0b">-</div>
+      <div class="label">Low Stock</div>
+    </div>
+    <div class="stat-card">
+      <div class="number" id="statOut" style="color:#ef4444">-</div>
+      <div class="label">Out of Stock</div>
+    </div>
+    <div class="stat-card">
+      <div class="number" id="statHealthy" style="color:#22c55e">-</div>
+      <div class="label">Healthy Stock</div>
+    </div>
   </div>
 
-  <!-- INVENTORY -->
   <div class="card">
-    <h2>📦 Inventory</h2>
+    <h2>📈 Stock Overview</h2>
+    <canvas id="stockChart" height="120"></canvas>
+  </div>
+
+  <div class="row">
+    <div class="card">
+      <h2>🔍 Recent Monitoring Alerts</h2>
+      <div id="overviewMonitoring">Loading...</div>
+    </div>
+    <div class="card">
+      <h2>🤖 Recent Forecasting Actions</h2>
+      <div id="overviewForecasting">Loading...</div>
+    </div>
+  </div>
+</div>
+
+<!-- INVENTORY -->
+<div id="tab-inventory" class="tab-content">
+  <div class="card">
+    <h2>➕ Add New Item</h2>
+    <div class="row">
+      <input id="itemName" placeholder="Item name (e.g. Chocolates)">
+      <input id="itemStock" type="number" placeholder="Initial stock quantity">
+    </div>
+    <button class="btn-primary" onclick="addItem()">Add Item</button>
+  </div>
+
+  <div class="card">
+    <h2>📦 Current Inventory</h2>
     <table>
       <thead>
         <tr>
-          <th>Item</th>
+          <th>Item Name</th>
           <th>Stock</th>
+          <th>Status</th>
           <th>Action</th>
         </tr>
       </thead>
       <tbody id="inventoryTable"></tbody>
     </table>
+    <br>
+    <button class="btn-danger" onclick="resetLogs()">🧹 Reset All Logs & Stocks</button>
   </div>
-
-  <!-- STOCK GRAPH (BIGGER) -->
-  <div class="card">
-    <h2>📈 Stock Graph</h2>
-    <canvas id="stockChart" height="220"></canvas>
-  </div>
-
-  <button class="danger-btn" onclick="resetLogs()">🧹 Reset Logs & Stocks</button>
-
-  <!-- FORECASTING LOGS -->
-  <div class="card">
-    <h2>🤖 Forecasting Logs</h2>
-    <ul id="forecastingLogs"></ul>
-  </div>
-
-  <!-- MONITORING LOGS -->
-  <div class="card">
-    <h2>🔍 Monitoring Logs</h2>
-    <ul id="monitoringLogs"></ul>
-  </div>
-
 </div>
+
+<!-- SHELF SCAN -->
+<div id="tab-shelf-scan" class="tab-content">
+  <div class="card">
+    <h2>📸 Upload Shelf Image for AI Analysis</h2>
+
+    <!-- SLOT CONFIGURATION -->
+    <div class="slot-config">
+      <label>Shelf ID:</label>
+      <select id="scanShelfId">
+        <option value="SHELF_001">SHELF_001</option>
+        <option value="SHELF_002">SHELF_002</option>
+      </select>
+      <label>Number of slots in this shelf:</label>
+      <input type="number" id="totalSlotsInput" value="8" min="1" max="20" placeholder="e.g. 8">
+    </div>
+
+    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+      <div style="font-size:3rem">📷</div>
+      <p>Click to upload a shelf image</p>
+      <p style="font-size:0.8rem; margin-top:4px">Supports JPG, PNG</p>
+    </div>
+    <input type="file" id="fileInput" accept="image/*" onchange="handleImageUpload(event)">
+
+    <button class="btn-primary" id="scanBtn" onclick="scanShelf()" disabled>
+      🔍 Scan Shelf with AI
+    </button>
+  </div>
+
+  <div class="shelf-result" id="shelfResult">
+
+    <div class="card">
+      <h2>🖼️ Uploaded Image</h2>
+      <img id="scannedImage" class="scan-img" src="" alt="Scanned shelf">
+    </div>
+
+    <div class="card">
+      <h2>📊 Detection Results</h2>
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="number" id="totalSlots">-</div>
+          <div class="label">Total Slots</div>
+        </div>
+        <div class="stat-card">
+          <div class="number" id="occupiedSlots" style="color:#22c55e">-</div>
+          <div class="label">Occupied</div>
+        </div>
+        <div class="stat-card">
+          <div class="number" id="emptySlots" style="color:#ef4444">-</div>
+          <div class="label">Empty</div>
+        </div>
+        <div class="stat-card">
+          <div class="number" id="fillPct" style="color:#38bdf8">-</div>
+          <div class="label">Fill %</div>
+        </div>
+      </div>
+
+      <!-- FILL BAR -->
+      <div style="margin-top:8px">
+        <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:#94a3b8">
+          <span>Shelf Fill Level</span>
+          <span id="fillPctLabel">-</span>
+        </div>
+        <div class="fill-bar">
+          <div class="fill-bar-inner" id="fillBarInner" style="width:0%; background:#22c55e"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🗺️ Shelf Slot Map</h2>
+      <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:12px">
+        🟢 Green = Product Present &nbsp;|&nbsp; 🔴 Red = Empty Slot
+      </p>
+      <div class="slot-grid" id="slotGrid"></div>
+    </div>
+
+    <div class="row">
+      <div class="card">
+        <h2>✅ Products Present</h2>
+        <div class="product-tags" id="presentProducts"></div>
+      </div>
+      <div class="card">
+        <h2>❌ Missing Products</h2>
+        <div class="product-tags" id="missingProducts"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📍 Find Nearby Franchise for Missing Products</h2>
+      <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:12px">
+        Click any missing product to find nearby stores with stock
+      </p>
+      <div class="product-tags" id="missingProductBtns"></div>
+      <div id="franchiseResults" style="margin-top:16px"></div>
+    </div>
+
+  </div>
+
+  <div class="card">
+    <h2>📜 Recent Shelf Scans</h2>
+    <div id="recentScans">Loading...</div>
+  </div>
+</div>
+
+<!-- PLANOGRAM -->
+<div id="tab-planogram" class="tab-content">
+  <div class="card">
+    <h2>🗺️ Shelf Planogram Manager</h2>
+    <p style="font-size:0.85rem; color:#94a3b8; margin-bottom:16px">
+      Define which product goes in each slot. The AI uses this to identify products from shelf scans.
+    </p>
+    <div style="margin-bottom:16px; display:flex; align-items:center; gap:12px">
+      <label style="font-size:0.85rem; color:#94a3b8">Select Shelf:</label>
+      <select id="planogramShelf" onchange="loadPlanogram()" style="width:200px; margin-bottom:0">
+        <option value="SHELF_001">SHELF_001</option>
+        <option value="SHELF_002">SHELF_002</option>
+      </select>
+    </div>
+    <div class="planogram-grid" id="planogramGrid"></div>
+    <br>
+    <button class="btn-success" onclick="savePlanogram()">💾 Save Planogram</button>
+  </div>
+</div>
+
+<!-- FRANCHISE -->
+<div id="tab-franchise" class="tab-content">
+  <div class="card">
+    <h2>🔍 Find Nearby Franchise</h2>
+    <p style="font-size:0.85rem; color:#94a3b8; margin-bottom:16px">
+      Find nearby RetailMart stores that have a specific product in stock
+    </p>
+    <div class="row">
+      <select id="franchiseProduct">
+        <option value="">Select product...</option>
+        <option value="chocolates">Chocolates</option>
+        <option value="biscuits">Biscuits</option>
+        <option value="chips">Chips</option>
+        <option value="juice">Juice</option>
+        <option value="soft-drinks">Soft Drinks</option>
+        <option value="canned-food">Canned Food</option>
+        <option value="rice">Rice</option>
+        <option value="salt">Salt</option>
+      </select>
+      <button class="btn-primary" onclick="findFranchise()">📍 Find Nearby Stores</button>
+    </div>
+    <div id="franchiseList" style="margin-top:16px"></div>
+  </div>
+
+  <div class="card">
+    <h2>🏪 All Franchise Locations</h2>
+    <div id="allFranchises">Loading...</div>
+  </div>
+</div>
+
+<!-- LOGS -->
+<div id="tab-logs" class="tab-content">
+  <div class="row">
+    <div class="card">
+      <h2>🚨 Monitoring Logs</h2>
+      <div id="monitoringLogs">Loading...</div>
+    </div>
+    <div class="card">
+      <h2>🤖 Forecasting Logs</h2>
+      <div id="forecastingLogs">Loading...</div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
 
 <script>
 const token = localStorage.getItem("token");
 const role = localStorage.getItem("role");
-
-if (!token || role !== "admin") {
-  window.location.href = "login.html";
-}
+if (!token || role !== "admin") window.location.href = "login.html";
 
 let chart;
+let selectedFile = null;
 
-/* ================= LOAD ADMIN DATA ================= */
-async function loadAdmin() {
-  const res = await fetch("/admin-data", {
-    headers: { Authorization: token }
-  });
-
-  const data = await res.json();
-
-  renderInventory(data.inventory);
-  renderLogs(data.forecasting, "forecastingLogs");
-  renderLogs(data.monitoring, "monitoringLogs");
-  renderChart(data.inventory);
+/* ===== TABS ===== */
+function showTab(name, btn) {
+  document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+  document.getElementById("tab-" + name).classList.add("active");
+  if (btn) btn.classList.add("active");
+  if (name === "overview") loadAdmin();
+  if (name === "inventory") loadAdmin();
+  if (name === "logs") loadAdmin();
+  if (name === "franchise") loadAllFranchises();
+  if (name === "shelf-scan") loadRecentScans();
+  if (name === "planogram") loadPlanogram();
 }
 
-/* ================= INVENTORY ================= */
-function renderInventory(items) {
-  const table = document.getElementById("inventoryTable");
-  table.innerHTML = "";
+/* ===== TOAST ===== */
+function showToast(msg, type = "success") {
+  const t = document.getElementById("toast");
+  t.innerText = msg;
+  t.style.display = "block";
+  t.style.background = type === "error" ? "#450a0a" : type === "warning" ? "#451a03" : "#052e16";
+  t.style.color = type === "error" ? "#fca5a5" : type === "warning" ? "#fcd34d" : "#86efac";
+  setTimeout(() => t.style.display = "none", 4000);
+}
 
-  items.forEach(item => {
-    table.innerHTML += `
+/* ===== LOAD ADMIN DATA ===== */
+async function loadAdmin() {
+  const res = await fetch("/admin-data", { headers: { Authorization: token } });
+  const data = await res.json();
+  updateStats(data.inventory);
+  renderInventoryTable(data.inventory);
+  renderChart(data.inventory);
+  renderOverviewLogs(data.monitoring, data.forecasting);
+  renderLogs(data.monitoring, "monitoringLogs", "monitoring");
+  renderLogs(data.forecasting, "forecastingLogs", "forecasting");
+}
+
+/* ===== STATS ===== */
+function updateStats(inventory) {
+  document.getElementById("statTotal").innerText = inventory.length;
+  document.getElementById("statLow").innerText = inventory.filter(i => i.stock > 0 && i.stock <= 3).length;
+  document.getElementById("statOut").innerText = inventory.filter(i => i.stock === 0).length;
+  document.getElementById("statHealthy").innerText = inventory.filter(i => i.stock > 3).length;
+}
+
+/* ===== INVENTORY TABLE ===== */
+function renderInventoryTable(items) {
+  const table = document.getElementById("inventoryTable");
+  if (!table) return;
+  table.innerHTML = items.map(item => {
+    let status = item.stock === 0
+      ? `<span class="badge badge-red">Out of Stock</span>`
+      : item.stock <= 3
+      ? `<span class="badge badge-yellow">Low Stock</span>`
+      : `<span class="badge badge-green">Healthy</span>`;
+    return `
       <tr>
         <td>${item.name}</td>
-        <td>${item.stock}</td>
+        <td><strong>${item.stock}</strong></td>
+        <td>${status}</td>
         <td>
-          <button class="delete-btn" onclick="deleteItem('${item.key}')">✖</button>
+          <button class="btn-danger" style="padding:4px 10px; font-size:0.8rem"
+            onclick="deleteItem('${item.key}')">Delete</button>
         </td>
-      </tr>
-    `;
-  });
+      </tr>`;
+  }).join("");
 }
 
-/* ================= LOGS ================= */
-function renderLogs(logs, id) {
-  const ul = document.getElementById(id);
-  ul.innerHTML = "";
-
-  if (logs.length === 0) {
-    ul.innerHTML = "<li>No logs yet</li>";
+/* ===== CHART ===== */
+function renderChart(items) {
+  const el = document.getElementById("stockChart");
+  if (!el) return;
+  const colors = items.map(i => i.stock === 0 ? "#ef4444" : i.stock <= 3 ? "#f59e0b" : "#22c55e");
+  if (chart) {
+    chart.data.labels = items.map(i => i.name);
+    chart.data.datasets[0].data = items.map(i => i.stock);
+    chart.data.datasets[0].backgroundColor = colors;
+    chart.update();
     return;
   }
-
-  logs.forEach(l => {
-    ul.innerHTML += `
-      <li>
-        <strong>${l.item}</strong> → ${l.stock}
-        <br><small>${l.time}</small>
-      </li>
-    `;
-  });
-}
-
-let pulseInterval = null;
-let pulseState = true;
-
-const shownZeroStock = new Set();
-
-function showToast(message) {
-  const toast = document.getElementById("toast");
-  toast.innerText = message;
-  toast.style.display = "block";
-
-  setTimeout(() => {
-    toast.style.display = "none";
-  }, 3000);
-}
-
-/* ================= GRAPH (IMPROVED) ================= */
-function renderChart(items) {
-  chart.data.labels = items.map(i => i.name);
-  chart.data.datasets[0].data = items.map(i => i.stock);
-
-  chart.data.datasets[0].backgroundColor = items.map(i => {
-    if (i.stock === 0) return pulseState ? "#ff0000" : "#ffb3b3";
-    if (i.stock < 3) return "#ff4d4d";
-    return "#3ec6c6";
-  });
-
-  chart.update("none");
-
-  // 🔔 Toast notification for zero stock
-  items.forEach(item => {
-    if (item.stock === 0 && !shownZeroStock.has(item.name)) {
-      showToast(`🚨 ${item.name} is OUT OF STOCK!`);
-      shownZeroStock.add(item.name);
+  chart = new Chart(el.getContext("2d"), {
+    type: "bar",
+    data: {
+      labels: items.map(i => i.name),
+      datasets: [{ label: "Stock", data: items.map(i => i.stock), backgroundColor: colors, borderRadius: 6 }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { color: "#94a3b8", stepSize: 1 }, grid: { color: "#1e293b" } },
+        x: { ticks: { color: "#94a3b8" }, grid: { display: false } }
+      }
     }
   });
-
-  // Handle pulsing animation
-  const hasZeroStock = items.some(i => i.stock === 0);
-
-  if (hasZeroStock && !pulseInterval) {
-    pulseInterval = setInterval(() => {
-      pulseState = !pulseState;
-      renderChart(items);
-    }, 600);
-  }
-
-  if (!hasZeroStock && pulseInterval) {
-    clearInterval(pulseInterval);
-    pulseInterval = null;
-    shownZeroStock.clear(); // reset alerts when stock recovers
-  }
 }
 
+/* ===== OVERVIEW LOGS ===== */
+function renderOverviewLogs(monitoring, forecasting) {
+  const mEl = document.getElementById("overviewMonitoring");
+  const fEl = document.getElementById("overviewForecasting");
+  if (!mEl || !fEl) return;
+  mEl.innerHTML = monitoring.slice(0, 5).map(l =>
+    `<div class="log-item monitoring">${l.message || l.item}<div class="log-time">${l.time}</div></div>`
+  ).join("") || "<p style='color:#94a3b8'>No alerts yet</p>";
+  fEl.innerHTML = forecasting.slice(0, 5).map(l =>
+    `<div class="log-item forecasting">${l.message || l.item}<div class="log-time">${l.time}</div></div>`
+  ).join("") || "<p style='color:#94a3b8'>No actions yet</p>";
+}
 
-/* ================= ADD ITEM ================= */
+/* ===== LOGS ===== */
+function renderLogs(logs, id, type) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = logs.length === 0
+    ? "<p style='color:#94a3b8'>No logs yet</p>"
+    : logs.map(l =>
+        `<div class="log-item ${type}">${l.message || l.item + " → " + l.stock}<div class="log-time">${l.time}</div></div>`
+      ).join("");
+}
+
+/* ===== ADD ITEM ===== */
 async function addItem() {
-  const name = itemName.value.trim();
-  const stock = Number(itemStock.value);
-
-  if (!name || stock < 0) return alert("Invalid input");
-
-  await fetch("/admin/add-item", {
+  const name = document.getElementById("itemName").value.trim();
+  const stock = Number(document.getElementById("itemStock").value);
+  if (!name || stock < 0) return showToast("Invalid input", "error");
+  const res = await fetch("/admin/add-item", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: token
-    },
+    headers: { "Content-Type": "application/json", Authorization: token },
     body: JSON.stringify({ name, stock })
   });
-
-  itemName.value = "";
-  itemStock.value = "";
+  const data = await res.json();
+  showToast(data.message);
+  document.getElementById("itemName").value = "";
+  document.getElementById("itemStock").value = "";
   loadAdmin();
 }
 
-/* ================= DELETE ITEM ================= */
+/* ===== DELETE ITEM ===== */
 async function deleteItem(key) {
-  await fetch(`/admin/delete-item/${key}`, {
-    method: "DELETE",
-    headers: { Authorization: token }
-  });
+  if (!confirm("Delete this item?")) return;
+  await fetch(`/admin/delete-item/${key}`, { method: "DELETE", headers: { Authorization: token } });
+  showToast("Item deleted");
   loadAdmin();
 }
 
-/* ================= RESET LOGS + STOCKS ================= */
+/* ===== RESET ===== */
 async function resetLogs() {
-  if (!confirm("Clear all logs and reset stocks?")) return;
-
+  if (!confirm("Reset all logs and stocks?")) return;
   await fetch("/admin/reset-logs", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: token
-    }
+    headers: { "Content-Type": "application/json", Authorization: token }
   });
-
+  showToast("Reset successful");
   loadAdmin();
 }
 
-/* ================= LOGOUT ================= */
+/* ===== SHELF SCAN ===== */
+function handleImageUpload(event) {
+  selectedFile = event.target.files[0];
+  if (!selectedFile) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    document.getElementById("scannedImage").src = e.target.result;
+    document.getElementById("shelfResult").style.display = "block";
+  };
+  reader.readAsDataURL(selectedFile);
+  document.getElementById("scanBtn").disabled = false;
+  showToast("Image selected! Click Scan to analyze.");
+}
+
+async function scanShelf() {
+  if (!selectedFile) return showToast("Please upload an image first", "error");
+
+  const totalSlots = parseInt(document.getElementById("totalSlotsInput").value) || 8;
+  const shelfId = document.getElementById("scanShelfId").value;
+
+  const btn = document.getElementById("scanBtn");
+  btn.innerText = "⏳ Scanning...";
+  btn.disabled = true;
+
+  const formData = new FormData();
+  formData.append("image", selectedFile);
+  formData.append("total_slots", totalSlots);
+  formData.append("shelf_id", shelfId);
+
+  try {
+    const res = await fetch("/admin/scan-shelf", {
+      method: "POST",
+      headers: { Authorization: token },
+      body: formData
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message);
+    renderScanResult(data);
+    showToast("✅ Shelf scanned successfully!");
+  } catch (err) {
+    showToast("Scan failed: " + err.message, "error");
+  }
+
+  btn.innerText = "🔍 Scan Shelf with AI";
+  btn.disabled = false;
+}
+
+function renderScanResult(data) {
+  document.getElementById("totalSlots").innerText = data.total_slots;
+  document.getElementById("occupiedSlots").innerText = data.occupied_slots;
+  document.getElementById("emptySlots").innerText = data.empty_slots;
+
+  const pct = data.fill_percentage || Math.round((data.occupied_slots / data.total_slots) * 100);
+  document.getElementById("fillPct").innerText = pct + "%";
+  document.getElementById("fillPctLabel").innerText = pct + "%";
+
+  const bar = document.getElementById("fillBarInner");
+  bar.style.width = pct + "%";
+  bar.style.background = pct > 60 ? "#22c55e" : pct > 30 ? "#f59e0b" : "#ef4444";
+
+  // Slot grid
+  const grid = document.getElementById("slotGrid");
+  grid.innerHTML = "";
+  for (let i = 1; i <= data.total_slots; i++) {
+    const isOccupied = data.occupied_slot_numbers.includes(i);
+    const product = data.present_products?.[0] || "";
+    const div = document.createElement("div");
+    div.className = `slot ${isOccupied ? "occupied" : "empty"}`;
+    div.innerHTML = `
+      <div class="slot-number">Slot ${i}</div>
+      <div style="font-size:1.2rem">${isOccupied ? "✅" : "❌"}</div>
+      <div style="font-size:0.65rem; margin-top:2px">${isOccupied ? (data.detection_details?.find(d => d.slot === i)?.product || "") : "Empty"}</div>
+    `;
+    grid.appendChild(div);
+  }
+
+  // Present products
+  document.getElementById("presentProducts").innerHTML = data.present_products.length === 0
+    ? "<p style='color:#94a3b8'>None detected</p>"
+    : data.present_products.map(p =>
+        `<span class="product-tag" style="background:#052e16;color:#86efac">✅ ${p}</span>`
+      ).join("");
+
+  // Missing products
+  document.getElementById("missingProducts").innerHTML = data.missing_products.length === 0
+    ? "<p style='color:#94a3b8'>None missing ✅</p>"
+    : data.missing_products.map(p =>
+        `<span class="product-tag" style="background:#450a0a;color:#fca5a5">❌ ${p}</span>`
+      ).join("");
+
+  // Franchise search buttons
+  document.getElementById("missingProductBtns").innerHTML = data.missing_products.length === 0
+    ? "<p style='color:#94a3b8'>No missing products 🎉</p>"
+    : data.missing_products.map(p =>
+        `<button class="btn-warning" style="font-size:0.8rem" onclick="findFranchiseForProduct('${p}')">
+          📍 Find ${p} nearby
+        </button>`
+      ).join("");
+}
+
+/* ===== RECENT SCANS ===== */
+async function loadRecentScans() {
+  const res = await fetch("/admin/shelf-scans", { headers: { Authorization: token } });
+  const scans = await res.json();
+  const el = document.getElementById("recentScans");
+  el.innerHTML = scans.length === 0
+    ? "<p style='color:#94a3b8'>No scans yet</p>"
+    : scans.map(s => `
+        <div style="padding:12px; border:1px solid #334155; border-radius:8px; margin-bottom:8px">
+          <strong>${s.shelf_id}</strong> —
+          ${s.occupied_slots}/${s.total_slots} slots occupied
+          <span class="badge ${s.empty_slots > 5 ? 'badge-red' : 'badge-green'}" style="margin-left:8px">
+            ${s.empty_slots} empty
+          </span>
+          <div style="font-size:0.8rem; color:#94a3b8; margin-top:4px">${s.detectedAt}</div>
+        </div>
+      `).join("");
+}
+
+/* ===== PLANOGRAM ===== */
+const PRODUCTS = [
+  { key: "chocolates", name: "Chocolates" },
+  { key: "biscuits", name: "Biscuits" },
+  { key: "chips", name: "Chips" },
+  { key: "juice", name: "Juice" },
+  { key: "soft-drinks", name: "Soft Drinks" },
+  { key: "canned-food", name: "Canned Food" },
+  { key: "rice", name: "Rice" },
+  { key: "salt", name: "Salt" }
+];
+
+async function loadPlanogram() {
+  const shelfId = document.getElementById("planogramShelf")?.value || "SHELF_001";
+  const res = await fetch("/admin/planogram", { headers: { Authorization: token } });
+  const planogram = await res.json();
+  const layout = planogram[shelfId] || {};
+  const grid = document.getElementById("planogramGrid");
+  if (!grid) return;
+  grid.innerHTML = "";
+  for (let i = 1; i <= 10; i++) {
+    const options = PRODUCTS.map(p =>
+      `<option value="${p.key}" ${layout[i] === p.key ? "selected" : ""}>${p.name}</option>`
+    ).join("");
+    grid.innerHTML += `
+      <div class="planogram-slot">
+        <label>Slot ${i}</label>
+        <select id="slot_${i}">${options}</select>
+      </div>`;
+  }
+}
+
+async function savePlanogram() {
+  const shelfId = document.getElementById("planogramShelf").value;
+  const slotMapping = {};
+  for (let i = 1; i <= 10; i++) {
+    slotMapping[i] = document.getElementById(`slot_${i}`).value;
+  }
+  const res = await fetch("/admin/planogram", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: token },
+    body: JSON.stringify({ shelfId, slotMapping })
+  });
+  const data = await res.json();
+  showToast(data.message || "Planogram saved!");
+}
+
+/* ===== FRANCHISE ===== */
+async function loadAllFranchises() {
+  const res = await fetch("/admin/franchises", { headers: { Authorization: token } });
+  const franchises = await res.json();
+  document.getElementById("allFranchises").innerHTML = franchises.map(f => `
+    <div class="franchise-card">
+      <div>
+        <h3>🏪 ${f.name}</h3>
+        <p>📍 ${f.address}</p>
+      </div>
+      <span class="badge badge-blue">Active</span>
+    </div>
+  `).join("");
+}
+
+async function findFranchise() {
+  const product = document.getElementById("franchiseProduct").value;
+  if (!product) return showToast("Please select a product", "warning");
+  const el = document.getElementById("franchiseList");
+  await findFranchiseForProduct(product, el);
+}
+
+async function findFranchiseForProduct(product, targetEl) {
+  const lat = 19.0760;
+  const lng = 72.8777;
+  const res = await fetch(`/nearby-franchises?product=${product}&lat=${lat}&lng=${lng}`, {
+    headers: { Authorization: token }
+  });
+  const results = await res.json();
+  const el = targetEl || document.getElementById("franchiseResults");
+  el.innerHTML = results.length === 0
+    ? `<p style='color:#94a3b8'>No nearby stores have ${product} in stock</p>`
+    : `
+      <h3 style="margin-bottom:12px; color:#38bdf8; font-size:0.9rem">
+        Stores with <strong>${product}</strong> in stock:
+      </h3>
+      ${results.map(f => `
+        <div class="franchise-card">
+          <div>
+            <h3>🏪 ${f.name}</h3>
+            <p>📍 ${f.address}</p>
+            <p style="color:#22c55e; margin-top:4px">📦 Stock: ${f.stock} units</p>
+          </div>
+          <div class="distance-badge">📏 ${f.distance} km</div>
+        </div>
+      `).join("")}
+    `;
+}
+
+/* ===== LOGOUT ===== */
 async function logout() {
   await fetch("/logout", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ token })
   });
-
   localStorage.clear();
   window.location.href = "login.html";
 }
 
-function initChart() {
-  const ctx = document.getElementById("stockChart").getContext("2d");
-
-  chart = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels: [],
-      datasets: [{
-        label: "Stock",
-        data: [],
-        backgroundColor: "#3ec6c6",
-        borderRadius: 8
-      }]
-    },
-    options: {
-      responsive: true,
-      animation: {
-        duration: 1200,
-        easing: "easeInOutQuart"
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: { stepSize: 1 }
-        }
-      }
-    }
-  });
-}
-
-initChart();
+/* ===== INIT ===== */
 loadAdmin();
-setInterval(loadAdmin, 3000);
+setInterval(loadAdmin, 10000);
 </script>
-
-<!-- 🔔 Toast Notification -->
-<div id="toast" style="
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: #ff4d4d;
-  color: white;
-  padding: 14px 18px;
-  border-radius: 8px;
-  font-weight: bold;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-  display: none;
-  z-index: 9999;
-">
-</div>
 
 </body>
 </html>

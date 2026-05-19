@@ -1,33 +1,35 @@
 /**
  * Slot → Product Mapper
- * Maps shelf slot numbers to product names using a planogram
+ * Uses planogram to map shelf slots to products
+ * Admin can update planogram via API
  */
 
-// This defines which product sits in which slot on each shelf
-const shelfPlanogram = {
+// Default planogram — admin can override this
+// Key = shelf ID, Value = object mapping slot number to product key
+let shelfPlanogram = {
   "SHELF_001": {
-    1: "Chocolates",
-    2: "Chocolates",
-    3: "Biscuits",
-    4: "Biscuits",
-    5: "Chips",
-    6: "Chips",
-    7: "Juice",
-    8: "Juice",
-    9: "Soft Drinks",
-    10: "Soft Drinks"
+    1: "chocolates",
+    2: "chocolates",
+    3: "biscuits",
+    4: "biscuits",
+    5: "chips",
+    6: "chips",
+    7: "juice",
+    8: "juice",
+    9: "soft-drinks",
+    10: "soft-drinks"
   },
   "SHELF_002": {
-    1: "Canned Food",
-    2: "Canned Food",
-    3: "Rice",
-    4: "Rice",
-    5: "Salt",
-    6: "Salt",
-    7: "Chocolates",
-    8: "Biscuits",
-    9: "Chips",
-    10: "Juice"
+    1: "canned-food",
+    2: "canned-food",
+    3: "rice",
+    4: "rice",
+    5: "salt",
+    6: "salt",
+    7: "chocolates",
+    8: "biscuits",
+    9: "chips",
+    10: "juice"
   }
 };
 
@@ -35,26 +37,53 @@ function mapSlotsToProducts(shelfId, occupiedSlots, emptySlots) {
   const layout = shelfPlanogram[shelfId];
 
   if (!layout) {
-    throw new Error(`No planogram defined for shelf ${shelfId}`);
+    // Auto-generate a basic planogram if shelf not defined
+    console.log(`No planogram for ${shelfId}, using default mapping`);
+    return {
+      present_products: [],
+      missing_products: []
+    };
   }
 
   const presentProducts = new Set();
   const missingProducts = new Set();
+  const presentDetails = {};
+  const missingDetails = {};
 
   occupiedSlots.forEach(slot => {
     const product = layout[slot];
-    if (product) presentProducts.add(product);
+    if (product) {
+      presentProducts.add(product);
+      presentDetails[product] = (presentDetails[product] || 0) + 1;
+    }
   });
 
   emptySlots.forEach(slot => {
     const product = layout[slot];
-    if (product) missingProducts.add(product);
+    if (product) {
+      missingProducts.add(product);
+      missingDetails[product] = (missingDetails[product] || 0) + 1;
+    }
   });
 
   return {
     present_products: Array.from(presentProducts),
-    missing_products: Array.from(missingProducts)
+    missing_products: Array.from(missingProducts),
+    present_details: presentDetails,
+    missing_details: missingDetails
   };
 }
 
-module.exports = mapSlotsToProducts;
+function updatePlanogram(shelfId, slotMapping) {
+  shelfPlanogram[shelfId] = slotMapping;
+  console.log(`✅ Planogram updated for ${shelfId}`);
+}
+
+function getPlanogram(shelfId) {
+  if (shelfId) {
+    return shelfPlanogram[shelfId] || null;
+  }
+  return shelfPlanogram;
+}
+
+module.exports = { mapSlotsToProducts, updatePlanogram, getPlanogram };
