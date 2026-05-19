@@ -1,527 +1,712 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard | Retail Mart AI</title>
   <link rel="stylesheet" href="style.css">
+  <script src="theme.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; }
+    /* ===== LAYOUT ===== */
+    body { display: flex; flex-direction: column; min-height: 100vh; }
 
-    .admin-header {
-      background: linear-gradient(135deg, #1e293b, #0f172a);
-      padding: 16px 24px;
+    /* ===== TOP BAR (always visible) ===== */
+    .topbar {
+      height: 52px;
+      background: var(--header-bg);
+      border-bottom: 1px solid var(--header-border);
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid #334155;
+      padding: 0 16px;
+      gap: 12px;
       position: sticky;
       top: 0;
-      z-index: 100;
+      z-index: 200;
+      backdrop-filter: blur(12px);
     }
 
-    .admin-header h1 { font-size: 1.4rem; color: #38bdf8; }
-    .admin-header span { font-size: 0.85rem; color: #94a3b8; }
-
-    .logout-btn {
-      background: #ef4444;
-      color: white;
-      border: none;
-      padding: 8px 16px;
+    .sidebar-toggle {
+      width: 34px;
+      height: 34px;
       border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
-      font-weight: 600;
+      font-size: 16px;
+      flex-shrink: 0;
+      transition: all 0.2s;
+      padding: 0;
     }
 
-    .tab-nav {
-      display: flex;
-      gap: 4px;
-      padding: 16px 24px 0;
-      background: #1e293b;
-      border-bottom: 1px solid #334155;
+    .sidebar-toggle:hover {
+      background: var(--accent-light);
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: none;
+    }
+
+    .topbar-logo {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-accent);
+      white-space: nowrap;
+    }
+
+    /* Top nav — shown only when sidebar is collapsed */
+    .topbar-nav {
+      display: none;
+      align-items: center;
+      gap: 2px;
+      flex: 1;
       overflow-x: auto;
     }
 
-    .tab-btn {
-      padding: 10px 20px;
-      background: transparent;
-      color: #94a3b8;
-      border: none;
-      border-bottom: 3px solid transparent;
+    .topbar-nav.visible { display: flex; }
+
+    .topbar-nav-item {
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--text-muted);
       cursor: pointer;
-      font-size: 0.9rem;
-      font-weight: 600;
       white-space: nowrap;
+      border: none;
+      background: transparent;
       transition: all 0.2s;
     }
 
-    .tab-btn.active { color: #38bdf8; border-bottom-color: #38bdf8; }
-    .tab-btn:hover { color: #e2e8f0; }
+    .topbar-nav-item:hover {
+      color: var(--text-primary);
+      background: var(--bg-tertiary);
+      transform: none;
+    }
 
-    .tab-content { display: none; padding: 24px; }
-    .tab-content.active { display: block; }
+    .topbar-nav-item.active {
+      background: var(--accent-light);
+      color: var(--accent);
+      font-weight: 600;
+    }
 
-    .card {
-      background: #1e293b;
-      border: 1px solid #334155;
-      border-radius: 12px;
-      padding: 20px;
+    .topbar-right {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    /* ===== MAIN AREA ===== */
+    .main-area {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      width: 220px;
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                  opacity 0.2s ease;
+      overflow: hidden;
+    }
+
+    .sidebar.collapsed {
+      width: 0;
+      opacity: 0;
+      border-right: none;
+    }
+
+    .sidebar-section {
+      padding: 8px;
+      flex: 1;
+    }
+
+    .sidebar-section-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 8px 10px 4px;
+    }
+
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: all 0.15s;
+      white-space: nowrap;
+      border: none;
+      background: transparent;
+      width: 100%;
+      text-align: left;
+    }
+
+    .sidebar-item:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      transform: none;
+    }
+
+    .sidebar-item.active {
+      background: var(--accent-light);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .sidebar-emoji {
+      font-size: 1rem;
+      width: 20px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .sidebar-divider {
+      height: 1px;
+      background: var(--border-color);
+      margin: 8px;
+    }
+
+    .sidebar-bottom {
+      padding: 12px 8px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .sidebar-user {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 8px;
+    }
+
+    .sidebar-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--accent-light);
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .sidebar-username {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .sidebar-role {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    /* ===== CONTENT ===== */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+    }
+
+    /* ===== PAGE SECTIONS ===== */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ===== STATS ROW ===== */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 14px;
       margin-bottom: 20px;
     }
 
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.3s;
+    }
+
+    .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+    .stat-card .number { font-size: 1.9rem; font-weight: 700; color: var(--stat-num-color); }
+    .stat-card .label { font-size: 0.78rem; color: var(--text-muted); margin-top: 4px; }
+
+    /* ===== CARDS ===== */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.3s;
+    }
+
+    .card:hover { box-shadow: var(--shadow-md); border-color: var(--border-hover); }
+
     .card h2 {
-      font-size: 1rem;
-      color: #38bdf8;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-accent);
       margin-bottom: 16px;
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
-    .stats-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 16px;
-      margin-bottom: 20px;
-    }
+    /* ===== ROW ===== */
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 768px) { .row { grid-template-columns: 1fr; } }
 
-    .stat-card {
-      background: #1e293b;
-      border: 1px solid #334155;
-      border-radius: 12px;
-      padding: 16px;
-      text-align: center;
-    }
+    /* ===== TABLE ===== */
+    table { width: 100%; border-collapse: collapse; }
+    th { background: var(--bg-tertiary); color: var(--text-muted); padding: 10px 14px; text-align: left; font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    td { padding: 12px 14px; border-bottom: 1px solid var(--border-color); font-size: 0.875rem; color: var(--text-primary); }
+    tr:hover td { background: var(--bg-tertiary); }
 
-    .stat-card .number { font-size: 2rem; font-weight: 700; color: #38bdf8; }
-    .stat-card .label { font-size: 0.8rem; color: #94a3b8; margin-top: 4px; }
+    /* ===== BADGES ===== */
+    .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; display: inline-block; }
+    .badge-green { background: var(--success-bg); color: var(--success-text); }
+    .badge-yellow { background: var(--warning-bg); color: var(--warning-text); }
+    .badge-red { background: var(--danger-bg); color: var(--danger-text); }
+    .badge-blue { background: var(--info-bg); color: var(--info-text); }
 
-    input, select {
-      background: #0f172a;
-      border: 1px solid #334155;
-      color: #e2e8f0;
+    /* ===== INPUTS ===== */
+    input, select, textarea {
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
       padding: 10px 14px;
       border-radius: 8px;
       font-size: 0.9rem;
       width: 100%;
       margin-bottom: 10px;
+      transition: all 0.2s;
+      font-family: inherit;
     }
 
-    button {
-      padding: 10px 20px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 0.9rem;
-      transition: opacity 0.2s;
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-light);
     }
 
-    button:hover { opacity: 0.85; }
-    .btn-primary { background: #38bdf8; color: #0f172a; }
-    .btn-danger { background: #ef4444; color: white; }
-    .btn-success { background: #22c55e; color: #0f172a; }
-    .btn-warning { background: #f59e0b; color: #0f172a; }
+    /* ===== BUTTONS ===== */
+    button { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; font-size: 0.875rem; transition: all 0.2s; font-family: inherit; }
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-success { background: var(--success); color: white; }
+    .btn-warning { background: var(--warning); color: white; }
+    .btn-sm { padding: 5px 12px; font-size: 0.8rem; }
 
-    table { width: 100%; border-collapse: collapse; }
-    th { background: #0f172a; color: #94a3b8; padding: 10px; text-align: left; font-size: 0.8rem; }
-    td { padding: 10px; border-bottom: 1px solid #1e293b; font-size: 0.9rem; }
-    tr:hover td { background: #0f172a; }
-
-    .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
-    .badge-red { background: #450a0a; color: #fca5a5; }
-    .badge-yellow { background: #451a03; color: #fcd34d; }
-    .badge-green { background: #052e16; color: #86efac; }
-    .badge-blue { background: #0c1a2e; color: #7dd3fc; }
-
+    /* ===== UPLOAD ===== */
     .upload-area {
-      border: 2px dashed #334155;
+      border: 2px dashed var(--border-color);
       border-radius: 12px;
       padding: 40px;
       text-align: center;
       cursor: pointer;
-      transition: border-color 0.2s;
+      transition: all 0.2s;
       margin-bottom: 16px;
+      background: var(--bg-input);
     }
-
-    .upload-area:hover { border-color: #38bdf8; }
-    .upload-area p { color: #94a3b8; margin-top: 8px; font-size: 0.9rem; }
-
-    .shelf-result { display: none; margin-top: 20px; }
-
-    .slot-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin: 16px 0;
-    }
-
-    .slot {
-      width: 80px;
-      height: 80px;
-      border-radius: 8px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.7rem;
-      font-weight: 600;
-      padding: 4px;
-      text-align: center;
-    }
-
-    .slot.occupied { background: #052e16; border: 2px solid #22c55e; color: #86efac; }
-    .slot.empty { background: #450a0a; border: 2px solid #ef4444; color: #fca5a5; }
-    .slot-number { font-size: 0.65rem; opacity: 0.7; margin-bottom: 4px; }
-
-    .product-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-    .product-tag { padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
-
-    .franchise-card {
-      background: #0f172a;
-      border: 1px solid #334155;
-      border-radius: 10px;
-      padding: 16px;
-      margin-bottom: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .franchise-card h3 { font-size: 0.95rem; color: #e2e8f0; }
-    .franchise-card p { font-size: 0.8rem; color: #94a3b8; margin-top: 4px; }
-
-    .distance-badge {
-      background: #1e3a5f;
-      color: #38bdf8;
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-weight: 700;
-      font-size: 0.85rem;
-      white-space: nowrap;
-    }
-
-    .log-item {
-      padding: 10px;
-      border-left: 3px solid #334155;
-      margin-bottom: 8px;
-      background: #0f172a;
-      border-radius: 0 8px 8px 0;
-      font-size: 0.85rem;
-    }
-
-    .log-item.monitoring { border-left-color: #ef4444; }
-    .log-item.forecasting { border-left-color: #22c55e; }
-    .log-time { font-size: 0.75rem; color: #94a3b8; margin-top: 4px; }
-
-    .planogram-grid {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 12px;
-      margin-top: 16px;
-    }
-
-    .planogram-slot { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 10px; }
-    .planogram-slot label { font-size: 0.75rem; color: #94a3b8; display: block; margin-bottom: 4px; }
-    .planogram-slot select { margin-bottom: 0; font-size: 0.8rem; }
-
-    #toast {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      padding: 14px 20px;
-      border-radius: 10px;
-      font-weight: 600;
-      display: none;
-      z-index: 9999;
-      max-width: 300px;
-    }
-
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    @media (max-width: 768px) { .row { grid-template-columns: 1fr; } }
-
-    .scan-img { width: 100%; border-radius: 8px; margin-top: 12px; border: 1px solid #334155; }
+    .upload-area:hover { border-color: var(--accent); background: var(--accent-light); }
+    .upload-area p { color: var(--text-muted); margin-top: 8px; font-size: 0.875rem; }
     #fileInput { display: none; }
 
-    .fill-bar {
-      height: 12px;
-      background: #0f172a;
-      border-radius: 6px;
-      margin-top: 8px;
-      overflow: hidden;
-    }
+    /* ===== SHELF SLOTS ===== */
+    .slot-grid { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+    .slot { width: 80px; height: 80px; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; padding: 6px; text-align: center; transition: transform 0.2s; }
+    .slot:hover { transform: scale(1.05); }
+    .slot.occupied { background: var(--success-bg); border: 2px solid var(--success); color: var(--success-text); }
+    .slot.empty { background: var(--danger-bg); border: 2px solid var(--danger); color: var(--danger-text); }
+    .slot-number { font-size: 0.65rem; opacity: 0.7; margin-bottom: 4px; }
 
-    .fill-bar-inner {
-      height: 100%;
-      border-radius: 6px;
-      transition: width 0.5s ease;
-    }
+    /* ===== PRODUCT TAGS ===== */
+    .product-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .product-tag { padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
 
-    .slot-config {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-    }
+    /* ===== FILL BAR ===== */
+    .fill-bar { height: 10px; background: var(--bg-tertiary); border-radius: 5px; margin-top: 8px; overflow: hidden; border: 1px solid var(--border-color); }
+    .fill-bar-inner { height: 100%; border-radius: 5px; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
 
-    .slot-config label { color: #94a3b8; font-size: 0.85rem; white-space: nowrap; }
+    /* ===== SLOT CONFIG ===== */
+    .slot-config { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; padding: 12px; background: var(--bg-input); border-radius: 10px; border: 1px solid var(--border-color); }
+    .slot-config label { color: var(--text-secondary); font-size: 0.85rem; white-space: nowrap; font-weight: 500; }
     .slot-config input { width: 80px; margin-bottom: 0; }
     .slot-config select { width: 160px; margin-bottom: 0; }
+
+    /* ===== PLANOGRAM ===== */
+    .planogram-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 16px; }
+    .planogram-slot { background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; transition: all 0.2s; }
+    .planogram-slot:hover { border-color: var(--accent); }
+    .planogram-slot label { font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 6px; font-weight: 600; }
+    .planogram-slot select { margin-bottom: 0; font-size: 0.8rem; }
+
+    /* ===== FRANCHISE ===== */
+    .franchise-card { background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; }
+    .franchise-card:hover { border-color: var(--accent); transform: translateX(4px); box-shadow: var(--shadow-md); }
+    .franchise-card h3 { font-size: 0.95rem; color: var(--text-primary); font-weight: 600; }
+    .franchise-card p { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+    .distance-badge { background: var(--info-bg); color: var(--info-text); padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 0.85rem; white-space: nowrap; }
+
+    /* ===== LOGS ===== */
+    .log-item { padding: 12px 14px; border-left: 3px solid var(--border-color); margin-bottom: 8px; background: var(--bg-input); border-radius: 0 10px 10px 0; font-size: 0.85rem; color: var(--text-primary); transition: all 0.2s; }
+    .log-item:hover { transform: translateX(4px); }
+    .log-item.monitoring { border-left-color: var(--danger); }
+    .log-item.forecasting { border-left-color: var(--success); }
+    .log-time { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+
+    /* ===== SCAN IMAGE ===== */
+    .scan-img { width: 100%; border-radius: 10px; margin-top: 12px; border: 1px solid var(--border-color); }
+    .shelf-result { display: none; margin-top: 20px; }
+
+    /* ===== STOCK EDIT INLINE ===== */
+    .stock-edit { display: flex; align-items: center; gap: 6px; }
+    .stock-edit input { width: 70px; margin-bottom: 0; padding: 5px 8px; font-size: 0.85rem; }
+
+    /* ===== TOAST ===== */
+    #toast { position: fixed; bottom: 80px; right: 24px; padding: 14px 20px; border-radius: 12px; font-weight: 600; font-size: 0.875rem; display: none; z-index: 9999; max-width: 300px; box-shadow: var(--shadow-lg); }
+
+    /* ===== SETTINGS FAB ===== */
+    .settings-fab { position: fixed; bottom: 24px; right: 24px; width: 44px; height: 44px; border-radius: 50%; background: var(--accent); color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; box-shadow: var(--shadow-lg); z-index: 1000; transition: all 0.3s; padding: 0; }
+    .settings-fab:hover { transform: scale(1.1) rotate(30deg); }
+
+    .settings-panel { position: fixed; bottom: 80px; right: 24px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; width: 220px; box-shadow: 0 8px 32px rgba(0,0,0,0.15); z-index: 999; display: none; }
+    [data-theme="dark"] .settings-panel { background: #1e293b; border-color: rgba(255,255,255,0.1); }
+    .settings-panel.open { display: block; animation: slideUp 0.2s ease; }
+    .settings-panel h3 { font-size: 0.9rem; font-weight: 600; color: #0f172a; margin-bottom: 14px; }
+    [data-theme="dark"] .settings-panel h3 { color: rgba(255,255,255,0.9); }
+
+    .theme-option { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: all 0.2s; margin-bottom: 6px; border: 1px solid transparent; font-size: 0.875rem; font-weight: 500; color: #0f172a; background: transparent; width: 100%; text-align: left; }
+    [data-theme="dark"] .theme-option { color: rgba(255,255,255,0.85); }
+    .theme-option:hover { background: #f1f5f9; transform: none; }
+    [data-theme="dark"] .theme-option:hover { background: rgba(255,255,255,0.08); }
+    .theme-option.active { background: #eef2ff; border-color: #6366f1; color: #6366f1; font-weight: 600; }
+    [data-theme="dark"] .theme-option.active { background: rgba(167,139,250,0.15); border-color: #a78bfa; color: #a78bfa; }
+    .theme-option-icon { font-size: 1.1rem; }
+
+    @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ===== LOGOUT BTN ===== */
+    .logout-btn { background: var(--danger-bg); color: var(--danger-text); border: 1px solid var(--danger); padding: 6px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 600; }
   </style>
 </head>
-
 <body>
 
-<div class="admin-header">
-  <div>
-    <h1>🏪 Retail Mart AI Dashboard</h1>
-    <span>Admin Panel</span>
-  </div>
-  <button class="logout-btn" onclick="logout()">Logout</button>
-</div>
+<!-- ===== TOP BAR ===== -->
+<div class="topbar">
+  <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" title="Toggle sidebar">☰</button>
+  <span class="topbar-logo">RetailMart AI</span>
 
-<div class="tab-nav">
-  <button class="tab-btn active" onclick="showTab('overview', this)">📊 Overview</button>
-  <button class="tab-btn" onclick="showTab('inventory', this)">📦 Inventory</button>
-  <button class="tab-btn" onclick="showTab('shelf-scan', this)">🔍 Shelf Scan</button>
-  <button class="tab-btn" onclick="showTab('planogram', this)">🗺️ Planogram</button>
-  <button class="tab-btn" onclick="showTab('franchise', this)">📍 Franchises</button>
-  <button class="tab-btn" onclick="showTab('logs', this)">📋 Logs</button>
-</div>
+  <!-- Top nav shown when sidebar is collapsed -->
+  <nav class="topbar-nav" id="topbarNav">
+    <button class="topbar-nav-item active" data-page="overview" onclick="showPage('overview', this)">Overview</button>
+    <button class="topbar-nav-item" data-page="inventory" onclick="showPage('inventory', this)">Inventory</button>
+    <button class="topbar-nav-item" data-page="shelf-scan" onclick="showPage('shelf-scan', this)">Shelf Scan</button>
+    <button class="topbar-nav-item" data-page="planogram" onclick="showPage('planogram', this)">Planogram</button>
+    <button class="topbar-nav-item" data-page="franchise" onclick="showPage('franchise', this)">Franchises</button>
+    <button class="topbar-nav-item" data-page="logs" onclick="showPage('logs', this)">Logs</button>
+  </nav>
 
-<!-- OVERVIEW -->
-<div id="tab-overview" class="tab-content active">
-  <div class="stats-row">
-    <div class="stat-card">
-      <div class="number" id="statTotal">-</div>
-      <div class="label">Total Items</div>
-    </div>
-    <div class="stat-card">
-      <div class="number" id="statLow" style="color:#f59e0b">-</div>
-      <div class="label">Low Stock</div>
-    </div>
-    <div class="stat-card">
-      <div class="number" id="statOut" style="color:#ef4444">-</div>
-      <div class="label">Out of Stock</div>
-    </div>
-    <div class="stat-card">
-      <div class="number" id="statHealthy" style="color:#22c55e">-</div>
-      <div class="label">Healthy Stock</div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>📈 Stock Overview</h2>
-    <canvas id="stockChart" height="120"></canvas>
-  </div>
-
-  <div class="row">
-    <div class="card">
-      <h2>🔍 Recent Monitoring Alerts</h2>
-      <div id="overviewMonitoring">Loading...</div>
-    </div>
-    <div class="card">
-      <h2>🤖 Recent Forecasting Actions</h2>
-      <div id="overviewForecasting">Loading...</div>
-    </div>
+  <div class="topbar-right">
+    <button class="logout-btn" onclick="logout()">Logout</button>
   </div>
 </div>
 
-<!-- INVENTORY -->
-<div id="tab-inventory" class="tab-content">
-  <div class="card">
-    <h2>➕ Add New Item</h2>
-    <div class="row">
-      <input id="itemName" placeholder="Item name (e.g. Chocolates)">
-      <input id="itemStock" type="number" placeholder="Initial stock quantity">
-    </div>
-    <button class="btn-primary" onclick="addItem()">Add Item</button>
-  </div>
+<!-- ===== MAIN AREA ===== -->
+<div class="main-area">
 
-  <div class="card">
-    <h2>📦 Current Inventory</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Item Name</th>
-          <th>Stock</th>
-          <th>Status</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody id="inventoryTable"></tbody>
-    </table>
-    <br>
-    <button class="btn-danger" onclick="resetLogs()">🧹 Reset All Logs & Stocks</button>
-  </div>
-</div>
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Main Menu</div>
 
-<!-- SHELF SCAN -->
-<div id="tab-shelf-scan" class="tab-content">
-  <div class="card">
-    <h2>📸 Upload Shelf Image for AI Analysis</h2>
+      <button class="sidebar-item active" data-page="overview" onclick="showPage('overview', this)">
+        <span class="sidebar-emoji">📊</span> Overview
+      </button>
+      <button class="sidebar-item" data-page="inventory" onclick="showPage('inventory', this)">
+        <span class="sidebar-emoji">📦</span> Inventory
+      </button>
+      <button class="sidebar-item" data-page="shelf-scan" onclick="showPage('shelf-scan', this)">
+        <span class="sidebar-emoji">🔍</span> Shelf Scan
+      </button>
+      <button class="sidebar-item" data-page="planogram" onclick="showPage('planogram', this)">
+        <span class="sidebar-emoji">🗺️</span> Planogram
+      </button>
 
-    <!-- SLOT CONFIGURATION -->
-    <div class="slot-config">
-      <label>Shelf ID:</label>
-      <select id="scanShelfId">
-        <option value="SHELF_001">SHELF_001</option>
-        <option value="SHELF_002">SHELF_002</option>
-      </select>
-      <label>Number of slots in this shelf:</label>
-      <input type="number" id="totalSlotsInput" value="8" min="1" max="20" placeholder="e.g. 8">
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-section-label">Network</div>
+
+      <button class="sidebar-item" data-page="franchise" onclick="showPage('franchise', this)">
+        <span class="sidebar-emoji">📍</span> Franchises
+      </button>
+      <button class="sidebar-item" data-page="logs" onclick="showPage('logs', this)">
+        <span class="sidebar-emoji">📋</span> Logs
+      </button>
     </div>
 
-    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-      <div style="font-size:3rem">📷</div>
-      <p>Click to upload a shelf image</p>
-      <p style="font-size:0.8rem; margin-top:4px">Supports JPG, PNG</p>
+    <div class="sidebar-bottom">
+      <div class="sidebar-user">
+        <div class="sidebar-avatar">SA</div>
+        <div>
+          <div class="sidebar-username">Store Admin</div>
+          <div class="sidebar-role">Administrator</div>
+        </div>
+      </div>
     </div>
-    <input type="file" id="fileInput" accept="image/*" onchange="handleImageUpload(event)">
+  </aside>
 
-    <button class="btn-primary" id="scanBtn" onclick="scanShelf()" disabled>
-      🔍 Scan Shelf with AI
-    </button>
-  </div>
+  <!-- ===== CONTENT ===== -->
+  <main class="content">
 
-  <div class="shelf-result" id="shelfResult">
-
-    <div class="card">
-      <h2>🖼️ Uploaded Image</h2>
-      <img id="scannedImage" class="scan-img" src="" alt="Scanned shelf">
-    </div>
-
-    <div class="card">
-      <h2>📊 Detection Results</h2>
+    <!-- OVERVIEW PAGE -->
+    <div class="page active" id="page-overview">
       <div class="stats-row">
         <div class="stat-card">
-          <div class="number" id="totalSlots">-</div>
-          <div class="label">Total Slots</div>
+          <div class="number" id="statTotal">-</div>
+          <div class="label">Total Items</div>
         </div>
         <div class="stat-card">
-          <div class="number" id="occupiedSlots" style="color:#22c55e">-</div>
-          <div class="label">Occupied</div>
+          <div class="number" id="statLow" style="color:var(--warning)">-</div>
+          <div class="label">Low Stock</div>
         </div>
         <div class="stat-card">
-          <div class="number" id="emptySlots" style="color:#ef4444">-</div>
-          <div class="label">Empty</div>
+          <div class="number" id="statOut" style="color:var(--danger)">-</div>
+          <div class="label">Out of Stock</div>
         </div>
         <div class="stat-card">
-          <div class="number" id="fillPct" style="color:#38bdf8">-</div>
-          <div class="label">Fill %</div>
+          <div class="number" id="statHealthy" style="color:var(--success)">-</div>
+          <div class="label">Healthy</div>
         </div>
       </div>
 
-      <!-- FILL BAR -->
-      <div style="margin-top:8px">
-        <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:#94a3b8">
-          <span>Shelf Fill Level</span>
-          <span id="fillPctLabel">-</span>
-        </div>
-        <div class="fill-bar">
-          <div class="fill-bar-inner" id="fillBarInner" style="width:0%; background:#22c55e"></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>🗺️ Shelf Slot Map</h2>
-      <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:12px">
-        🟢 Green = Product Present &nbsp;|&nbsp; 🔴 Red = Empty Slot
-      </p>
-      <div class="slot-grid" id="slotGrid"></div>
-    </div>
-
-    <div class="row">
       <div class="card">
-        <h2>✅ Products Present</h2>
-        <div class="product-tags" id="presentProducts"></div>
+        <h2>📈 Stock Overview</h2>
+        <canvas id="stockChart" height="100"></canvas>
       </div>
+
+      <div class="row">
+        <div class="card">
+          <h2>🚨 Monitoring Alerts</h2>
+          <div id="overviewMonitoring">Loading...</div>
+        </div>
+        <div class="card">
+          <h2>🤖 Forecasting Actions</h2>
+          <div id="overviewForecasting">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INVENTORY PAGE -->
+    <div class="page" id="page-inventory">
       <div class="card">
-        <h2>❌ Missing Products</h2>
-        <div class="product-tags" id="missingProducts"></div>
+        <h2>➕ Add New Item</h2>
+        <div class="row">
+          <input id="itemName" placeholder="Item name (e.g. Chocolates)">
+          <input id="itemStock" type="number" placeholder="Initial stock quantity">
+        </div>
+        <button class="btn-primary" onclick="addItem()">Add Item</button>
+      </div>
+
+      <div class="card">
+        <h2>📦 Current Inventory</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Stock</th>
+              <th>Status</th>
+              <th>Update Stock</th>
+              <th>Delete</th>
+            </tr>
+          </thead>
+          <tbody id="inventoryTable"></tbody>
+        </table>
+        <br>
+        <button class="btn-danger" onclick="resetLogs()">🧹 Reset All Logs & Stocks</button>
       </div>
     </div>
 
-    <div class="card">
-      <h2>📍 Find Nearby Franchise for Missing Products</h2>
-      <p style="font-size:0.8rem; color:#94a3b8; margin-bottom:12px">
-        Click any missing product to find nearby stores with stock
-      </p>
-      <div class="product-tags" id="missingProductBtns"></div>
-      <div id="franchiseResults" style="margin-top:16px"></div>
+    <!-- SHELF SCAN PAGE -->
+    <div class="page" id="page-shelf-scan">
+      <div class="card">
+        <h2>📸 Upload Shelf Image for AI Analysis</h2>
+        <div class="slot-config">
+          <label>Shelf ID:</label>
+          <select id="scanShelfId">
+            <option value="SHELF_001">SHELF_001</option>
+            <option value="SHELF_002">SHELF_002</option>
+          </select>
+          <label>Number of slots:</label>
+          <input type="number" id="totalSlotsInput" value="8" min="1" max="20">
+        </div>
+        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+          <div style="font-size:3rem">📷</div>
+          <p>Click to upload a shelf image</p>
+          <p style="font-size:0.8rem;margin-top:4px">Supports JPG, PNG</p>
+        </div>
+        <input type="file" id="fileInput" accept="image/*" onchange="handleImageUpload(event)">
+        <button class="btn-primary" id="scanBtn" onclick="scanShelf()" disabled>🔍 Scan Shelf with AI</button>
+      </div>
+
+      <div class="shelf-result" id="shelfResult">
+        <div class="card">
+          <h2>🖼️ Uploaded Image</h2>
+          <img id="scannedImage" class="scan-img" src="" alt="Scanned shelf">
+        </div>
+
+        <div class="card">
+          <h2>📊 Detection Results</h2>
+          <div class="stats-row">
+            <div class="stat-card"><div class="number" id="totalSlots">-</div><div class="label">Total Slots</div></div>
+            <div class="stat-card"><div class="number" id="occupiedSlots" style="color:var(--success)">-</div><div class="label">Occupied</div></div>
+            <div class="stat-card"><div class="number" id="emptySlots" style="color:var(--danger)">-</div><div class="label">Empty</div></div>
+            <div class="stat-card"><div class="number" id="fillPct" style="color:var(--info)">-</div><div class="label">Fill %</div></div>
+          </div>
+          <div style="margin-top:8px">
+            <div style="display:flex;justify-content:space-between;font-size:0.8rem;color:var(--text-muted)">
+              <span>Shelf Fill Level</span><span id="fillPctLabel">-</span>
+            </div>
+            <div class="fill-bar"><div class="fill-bar-inner" id="fillBarInner" style="width:0%"></div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>🗺️ Shelf Slot Map</h2>
+          <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:12px">🟢 Green = Product Present &nbsp;|&nbsp; 🔴 Red = Empty Slot</p>
+          <div class="slot-grid" id="slotGrid"></div>
+        </div>
+
+        <div class="row">
+          <div class="card">
+            <h2>✅ Products Present</h2>
+            <div class="product-tags" id="presentProducts"></div>
+          </div>
+          <div class="card">
+            <h2>❌ Missing Products</h2>
+            <div class="product-tags" id="missingProducts"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>📍 Find Nearby Franchise for Missing Products</h2>
+          <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:12px">Click any missing product to find nearby stores with stock</p>
+          <div class="product-tags" id="missingProductBtns"></div>
+          <div id="franchiseResults" style="margin-top:16px"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>📜 Recent Shelf Scans</h2>
+        <div id="recentScans">Loading...</div>
+      </div>
     </div>
 
-  </div>
+    <!-- PLANOGRAM PAGE -->
+    <div class="page" id="page-planogram">
+      <div class="card">
+        <h2>🗺️ Shelf Planogram Manager</h2>
+        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:16px">
+          Define which product goes in each slot. The AI uses this to identify products from shelf scans.
+        </p>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+          <label style="font-size:0.85rem;color:var(--text-muted);font-weight:500">Select Shelf:</label>
+          <select id="planogramShelf" onchange="loadPlanogram()" style="width:200px;margin-bottom:0">
+            <option value="SHELF_001">SHELF_001</option>
+            <option value="SHELF_002">SHELF_002</option>
+          </select>
+        </div>
+        <div class="planogram-grid" id="planogramGrid"></div>
+        <br>
+        <button class="btn-success" onclick="savePlanogram()">💾 Save Planogram</button>
+      </div>
+    </div>
 
-  <div class="card">
-    <h2>📜 Recent Shelf Scans</h2>
-    <div id="recentScans">Loading...</div>
-  </div>
+    <!-- FRANCHISE PAGE -->
+    <div class="page" id="page-franchise">
+      <div class="card">
+        <h2>🔍 Find Nearby Franchise</h2>
+        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:16px">Find nearby RetailMart stores that have a specific product in stock</p>
+        <div class="row">
+          <select id="franchiseProduct">
+            <option value="">Select product...</option>
+            <option value="chocolates">Chocolates</option>
+            <option value="biscuits">Biscuits</option>
+            <option value="chips">Chips</option>
+            <option value="juice">Juice</option>
+            <option value="soft-drinks">Soft Drinks</option>
+            <option value="canned-food">Canned Food</option>
+            <option value="rice">Rice</option>
+            <option value="salt">Salt</option>
+          </select>
+          <button class="btn-primary" onclick="findFranchise()">📍 Find Nearby Stores</button>
+        </div>
+        <div id="franchiseList" style="margin-top:16px"></div>
+      </div>
+
+      <div class="card">
+        <h2>🏪 All Franchise Locations</h2>
+        <div id="allFranchises">Loading...</div>
+      </div>
+    </div>
+
+    <!-- LOGS PAGE -->
+    <div class="page" id="page-logs">
+      <div class="row">
+        <div class="card">
+          <h2>🚨 Monitoring Logs</h2>
+          <div id="monitoringLogs">Loading...</div>
+        </div>
+        <div class="card">
+          <h2>🤖 Forecasting Logs</h2>
+          <div id="forecastingLogs">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
 </div>
 
-<!-- PLANOGRAM -->
-<div id="tab-planogram" class="tab-content">
-  <div class="card">
-    <h2>🗺️ Shelf Planogram Manager</h2>
-    <p style="font-size:0.85rem; color:#94a3b8; margin-bottom:16px">
-      Define which product goes in each slot. The AI uses this to identify products from shelf scans.
-    </p>
-    <div style="margin-bottom:16px; display:flex; align-items:center; gap:12px">
-      <label style="font-size:0.85rem; color:#94a3b8">Select Shelf:</label>
-      <select id="planogramShelf" onchange="loadPlanogram()" style="width:200px; margin-bottom:0">
-        <option value="SHELF_001">SHELF_001</option>
-        <option value="SHELF_002">SHELF_002</option>
-      </select>
-    </div>
-    <div class="planogram-grid" id="planogramGrid"></div>
-    <br>
-    <button class="btn-success" onclick="savePlanogram()">💾 Save Planogram</button>
+<!-- SETTINGS FAB -->
+<button class="settings-fab" id="settingsFab" onclick="toggleSettings()" title="Settings">⚙️</button>
+<div class="settings-panel" id="settingsPanel">
+  <h3>🎨 Appearance</h3>
+  <div class="theme-option" data-theme="light" onclick="setTheme('light')">
+    <span class="theme-option-icon">☀️</span> Light Mode
   </div>
-</div>
-
-<!-- FRANCHISE -->
-<div id="tab-franchise" class="tab-content">
-  <div class="card">
-    <h2>🔍 Find Nearby Franchise</h2>
-    <p style="font-size:0.85rem; color:#94a3b8; margin-bottom:16px">
-      Find nearby RetailMart stores that have a specific product in stock
-    </p>
-    <div class="row">
-      <select id="franchiseProduct">
-        <option value="">Select product...</option>
-        <option value="chocolates">Chocolates</option>
-        <option value="biscuits">Biscuits</option>
-        <option value="chips">Chips</option>
-        <option value="juice">Juice</option>
-        <option value="soft-drinks">Soft Drinks</option>
-        <option value="canned-food">Canned Food</option>
-        <option value="rice">Rice</option>
-        <option value="salt">Salt</option>
-      </select>
-      <button class="btn-primary" onclick="findFranchise()">📍 Find Nearby Stores</button>
-    </div>
-    <div id="franchiseList" style="margin-top:16px"></div>
+  <div class="theme-option" data-theme="dark" onclick="setTheme('dark')">
+    <span class="theme-option-icon">🌙</span> Dark Mode
   </div>
-
-  <div class="card">
-    <h2>🏪 All Franchise Locations</h2>
-    <div id="allFranchises">Loading...</div>
-  </div>
-</div>
-
-<!-- LOGS -->
-<div id="tab-logs" class="tab-content">
-  <div class="row">
-    <div class="card">
-      <h2>🚨 Monitoring Logs</h2>
-      <div id="monitoringLogs">Loading...</div>
-    </div>
-    <div class="card">
-      <h2>🤖 Forecasting Logs</h2>
-      <div id="forecastingLogs">Loading...</div>
-    </div>
+  <div class="theme-option" data-theme="system" onclick="setTheme('system')">
+    <span class="theme-option-icon">💻</span> System Default
   </div>
 </div>
 
@@ -534,19 +719,60 @@ if (!token || role !== "admin") window.location.href = "login.html";
 
 let chart;
 let selectedFile = null;
+let sidebarOpen = true;
+let currentPage = "overview";
 
-/* ===== TABS ===== */
-function showTab(name, btn) {
-  document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
-  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-  document.getElementById("tab-" + name).classList.add("active");
-  if (btn) btn.classList.add("active");
-  if (name === "overview") loadAdmin();
-  if (name === "inventory") loadAdmin();
-  if (name === "logs") loadAdmin();
-  if (name === "franchise") loadAllFranchises();
-  if (name === "shelf-scan") loadRecentScans();
-  if (name === "planogram") loadPlanogram();
+/* ===== SIDEBAR TOGGLE ===== */
+function toggleSidebar() {
+  sidebarOpen = !sidebarOpen;
+  const sidebar = document.getElementById("sidebar");
+  const topbarNav = document.getElementById("topbarNav");
+
+  if (sidebarOpen) {
+    sidebar.classList.remove("collapsed");
+    topbarNav.classList.remove("visible");
+    document.getElementById("sidebarToggle").innerHTML = "☰";
+  } else {
+    sidebar.classList.add("collapsed");
+    topbarNav.classList.add("visible");
+    document.getElementById("sidebarToggle").innerHTML = "☰";
+  }
+
+  localStorage.setItem("sidebarOpen", sidebarOpen);
+}
+
+// Restore sidebar state
+const savedSidebar = localStorage.getItem("sidebarOpen");
+if (savedSidebar === "false") {
+  sidebarOpen = true;
+  toggleSidebar();
+}
+
+/* ===== PAGE NAVIGATION ===== */
+function showPage(page, clickedBtn) {
+  currentPage = page;
+
+  // Hide all pages
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.getElementById("page-" + page).classList.add("active");
+
+  // Update sidebar items
+  document.querySelectorAll(".sidebar-item").forEach(item => {
+    item.classList.toggle("active", item.dataset.page === page);
+  });
+
+  // Update topbar nav items
+  document.querySelectorAll(".topbar-nav-item").forEach(item => {
+    item.classList.toggle("active", item.dataset.page === page);
+  });
+
+  // Load data for page
+  if (page === "overview") loadAdmin();
+  if (page === "inventory") loadAdmin();
+  if (page === "logs") loadAdmin();
+  if (page === "franchise") loadAllFranchises();
+  if (page === "shelf-scan") loadRecentScans();
+  if (page === "planogram") loadPlanogram();
 }
 
 /* ===== TOAST ===== */
@@ -554,8 +780,9 @@ function showToast(msg, type = "success") {
   const t = document.getElementById("toast");
   t.innerText = msg;
   t.style.display = "block";
-  t.style.background = type === "error" ? "#450a0a" : type === "warning" ? "#451a03" : "#052e16";
-  t.style.color = type === "error" ? "#fca5a5" : type === "warning" ? "#fcd34d" : "#86efac";
+  t.style.background = type === "error" ? "var(--danger-bg)" : type === "warning" ? "var(--warning-bg)" : "var(--success-bg)";
+  t.style.color = type === "error" ? "var(--danger-text)" : type === "warning" ? "var(--warning-text)" : "var(--success-text)";
+  t.style.border = `1px solid var(--${type === "success" ? "success" : type === "warning" ? "warning" : "danger"})`;
   setTimeout(() => t.style.display = "none", 4000);
 }
 
@@ -589,24 +816,47 @@ function renderInventoryTable(items) {
       : item.stock <= 3
       ? `<span class="badge badge-yellow">Low Stock</span>`
       : `<span class="badge badge-green">Healthy</span>`;
-    return `
-      <tr>
-        <td>${item.name}</td>
-        <td><strong>${item.stock}</strong></td>
-        <td>${status}</td>
-        <td>
-          <button class="btn-danger" style="padding:4px 10px; font-size:0.8rem"
-            onclick="deleteItem('${item.key}')">Delete</button>
-        </td>
-      </tr>`;
+    return `<tr>
+      <td><strong>${item.name}</strong></td>
+      <td>${item.stock}</td>
+      <td>${status}</td>
+      <td>
+        <div class="stock-edit">
+          <input type="number" id="edit_${item.key}" value="${item.stock}" min="0">
+          <button class="btn-primary btn-sm" onclick="updateStock('${item.key}')">Update</button>
+        </div>
+      </td>
+      <td>
+        <button class="btn-danger btn-sm" onclick="deleteItem('${item.key}')">Delete</button>
+      </td>
+    </tr>`;
   }).join("");
+}
+
+/* ===== UPDATE STOCK ===== */
+async function updateStock(key) {
+  const input = document.getElementById("edit_" + key);
+  const newStock = parseInt(input.value);
+  if (isNaN(newStock) || newStock < 0) return showToast("Invalid stock value", "error");
+
+  const res = await fetch("/admin/update-stock", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: token },
+    body: JSON.stringify({ key, stock: newStock })
+  });
+  const data = await res.json();
+  showToast(data.message || "Stock updated!");
+  loadAdmin();
 }
 
 /* ===== CHART ===== */
 function renderChart(items) {
   const el = document.getElementById("stockChart");
   if (!el) return;
-  const colors = items.map(i => i.stock === 0 ? "#ef4444" : i.stock <= 3 ? "#f59e0b" : "#22c55e");
+  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+  const colors = items.map(i =>
+    i.stock === 0 ? "#ef4444" : i.stock <= 3 ? "#f59e0b" : isDark ? "#a78bfa" : "#6366f1"
+  );
   if (chart) {
     chart.data.labels = items.map(i => i.name);
     chart.data.datasets[0].data = items.map(i => i.stock);
@@ -618,13 +868,13 @@ function renderChart(items) {
     type: "bar",
     data: {
       labels: items.map(i => i.name),
-      datasets: [{ label: "Stock", data: items.map(i => i.stock), backgroundColor: colors, borderRadius: 6 }]
+      datasets: [{ label: "Stock", data: items.map(i => i.stock), backgroundColor: colors, borderRadius: 8 }]
     },
     options: {
       responsive: true,
       plugins: { legend: { display: false } },
       scales: {
-        y: { beginAtZero: true, ticks: { color: "#94a3b8", stepSize: 1 }, grid: { color: "#1e293b" } },
+        y: { beginAtZero: true, ticks: { color: "#94a3b8", stepSize: 1 }, grid: { color: "rgba(0,0,0,0.05)" } },
         x: { ticks: { color: "#94a3b8" }, grid: { display: false } }
       }
     }
@@ -638,10 +888,10 @@ function renderOverviewLogs(monitoring, forecasting) {
   if (!mEl || !fEl) return;
   mEl.innerHTML = monitoring.slice(0, 5).map(l =>
     `<div class="log-item monitoring">${l.message || l.item}<div class="log-time">${l.time}</div></div>`
-  ).join("") || "<p style='color:#94a3b8'>No alerts yet</p>";
+  ).join("") || "<p style='color:var(--text-muted)'>No alerts yet</p>";
   fEl.innerHTML = forecasting.slice(0, 5).map(l =>
     `<div class="log-item forecasting">${l.message || l.item}<div class="log-time">${l.time}</div></div>`
-  ).join("") || "<p style='color:#94a3b8'>No actions yet</p>";
+  ).join("") || "<p style='color:var(--text-muted)'>No actions yet</p>";
 }
 
 /* ===== LOGS ===== */
@@ -649,7 +899,7 @@ function renderLogs(logs, id, type) {
   const el = document.getElementById(id);
   if (!el) return;
   el.innerHTML = logs.length === 0
-    ? "<p style='color:#94a3b8'>No logs yet</p>"
+    ? "<p style='color:var(--text-muted)'>No logs yet</p>"
     : logs.map(l =>
         `<div class="log-item ${type}">${l.message || l.item + " → " + l.stock}<div class="log-time">${l.time}</div></div>`
       ).join("");
@@ -707,24 +957,18 @@ function handleImageUpload(event) {
 
 async function scanShelf() {
   if (!selectedFile) return showToast("Please upload an image first", "error");
-
   const totalSlots = parseInt(document.getElementById("totalSlotsInput").value) || 8;
   const shelfId = document.getElementById("scanShelfId").value;
-
   const btn = document.getElementById("scanBtn");
   btn.innerText = "⏳ Scanning...";
   btn.disabled = true;
-
   const formData = new FormData();
   formData.append("image", selectedFile);
   formData.append("total_slots", totalSlots);
   formData.append("shelf_id", shelfId);
-
   try {
     const res = await fetch("/admin/scan-shelf", {
-      method: "POST",
-      headers: { Authorization: token },
-      body: formData
+      method: "POST", headers: { Authorization: token }, body: formData
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
@@ -733,7 +977,6 @@ async function scanShelf() {
   } catch (err) {
     showToast("Scan failed: " + err.message, "error");
   }
-
   btn.innerText = "🔍 Scan Shelf with AI";
   btn.disabled = false;
 }
@@ -742,70 +985,58 @@ function renderScanResult(data) {
   document.getElementById("totalSlots").innerText = data.total_slots;
   document.getElementById("occupiedSlots").innerText = data.occupied_slots;
   document.getElementById("emptySlots").innerText = data.empty_slots;
-
   const pct = data.fill_percentage || Math.round((data.occupied_slots / data.total_slots) * 100);
   document.getElementById("fillPct").innerText = pct + "%";
   document.getElementById("fillPctLabel").innerText = pct + "%";
-
   const bar = document.getElementById("fillBarInner");
   bar.style.width = pct + "%";
-  bar.style.background = pct > 60 ? "#22c55e" : pct > 30 ? "#f59e0b" : "#ef4444";
+  bar.style.background = pct > 60 ? "var(--success)" : pct > 30 ? "var(--warning)" : "var(--danger)";
 
-  // Slot grid
   const grid = document.getElementById("slotGrid");
   grid.innerHTML = "";
   for (let i = 1; i <= data.total_slots; i++) {
     const isOccupied = data.occupied_slot_numbers.includes(i);
-    const product = data.present_products?.[0] || "";
+    const detail = data.detection_details?.find(d => d.slot === i);
     const div = document.createElement("div");
     div.className = `slot ${isOccupied ? "occupied" : "empty"}`;
     div.innerHTML = `
       <div class="slot-number">Slot ${i}</div>
       <div style="font-size:1.2rem">${isOccupied ? "✅" : "❌"}</div>
-      <div style="font-size:0.65rem; margin-top:2px">${isOccupied ? (data.detection_details?.find(d => d.slot === i)?.product || "") : "Empty"}</div>
+      <div style="font-size:0.65rem;margin-top:2px">${isOccupied ? (detail?.product || "") : "Empty"}</div>
     `;
     grid.appendChild(div);
   }
 
-  // Present products
   document.getElementById("presentProducts").innerHTML = data.present_products.length === 0
-    ? "<p style='color:#94a3b8'>None detected</p>"
+    ? "<p style='color:var(--text-muted)'>None detected</p>"
     : data.present_products.map(p =>
-        `<span class="product-tag" style="background:#052e16;color:#86efac">✅ ${p}</span>`
+        `<span class="product-tag" style="background:var(--success-bg);color:var(--success-text)">✅ ${p}</span>`
       ).join("");
 
-  // Missing products
   document.getElementById("missingProducts").innerHTML = data.missing_products.length === 0
-    ? "<p style='color:#94a3b8'>None missing ✅</p>"
+    ? "<p style='color:var(--text-muted)'>None missing ✅</p>"
     : data.missing_products.map(p =>
-        `<span class="product-tag" style="background:#450a0a;color:#fca5a5">❌ ${p}</span>`
+        `<span class="product-tag" style="background:var(--danger-bg);color:var(--danger-text)">❌ ${p}</span>`
       ).join("");
 
-  // Franchise search buttons
   document.getElementById("missingProductBtns").innerHTML = data.missing_products.length === 0
-    ? "<p style='color:#94a3b8'>No missing products 🎉</p>"
+    ? "<p style='color:var(--text-muted)'>No missing products 🎉</p>"
     : data.missing_products.map(p =>
-        `<button class="btn-warning" style="font-size:0.8rem" onclick="findFranchiseForProduct('${p}')">
-          📍 Find ${p} nearby
-        </button>`
+        `<button class="btn-warning" style="font-size:0.8rem" onclick="findFranchiseForProduct('${p}')">📍 Find ${p} nearby</button>`
       ).join("");
 }
 
-/* ===== RECENT SCANS ===== */
 async function loadRecentScans() {
   const res = await fetch("/admin/shelf-scans", { headers: { Authorization: token } });
   const scans = await res.json();
   const el = document.getElementById("recentScans");
   el.innerHTML = scans.length === 0
-    ? "<p style='color:#94a3b8'>No scans yet</p>"
+    ? "<p style='color:var(--text-muted)'>No scans yet</p>"
     : scans.map(s => `
-        <div style="padding:12px; border:1px solid #334155; border-radius:8px; margin-bottom:8px">
-          <strong>${s.shelf_id}</strong> —
-          ${s.occupied_slots}/${s.total_slots} slots occupied
-          <span class="badge ${s.empty_slots > 5 ? 'badge-red' : 'badge-green'}" style="margin-left:8px">
-            ${s.empty_slots} empty
-          </span>
-          <div style="font-size:0.8rem; color:#94a3b8; margin-top:4px">${s.detectedAt}</div>
+        <div style="padding:12px;border:1px solid var(--border-color);border-radius:10px;margin-bottom:8px">
+          <strong>${s.shelf_id}</strong> — ${s.occupied_slots}/${s.total_slots} slots occupied
+          <span class="badge ${s.empty_slots > 5 ? 'badge-red' : 'badge-green'}" style="margin-left:8px">${s.empty_slots} empty</span>
+          <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px">${s.detectedAt}</div>
         </div>
       `).join("");
 }
@@ -845,9 +1076,7 @@ async function loadPlanogram() {
 async function savePlanogram() {
   const shelfId = document.getElementById("planogramShelf").value;
   const slotMapping = {};
-  for (let i = 1; i <= 10; i++) {
-    slotMapping[i] = document.getElementById(`slot_${i}`).value;
-  }
+  for (let i = 1; i <= 10; i++) slotMapping[i] = document.getElementById(`slot_${i}`).value;
   const res = await fetch("/admin/planogram", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: token },
@@ -863,10 +1092,7 @@ async function loadAllFranchises() {
   const franchises = await res.json();
   document.getElementById("allFranchises").innerHTML = franchises.map(f => `
     <div class="franchise-card">
-      <div>
-        <h3>🏪 ${f.name}</h3>
-        <p>📍 ${f.address}</p>
-      </div>
+      <div><h3>🏪 ${f.name}</h3><p>📍 ${f.address}</p></div>
       <span class="badge badge-blue">Active</span>
     </div>
   `).join("");
@@ -875,8 +1101,7 @@ async function loadAllFranchises() {
 async function findFranchise() {
   const product = document.getElementById("franchiseProduct").value;
   if (!product) return showToast("Please select a product", "warning");
-  const el = document.getElementById("franchiseList");
-  await findFranchiseForProduct(product, el);
+  await findFranchiseForProduct(product, document.getElementById("franchiseList"));
 }
 
 async function findFranchiseForProduct(product, targetEl) {
@@ -888,22 +1113,14 @@ async function findFranchiseForProduct(product, targetEl) {
   const results = await res.json();
   const el = targetEl || document.getElementById("franchiseResults");
   el.innerHTML = results.length === 0
-    ? `<p style='color:#94a3b8'>No nearby stores have ${product} in stock</p>`
-    : `
-      <h3 style="margin-bottom:12px; color:#38bdf8; font-size:0.9rem">
-        Stores with <strong>${product}</strong> in stock:
-      </h3>
+    ? `<p style='color:var(--text-muted)'>No nearby stores have ${product} in stock</p>`
+    : `<h3 style="margin-bottom:12px;color:var(--text-accent);font-size:0.9rem">Stores with <strong>${product}</strong> in stock:</h3>
       ${results.map(f => `
         <div class="franchise-card">
-          <div>
-            <h3>🏪 ${f.name}</h3>
-            <p>📍 ${f.address}</p>
-            <p style="color:#22c55e; margin-top:4px">📦 Stock: ${f.stock} units</p>
-          </div>
+          <div><h3>🏪 ${f.name}</h3><p>📍 ${f.address}</p><p style="color:var(--success);margin-top:4px">📦 Stock: ${f.stock} units</p></div>
           <div class="distance-badge">📏 ${f.distance} km</div>
         </div>
-      `).join("")}
-    `;
+      `).join("")}`;
 }
 
 /* ===== LOGOUT ===== */

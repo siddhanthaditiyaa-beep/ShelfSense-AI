@@ -1,117 +1,88 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Create Account | Smart Inventory</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up | Retail Mart AI</title>
   <link rel="stylesheet" href="style.css">
+  <script src="theme.js"></script>
 </head>
+<body>
 
-<body class="login-body">
+<div class="auth-page">
+  <div class="auth-card">
+    <h1>🏪 Retail Mart AI</h1>
+    <p>Create your account</p>
 
-<div class="login-wrapper">
+    <div class="auth-error" id="errorMsg"></div>
 
-  <h1 class="login-title">Create Account</h1>
-  <p class="login-subtitle">Register as a new customer</p>
+    <input type="text" id="fname" placeholder="First name">
+    <input type="text" id="lname" placeholder="Last name">
+    <input type="email" id="email" placeholder="Email address" autocomplete="email">
+    <input type="password" id="password" placeholder="Password" autocomplete="new-password">
+    <button class="btn-primary" onclick="signup()">Create Account</button>
 
-  <div class="login-card">
-
-    <input id="fname" placeholder="First Name">
-    <input id="lname" placeholder="Last Name">
-    <input id="email" placeholder="Email">
-
-    <!-- 🔐 Password with eye toggle -->
-    <div class="password-box">
-      <input id="password" type="password" placeholder="Password">
-      <span class="eye" onclick="toggleSignupPassword()">👁️</span>
+    <div class="auth-link">
+      Already have an account? <a href="login.html">Sign in</a>
     </div>
+  </div>
+</div>
 
-    <button id="signupBtn" class="login-btn" onclick="signup()">CREATE ACCOUNT</button>
-
-    <div class="loader" id="loader" style="display:none;"></div>
-
-    <p id="msg" class="msg"></p>
-
-    <p class="signup-text">
-      Already have an account?
-      <a href="login.html">Login</a>
-    </p>
-
+<!-- Settings FAB -->
+<button class="settings-fab" id="settingsFab" onclick="toggleSettings()" title="Settings">⚙️</button>
+<div class="settings-panel" id="settingsPanel">
+  <h3>🎨 Appearance</h3>
+  <div class="theme-option" data-theme="light" onclick="setTheme('light')">
+    <span class="theme-option-icon">☀️</span> Light Mode
+  </div>
+  <div class="theme-option" data-theme="dark" onclick="setTheme('dark')">
+    <span class="theme-option-icon">🌙</span> Dark Mode
+  </div>
+  <div class="theme-option" data-theme="system" onclick="setTheme('system')">
+    <span class="theme-option-icon">💻</span> System Default
   </div>
 </div>
 
 <script>
-function isValidEmail(e) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
-}
-
-/* 👁️ TOGGLE PASSWORD */
-function toggleSignupPassword() {
-  const p = document.getElementById("password");
-  p.type = p.type === "password" ? "text" : "password";
-}
-
 async function signup() {
-  const fnameEl = document.getElementById("fname");
-  const lnameEl = document.getElementById("lname");
-  const emailEl = document.getElementById("email");
-  const passwordEl = document.getElementById("password");
-
-  const fname = fnameEl.value.trim();
-  const lname = lnameEl.value.trim();
-  const email = emailEl.value.trim();
-  const password = passwordEl.value.trim();
-
-  const msg = document.getElementById("msg");
-  const btn = document.getElementById("signupBtn");
-  const loader = document.getElementById("loader");
+  const fname = document.getElementById("fname").value.trim();
+  const lname = document.getElementById("lname").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const errorMsg = document.getElementById("errorMsg");
 
   if (!fname || !lname || !email || !password) {
-    msg.innerText = "⚠️ All fields required";
-    msg.style.color = "red";
+    errorMsg.style.display = "block";
+    errorMsg.innerText = "Please fill in all fields";
     return;
   }
 
-  if (!isValidEmail(email)) {
-    msg.innerText = "⚠️ Invalid email";
-    msg.style.color = "red";
-    return;
-  }
+  try {
+    const res = await fetch("/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fname, lname, email, password })
+    });
 
-  if (btn.disabled) return;
+    const data = await res.json();
 
-  btn.disabled = true;
-  loader.style.display = "block";
-  msg.innerText = "";
+    if (!res.ok) {
+      errorMsg.style.display = "block";
+      errorMsg.innerText = data.message || "Signup failed";
+      return;
+    }
 
-  const res = await fetch("/signup", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ fname, lname, email, password })
-  });
-
-  const data = await res.json();
-
-  loader.style.display = "none";
-  btn.disabled = false;
-
-  if (!res.ok) {
-    msg.innerText = data.message || "Signup failed";
-    msg.style.color = "red";
-    return;
-  }
-
-  msg.innerText = "✅ Account created!";
-  msg.style.color = "green";
-
-  setTimeout(() => {
+    alert("Account created! Please login.");
     window.location.href = "login.html";
-  }, 1500);
+
+  } catch (err) {
+    errorMsg.style.display = "block";
+    errorMsg.innerText = "Connection error. Please try again.";
+  }
 }
 
-/* ⌨️ ENTER KEY SUPPORT */
-document.addEventListener("keydown", function (e) {
-  if (e.key === "Enter") {
-    signup();
-  }
+document.addEventListener("keypress", function(e) {
+  if (e.key === "Enter") signup();
 });
 </script>
 

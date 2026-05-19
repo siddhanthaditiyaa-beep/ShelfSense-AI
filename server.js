@@ -325,6 +325,17 @@ app.post("/admin/add-item", auth("admin"), async (req, res) => {
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
+app.post("/admin/update-stock", auth("admin"), async (req, res) => {
+  try {
+    const { key, stock } = req.body;
+    if (!key || stock === undefined) return res.status(400).json({ message: "key and stock required" });
+    await Item.updateOne({ key }, { $set: { stock: parseInt(stock) } });
+    res.json({ message: `Stock updated to ${stock}` });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 app.delete("/admin/delete-item/:key", auth("admin"), async (req, res) => {
   try {
     await Item.deleteOne({ key: req.params.key });
