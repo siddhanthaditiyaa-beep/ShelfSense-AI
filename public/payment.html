@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Payment | Smart Inventory</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="container">
+  <h1>💳 Payment</h1>
+
+  <h3>Order Summary</h3>
+  <ul id="summary"></ul>
+
+  <h2>Total: ₹<span id="total">0</span></h2>
+
+  <button onclick="pay()">Pay Now</button>
+  <p id="msg"></p>
+</div>
+
+<script>
+/* =========================
+   🔐 SESSION PROTECTION
+========================= */
+const role = localStorage.getItem("role");
+const token = localStorage.getItem("token");
+
+if (!token || role !== "customer") {
+  window.location.href = "login.html";
+}
+
+/* =========================
+   CART + PRICES
+========================= */
+const cart = JSON.parse(localStorage.getItem("cart")) || {};
+const prices = {
+  milk: 50,
+  bread: 40,
+  eggs: 10
+};
+
+const summary = document.getElementById("summary");
+const totalEl = document.getElementById("total");
+let total = 0;
+
+/* =========================
+   RENDER SUMMARY
+========================= */
+if (Object.keys(cart).length === 0) {
+  summary.innerHTML = "<li>Your cart is empty</li>";
+} else {
+  Object.keys(cart).forEach(key => {
+    const cost = prices[key] * cart[key];
+    total += cost;
+
+    summary.innerHTML += `
+      <li>${key} × ${cart[key]} = ₹${cost}</li>
+    `;
+  });
+}
+
+totalEl.innerText = total;
+
+/* =========================
+   PAY NOW
+========================= */
+async function pay() {
+  if (Object.keys(cart).length === 0) {
+    msg.innerText = "⚠️ Cart is empty";
+    msg.style.color = "red";
+    return;
+  }
+
+  const res = await fetch("/checkout", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: token
+    },
+    body: JSON.stringify({ cart })
+  });
+
+  const data = await res.json();
+  msg.innerText = data.message;
+
+  if (res.ok) {
+    msg.style.color = "green";
+    localStorage.removeItem("cart");
+
+    setTimeout(() => {
+      window.location.href = "customer.html";
+    }, 1500);
+  } else {
+    msg.style.color = "red";
+  }
+}
+</script>
+
+</body>
+</html>

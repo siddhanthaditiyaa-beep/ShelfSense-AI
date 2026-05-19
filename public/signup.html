@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Create Account | Smart Inventory</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="login-body">
+
+<div class="login-wrapper">
+
+  <h1 class="login-title">Create Account</h1>
+  <p class="login-subtitle">Register as a new customer</p>
+
+  <div class="login-card">
+
+    <input id="fname" placeholder="First Name">
+    <input id="lname" placeholder="Last Name">
+    <input id="email" placeholder="Email">
+
+    <!-- 🔐 Password with eye toggle -->
+    <div class="password-box">
+      <input id="password" type="password" placeholder="Password">
+      <span class="eye" onclick="toggleSignupPassword()">👁️</span>
+    </div>
+
+    <button id="signupBtn" class="login-btn" onclick="signup()">CREATE ACCOUNT</button>
+
+    <div class="loader" id="loader" style="display:none;"></div>
+
+    <p id="msg" class="msg"></p>
+
+    <p class="signup-text">
+      Already have an account?
+      <a href="login.html">Login</a>
+    </p>
+
+  </div>
+</div>
+
+<script>
+function isValidEmail(e) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+}
+
+/* 👁️ TOGGLE PASSWORD */
+function toggleSignupPassword() {
+  const p = document.getElementById("password");
+  p.type = p.type === "password" ? "text" : "password";
+}
+
+async function signup() {
+  const fnameEl = document.getElementById("fname");
+  const lnameEl = document.getElementById("lname");
+  const emailEl = document.getElementById("email");
+  const passwordEl = document.getElementById("password");
+
+  const fname = fnameEl.value.trim();
+  const lname = lnameEl.value.trim();
+  const email = emailEl.value.trim();
+  const password = passwordEl.value.trim();
+
+  const msg = document.getElementById("msg");
+  const btn = document.getElementById("signupBtn");
+  const loader = document.getElementById("loader");
+
+  if (!fname || !lname || !email || !password) {
+    msg.innerText = "⚠️ All fields required";
+    msg.style.color = "red";
+    return;
+  }
+
+  if (!isValidEmail(email)) {
+    msg.innerText = "⚠️ Invalid email";
+    msg.style.color = "red";
+    return;
+  }
+
+  if (btn.disabled) return;
+
+  btn.disabled = true;
+  loader.style.display = "block";
+  msg.innerText = "";
+
+  const res = await fetch("/signup", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ fname, lname, email, password })
+  });
+
+  const data = await res.json();
+
+  loader.style.display = "none";
+  btn.disabled = false;
+
+  if (!res.ok) {
+    msg.innerText = data.message || "Signup failed";
+    msg.style.color = "red";
+    return;
+  }
+
+  msg.innerText = "✅ Account created!";
+  msg.style.color = "green";
+
+  setTimeout(() => {
+    window.location.href = "login.html";
+  }, 1500);
+}
+
+/* ⌨️ ENTER KEY SUPPORT */
+document.addEventListener("keydown", function (e) {
+  if (e.key === "Enter") {
+    signup();
+  }
+});
+</script>
+
+</body>
+</html>

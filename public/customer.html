@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Shop | Smart Inventory</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="container">
+  <h1>🛒 Shop</h1>
+  <button onclick="logout()" class="login-btn" style="width:120px">Logout</button>
+
+  <div id="items" class="grid"></div>
+
+  <hr>
+
+  <h2>🧺 Cart</h2>
+  <ul id="cart"></ul>
+
+  <button onclick="checkout()">Checkout</button>
+  <p id="msg"></p>
+</div>
+
+<script>
+const token = localStorage.getItem("token");
+const role = localStorage.getItem("role");
+
+if (!token || role !== "customer") {
+  window.location.href = "login.html";
+}
+
+let cart = {};
+
+/* ================= LOAD ITEMS ================= */
+async function loadItems() {
+  const res = await fetch("/shop-items", {
+    headers: { Authorization: token }
+  });
+
+  const data = await res.json();
+  const container = document.getElementById("items");
+  container.innerHTML = "";
+
+  Object.keys(data).forEach(key => {
+    const item = data[key];
+
+    container.innerHTML += `
+      <div class="item-card">
+        <h3>${item.name}</h3>
+
+        ${
+          item.restocking
+            ? `<p class="alert">🔄 Restocking... please wait</p>`
+            : item.warning
+              ? `<span class="badge">Only ${item.warning} left</span>`
+              : ""
+        }
+
+        <button ${item.canBuy ? "" : "disabled"}
+          onclick="add('${key}')">
+          ${item.canBuy ? "Add to Cart" : "Out of Stock"}
+        </button>
+      </div>
+    `;
+  });
+}
+
+/* ================= ADD ITEM ================= */
+function add(key) {
+  cart[key] = (cart[key] || 0) + 1;
+  renderCart();
+}
+
+/* ================= REMOVE ITEM ================= */
+function remove(key) {
+  cart[key]--;
+  if (cart[key] <= 0) delete cart[key];
+  renderCart();
+}
+
+/* ================= CART VIEW ================= */
+function renderCart() {
+  const ul = document.getElementById("cart");
+  ul.innerHTML = "";
+
+  Object.keys(cart).forEach(key => {
+    ul.innerHTML += `
+      <li>
+        ${key} x ${cart[key]}
+        <button onclick="remove('${key}')">➖</button>
+      </li>
+    `;
+  });
+}
+
+/* ================= CHECKOUT ================= */
+async function checkout() {
+  const res = await fetch("/checkout", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: token
+    },
+    body: JSON.stringify({ cart })
+  });
+
+  const data = await res.json();
+  msg.innerText = data.message;
+
+  if (data.adjusted) {
+    msg.innerText += " ⚠️ Cart adjusted due to low stock";
+  }
+
+  if (res.ok) {
+    msg.style.color = "green";
+    cart = {};
+    renderCart();
+    loadItems();
+  } else {
+    msg.style.color = "red";
+  }
+}
+
+/* ================= LOGOUT ================= */
+function logout() {
+  localStorage.clear();
+  window.location.href = "login.html";
+}
+
+/* ================= LIVE REFRESH ================= */
+loadItems();
+setInterval(loadItems, 3000);
+</script>
+
+</body>
+</html>

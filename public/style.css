@@ -1,0 +1,296 @@
+/* ===== GLOBAL ===== */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: #eef4ff;
+  margin: 0;
+  padding: 0;
+}
+
+/* ===== LOGIN PAGE ===== */
+.login-body {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.login-wrapper {
+  text-align: center;
+}
+
+.login-title {
+  font-size: 28px;
+  margin-bottom: 5px;
+}
+
+.login-subtitle {
+  color: #555;
+  margin-bottom: 25px;
+}
+
+.login-card {
+  background: white;
+  width: 420px;
+  padding: 35px;
+  border-radius: 14px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+  text-align: left;
+}
+
+.form-group {
+  margin-bottom: 18px;
+}
+
+label {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  margin-top: 6px;
+  border-radius: 6px;
+  border: 1px solid #aaa;
+  font-size: 14px;
+}
+
+.password-box {
+  position: relative;
+}
+
+.eye {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  cursor: pointer;
+}
+
+.login-btn {
+  width: 100%;
+  padding: 14px;
+  background: #3ec6c6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.login-btn:hover {
+  background: #32b2b2;
+}
+
+.divider {
+  height: 1px;
+  background: #ddd;
+  margin: 20px 0;
+}
+
+.signup-text,
+.forgot {
+  text-align: center;
+  font-size: 14px;
+}
+
+.msg {
+  text-align: center;
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+/* ===== MAIN CONTAINER ===== */
+.container {
+  max-width: 1100px;
+  margin: 40px auto;
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+}
+
+/* ===== GRID ===== */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+/* ===== ITEM CARD ===== */
+.item-card {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}
+
+/* ===== BUTTON ===== */
+button {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button:disabled {
+  background: #ccc;
+}
+
+/* ===== ALERT / BADGE ===== */
+.alert {
+  color: red;
+  font-weight: bold;
+}
+
+.badge {
+  background: red;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.password-box {
+  position: relative;
+}
+
+.password-box .eye {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 18px;
+}
+
+/* ===== LOADER (STEP 3) ===== */
+.loader {
+  display: none;
+  margin: 12px auto;
+  width: 28px;
+  height: 28px;
+  border: 4px solid #ccc;
+  border-top: 4px solid #3ec6c6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* DISABLED BUTTON STATE */
+.login-btn:disabled {
+  background: Burlington#aaa;
+  cursor: not-allowed;
+}
+
+/* ================= ADMIN UI ================= */
+
+.admin-body {
+  background: #eef4ff;
+  font-family: Arial, sans-serif;
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 25px 40px;
+}
+
+.admin-container {
+  max-width: 1200px;
+  margin: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 25px;
+  padding: 20px;
+}
+
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 14px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.card h2 {
+  margin-bottom: 15px;
+}
+
+.card input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.card button {
+  background: #3ec6c6;
+  border: none;
+  color: white;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.logout-btn {
+  background: red;
+  color: white;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.delete-btn {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+ul li {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.danger-btn {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 15px;
+  font-weight: bold;
+}
+
+.danger-btn:hover {
+  background: #c0392b;
+}

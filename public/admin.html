@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Dashboard | Smart Inventory</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body class="admin-body">
+
+<div class="admin-header">
+  <h1>📊 Admin Dashboard</h1>
+  <button class="logout-btn" onclick="logout()">Logout</button>
+</div>
+
+<div class="admin-container">
+
+  <!-- ADD ITEM -->
+  <div class="card">
+    <h2>➕ Add Item</h2>
+    <input id="itemName" placeholder="Item name">
+    <input id="itemStock" type="number" placeholder="Initial stock">
+    <button onclick="addItem()">Add Item</button>
+  </div>
+
+  <!-- INVENTORY -->
+  <div class="card">
+    <h2>📦 Inventory</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Stock</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="inventoryTable"></tbody>
+    </table>
+  </div>
+
+  <!-- STOCK GRAPH (BIGGER) -->
+  <div class="card">
+    <h2>📈 Stock Graph</h2>
+    <canvas id="stockChart" height="220"></canvas>
+  </div>
+
+  <button class="danger-btn" onclick="resetLogs()">🧹 Reset Logs & Stocks</button>
+
+  <!-- FORECASTING LOGS -->
+  <div class="card">
+    <h2>🤖 Forecasting Logs</h2>
+    <ul id="forecastingLogs"></ul>
+  </div>
+
+  <!-- MONITORING LOGS -->
+  <div class="card">
+    <h2>🔍 Monitoring Logs</h2>
+    <ul id="monitoringLogs"></ul>
+  </div>
+
+</div>
+
+<script>
+const token = localStorage.getItem("token");
+const role = localStorage.getItem("role");
+
+if (!token || role !== "admin") {
+  window.location.href = "login.html";
+}
+
+let chart;
+
+/* ================= LOAD ADMIN DATA ================= */
+async function loadAdmin() {
+  const res = await fetch("/admin-data", {
+    headers: { Authorization: token }
+  });
+
+  const data = await res.json();
+
+  renderInventory(data.inventory);
+  renderLogs(data.forecasting, "forecastingLogs");
+  renderLogs(data.monitoring, "monitoringLogs");
+  renderChart(data.inventory);
+}
+
+/* ================= INVENTORY ================= */
+function renderInventory(items) {
+  const table = document.getElementById("inventoryTable");
+  table.innerHTML = "";
+
+  items.forEach(item => {
+    table.innerHTML += `
+      <tr>
+        <td>${item.name}</td>
+        <td>${item.stock}</td>
+        <td>
+          <button class="delete-btn" onclick="deleteItem('${item.key}')">✖</button>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+/* ================= LOGS ================= */
+function renderLogs(logs, id) {
+  const ul = document.getElementById(id);
+  ul.innerHTML = "";
+
+  if (logs.length === 0) {
+    ul.innerHTML = "<li>No logs yet</li>";
+    return;
+  }
+
+  logs.forEach(l => {
+    ul.innerHTML += `
+      <li>
+        <strong>${l.item}</strong> → ${l.stock}
+        <br><small>${l.time}</small>
+      </li>
+    `;
+  });
+}
+
+let pulseInterval = null;
+let pulseState = true;
+
+const shownZeroStock = new Set();
+
+function showToast(message) {
+  const toast = document.getElementById("toast");
+  toast.innerText = message;
+  toast.style.display = "block";
+
+  setTimeout(() => {
+    toast.style.display = "none";
+  }, 3000);
+}
+
+/* ================= GRAPH (IMPROVED) ================= */
+function renderChart(items) {
+  chart.data.labels = items.map(i => i.name);
+  chart.data.datasets[0].data = items.map(i => i.stock);
+
+  chart.data.datasets[0].backgroundColor = items.map(i => {
+    if (i.stock === 0) return pulseState ? "#ff0000" : "#ffb3b3";
+    if (i.stock < 3) return "#ff4d4d";
+    return "#3ec6c6";
+  });
+
+  chart.update("none");
+
+  // 🔔 Toast notification for zero stock
+  items.forEach(item => {
+    if (item.stock === 0 && !shownZeroStock.has(item.name)) {
+      showToast(`🚨 ${item.name} is OUT OF STOCK!`);
+      shownZeroStock.add(item.name);
+    }
+  });
+
+  // Handle pulsing animation
+  const hasZeroStock = items.some(i => i.stock === 0);
+
+  if (hasZeroStock && !pulseInterval) {
+    pulseInterval = setInterval(() => {
+      pulseState = !pulseState;
+      renderChart(items);
+    }, 600);
+  }
+
+  if (!hasZeroStock && pulseInterval) {
+    clearInterval(pulseInterval);
+    pulseInterval = null;
+    shownZeroStock.clear(); // reset alerts when stock recovers
+  }
+}
+
+
+/* ================= ADD ITEM ================= */
+async function addItem() {
+  const name = itemName.value.trim();
+  const stock = Number(itemStock.value);
+
+  if (!name || stock < 0) return alert("Invalid input");
+
+  await fetch("/admin/add-item", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: token
+    },
+    body: JSON.stringify({ name, stock })
+  });
+
+  itemName.value = "";
+  itemStock.value = "";
+  loadAdmin();
+}
+
+/* ================= DELETE ITEM ================= */
+async function deleteItem(key) {
+  await fetch(`/admin/delete-item/${key}`, {
+    method: "DELETE",
+    headers: { Authorization: token }
+  });
+  loadAdmin();
+}
+
+/* ================= RESET LOGS + STOCKS ================= */
+async function resetLogs() {
+  if (!confirm("Clear all logs and reset stocks?")) return;
+
+  await fetch("/admin/reset-logs", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: token
+    }
+  });
+
+  loadAdmin();
+}
+
+/* ================= LOGOUT ================= */
+async function logout() {
+  await fetch("/logout", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token })
+  });
+
+  localStorage.clear();
+  window.location.href = "login.html";
+}
+
+function initChart() {
+  const ctx = document.getElementById("stockChart").getContext("2d");
+
+  chart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: [],
+      datasets: [{
+        label: "Stock",
+        data: [],
+        backgroundColor: "#3ec6c6",
+        borderRadius: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      animation: {
+        duration: 1200,
+        easing: "easeInOutQuart"
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { stepSize: 1 }
+        }
+      }
+    }
+  });
+}
+
+initChart();
+loadAdmin();
+setInterval(loadAdmin, 3000);
+</script>
+
+<!-- 🔔 Toast Notification -->
+<div id="toast" style="
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #ff4d4d;
+  color: white;
+  padding: 14px 18px;
+  border-radius: 8px;
+  font-weight: bold;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  display: none;
+  z-index: 9999;
+">
+</div>
+
+</body>
+</html>

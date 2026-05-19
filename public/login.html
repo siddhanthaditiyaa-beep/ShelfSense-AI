@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>User Login | Smart Inventory</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="login-body">
+
+<div class="login-wrapper">
+
+  <h1 class="login-title">User Login</h1>
+  <p class="login-subtitle">Login to your smart inventory account</p>
+
+  <div class="login-card">
+
+    <div class="form-group">
+      <label>Email / Username</label>
+      <input id="usernameInput" placeholder="Enter email or username">
+    </div>
+
+    <div class="form-group">
+      <label>Password</label>
+      <div class="password-box">
+        <input id="passwordInput" type="password" placeholder="Enter password">
+        <span class="eye" onclick="togglePassword()">👁️</span>
+      </div>
+    </div>
+
+    <button id="loginBtn" class="login-btn" onclick="login()">LOG IN</button>
+
+    <div class="loader" id="loader" style="display:none;"></div>
+
+    <div class="divider"></div>
+
+    <p class="signup-text">
+      New user?
+      <a href="signup.html">Create an account</a>
+    </p>
+
+    <p id="msg" class="msg"></p>
+
+  </div>
+</div>
+
+<script>
+function togglePassword() {
+  const p = document.getElementById("passwordInput");
+  p.type = p.type === "password" ? "text" : "password";
+}
+
+async function login() {
+  const usernameValue = document.getElementById("usernameInput").value.trim();
+  const passwordValue = document.getElementById("passwordInput").value.trim();
+  const msg = document.getElementById("msg");
+  const btn = document.getElementById("loginBtn");
+  const loader = document.getElementById("loader");
+
+  if (!usernameValue || !passwordValue) {
+    msg.innerText = "⚠️ Fill all fields";
+    msg.style.color = "red";
+    return;
+  }
+
+  if (btn.disabled) return; // ⛔ prevent double submit
+
+  btn.disabled = true;
+  loader.style.display = "block";
+  msg.innerText = "";
+
+  const res = await fetch("/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username: usernameValue,
+      password: passwordValue
+    })
+  });
+
+  const data = await res.json();
+
+  loader.style.display = "none";
+  btn.disabled = false;
+
+  if (!res.ok) {
+    msg.innerText = data.message || "Login failed";
+    msg.style.color = "red";
+    return;
+  }
+
+  msg.innerText = "✅ Login successful";
+  msg.style.color = "green";
+
+  localStorage.setItem("token", data.token);
+  localStorage.setItem("role", data.role);
+
+  setTimeout(() => {
+    window.location.href =
+      data.role === "admin" ? "admin.html" : "customer.html";
+  }, 800);
+}
+
+/* ⌨️ ENTER KEY SUPPORT */
+document.addEventListener("keydown", function (e) {
+  if (e.key === "Enter") {
+    login();
+  }
+});
+</script>
+
+</body>
+</html>
