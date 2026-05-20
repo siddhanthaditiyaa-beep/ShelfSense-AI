@@ -3,15 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard | Retail Mart AI</title>
+  <title>Admin Dashboard | ShelfSense AI</title>
   <link rel="stylesheet" href="style.css">
   <script src="theme.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    /* ===== LAYOUT ===== */
     body { display: flex; flex-direction: column; min-height: 100vh; }
 
-    /* ===== TOP BAR (always visible) ===== */
     .topbar {
       height: 52px;
       background: var(--header-bg);
@@ -27,295 +25,104 @@
     }
 
     .sidebar-toggle {
-      width: 34px;
-      height: 34px;
+      width: 34px; height: 34px;
       border-radius: 8px;
       border: 1px solid var(--border-color);
       background: var(--bg-card);
       color: var(--text-primary);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 16px;
-      flex-shrink: 0;
-      transition: all 0.2s;
-      padding: 0;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 16px; flex-shrink: 0;
+      transition: all 0.2s; padding: 0;
     }
 
-    .sidebar-toggle:hover {
-      background: var(--accent-light);
-      border-color: var(--accent);
-      color: var(--accent);
-      transform: none;
-    }
+    .sidebar-toggle:hover { background: var(--accent-light); border-color: var(--accent); color: var(--accent); transform: none; }
 
-    .topbar-logo {
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--text-accent);
-      white-space: nowrap;
-    }
+    .topbar-logo { font-size: 1rem; font-weight: 700; color: var(--text-accent); white-space: nowrap; }
 
-    /* Top nav — shown only when sidebar is collapsed */
-    .topbar-nav {
-      display: none;
-      align-items: center;
-      gap: 2px;
-      flex: 1;
-      overflow-x: auto;
-    }
-
+    .topbar-nav { display: none; align-items: center; gap: 2px; flex: 1; overflow-x: auto; }
     .topbar-nav.visible { display: flex; }
 
     .topbar-nav-item {
-      padding: 5px 12px;
-      border-radius: 6px;
-      font-size: 0.82rem;
-      font-weight: 500;
-      color: var(--text-muted);
-      cursor: pointer;
-      white-space: nowrap;
-      border: none;
-      background: transparent;
-      transition: all 0.2s;
+      padding: 5px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 500;
+      color: var(--text-muted); cursor: pointer; white-space: nowrap;
+      border: none; background: transparent; transition: all 0.2s;
     }
+    .topbar-nav-item:hover { color: var(--text-primary); background: var(--bg-tertiary); transform: none; }
+    .topbar-nav-item.active { background: var(--accent-light); color: var(--accent); font-weight: 600; }
 
-    .topbar-nav-item:hover {
-      color: var(--text-primary);
-      background: var(--bg-tertiary);
-      transform: none;
-    }
+    .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 
-    .topbar-nav-item.active {
-      background: var(--accent-light);
-      color: var(--accent);
-      font-weight: 600;
-    }
+    .main-area { display: flex; flex: 1; overflow: hidden; }
 
-    .topbar-right {
-      margin-left: auto;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-shrink: 0;
-    }
-
-    /* ===== MAIN AREA ===== */
-    .main-area {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-    }
-
-    /* ===== SIDEBAR ===== */
     .sidebar {
       width: 220px;
       background: var(--bg-secondary);
       border-right: 1px solid var(--border-color);
-      display: flex;
-      flex-direction: column;
-      flex-shrink: 0;
-      transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-                  opacity 0.2s ease;
+      display: flex; flex-direction: column; flex-shrink: 0;
+      transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
       overflow: hidden;
     }
 
-    .sidebar.collapsed {
-      width: 0;
-      opacity: 0;
-      border-right: none;
-    }
+    .sidebar.collapsed { width: 0; opacity: 0; border-right: none; }
 
-    .sidebar-section {
-      padding: 8px;
-      flex: 1;
-    }
-
-    .sidebar-section-label {
-      font-size: 0.7rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      padding: 8px 10px 4px;
-    }
+    .sidebar-section { padding: 8px; flex: 1; overflow-y: auto; }
+    .sidebar-section-label { font-size: 0.7rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; padding: 8px 10px 4px; }
 
     .sidebar-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 9px 12px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.875rem;
-      font-weight: 500;
-      color: var(--text-secondary);
-      transition: all 0.15s;
-      white-space: nowrap;
-      border: none;
-      background: transparent;
-      width: 100%;
-      text-align: left;
+      display: flex; align-items: center; gap: 10px; padding: 9px 12px;
+      border-radius: 8px; cursor: pointer; font-size: 0.875rem; font-weight: 500;
+      color: var(--text-secondary); transition: all 0.15s; white-space: nowrap;
+      border: none; background: transparent; width: 100%; text-align: left;
     }
+    .sidebar-item:hover { background: var(--bg-tertiary); color: var(--text-primary); transform: none; }
+    .sidebar-item.active { background: var(--accent-light); color: var(--accent); font-weight: 600; }
+    .sidebar-emoji { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
+    .sidebar-divider { height: 1px; background: var(--border-color); margin: 8px; }
 
-    .sidebar-item:hover {
-      background: var(--bg-tertiary);
-      color: var(--text-primary);
-      transform: none;
-    }
+    .sidebar-bottom { padding: 12px 8px; border-top: 1px solid var(--border-color); }
+    .sidebar-user { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; }
+    .sidebar-avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--accent-light); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0; }
+    .sidebar-username { font-size: 0.8rem; font-weight: 600; color: var(--text-primary); }
+    .sidebar-role { font-size: 0.7rem; color: var(--text-muted); }
 
-    .sidebar-item.active {
-      background: var(--accent-light);
-      color: var(--accent);
-      font-weight: 600;
-    }
+    .content { flex: 1; overflow-y: auto; padding: 24px; }
 
-    .sidebar-emoji {
-      font-size: 1rem;
-      width: 20px;
-      text-align: center;
-      flex-shrink: 0;
-    }
-
-    .sidebar-divider {
-      height: 1px;
-      background: var(--border-color);
-      margin: 8px;
-    }
-
-    .sidebar-bottom {
-      padding: 12px 8px;
-      border-top: 1px solid var(--border-color);
-    }
-
-    .sidebar-user {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 10px;
-      border-radius: 8px;
-    }
-
-    .sidebar-avatar {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      background: var(--accent-light);
-      color: var(--accent);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.75rem;
-      font-weight: 700;
-      flex-shrink: 0;
-    }
-
-    .sidebar-username {
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: var(--text-primary);
-    }
-
-    .sidebar-role {
-      font-size: 0.7rem;
-      color: var(--text-muted);
-    }
-
-    /* ===== CONTENT ===== */
-    .content {
-      flex: 1;
-      overflow-y: auto;
-      padding: 24px;
-    }
-
-    /* ===== PAGE SECTIONS ===== */
     .page { display: none; }
     .page.active { display: block; }
 
-    /* ===== STATS ROW ===== */
-    .stats-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 14px;
-      margin-bottom: 20px;
-    }
-
-    .stat-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 16px;
-      text-align: center;
-      box-shadow: var(--shadow-sm);
-      transition: all 0.3s;
-    }
-
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px; margin-bottom: 20px; }
+    .stat-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; text-align: center; box-shadow: var(--shadow-sm); transition: all 0.3s; }
     .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
     .stat-card .number { font-size: 1.9rem; font-weight: 700; color: var(--stat-num-color); }
     .stat-card .label { font-size: 0.78rem; color: var(--text-muted); margin-top: 4px; }
 
-    /* ===== CARDS ===== */
-    .card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 14px;
-      padding: 20px;
-      margin-bottom: 20px;
-      box-shadow: var(--shadow-sm);
-      transition: all 0.3s;
-    }
-
+    .card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow-sm); transition: all 0.3s; }
     .card:hover { box-shadow: var(--shadow-md); border-color: var(--border-hover); }
+    .card h2 { font-size: 0.95rem; font-weight: 600; color: var(--text-accent); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
 
-    .card h2 {
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: var(--text-accent);
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    /* ===== ROW ===== */
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
     @media (max-width: 768px) { .row { grid-template-columns: 1fr; } }
 
-    /* ===== TABLE ===== */
     table { width: 100%; border-collapse: collapse; }
     th { background: var(--bg-tertiary); color: var(--text-muted); padding: 10px 14px; text-align: left; font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-    td { padding: 12px 14px; border-bottom: 1px solid var(--border-color); font-size: 0.875rem; color: var(--text-primary); }
+    td { padding: 10px 14px; border-bottom: 1px solid var(--border-color); font-size: 0.875rem; color: var(--text-primary); }
     tr:hover td { background: var(--bg-tertiary); }
 
-    /* ===== BADGES ===== */
     .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; display: inline-block; }
     .badge-green { background: var(--success-bg); color: var(--success-text); }
     .badge-yellow { background: var(--warning-bg); color: var(--warning-text); }
     .badge-red { background: var(--danger-bg); color: var(--danger-text); }
     .badge-blue { background: var(--info-bg); color: var(--info-text); }
+    .badge-purple { background: var(--accent-light); color: var(--accent); }
 
-    /* ===== INPUTS ===== */
     input, select, textarea {
-      background: var(--bg-input);
-      border: 1px solid var(--border-color);
-      color: var(--text-primary);
-      padding: 10px 14px;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      width: 100%;
-      margin-bottom: 10px;
-      transition: all 0.2s;
-      font-family: inherit;
+      background: var(--bg-input); border: 1px solid var(--border-color);
+      color: var(--text-primary); padding: 10px 14px; border-radius: 8px;
+      font-size: 0.9rem; width: 100%; margin-bottom: 10px;
+      transition: all 0.2s; font-family: inherit;
     }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
 
-    input:focus, select:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-light);
-    }
-
-    /* ===== BUTTONS ===== */
     button { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; font-size: 0.875rem; transition: all 0.2s; font-family: inherit; }
     button:hover { transform: translateY(-1px); }
     button:active { transform: translateY(0); }
@@ -326,22 +133,11 @@
     .btn-warning { background: var(--warning); color: white; }
     .btn-sm { padding: 5px 12px; font-size: 0.8rem; }
 
-    /* ===== UPLOAD ===== */
-    .upload-area {
-      border: 2px dashed var(--border-color);
-      border-radius: 12px;
-      padding: 40px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s;
-      margin-bottom: 16px;
-      background: var(--bg-input);
-    }
+    .upload-area { border: 2px dashed var(--border-color); border-radius: 12px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 16px; background: var(--bg-input); }
     .upload-area:hover { border-color: var(--accent); background: var(--accent-light); }
     .upload-area p { color: var(--text-muted); margin-top: 8px; font-size: 0.875rem; }
     #fileInput { display: none; }
 
-    /* ===== SHELF SLOTS ===== */
     .slot-grid { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
     .slot { width: 80px; height: 80px; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; padding: 6px; text-align: center; transition: transform 0.2s; }
     .slot:hover { transform: scale(1.05); }
@@ -349,53 +145,134 @@
     .slot.empty { background: var(--danger-bg); border: 2px solid var(--danger); color: var(--danger-text); }
     .slot-number { font-size: 0.65rem; opacity: 0.7; margin-bottom: 4px; }
 
-    /* ===== PRODUCT TAGS ===== */
     .product-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
     .product-tag { padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
 
-    /* ===== FILL BAR ===== */
     .fill-bar { height: 10px; background: var(--bg-tertiary); border-radius: 5px; margin-top: 8px; overflow: hidden; border: 1px solid var(--border-color); }
     .fill-bar-inner { height: 100%; border-radius: 5px; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
 
-    /* ===== SLOT CONFIG ===== */
     .slot-config { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; padding: 12px; background: var(--bg-input); border-radius: 10px; border: 1px solid var(--border-color); }
     .slot-config label { color: var(--text-secondary); font-size: 0.85rem; white-space: nowrap; font-weight: 500; }
     .slot-config input { width: 80px; margin-bottom: 0; }
     .slot-config select { width: 160px; margin-bottom: 0; }
 
-    /* ===== PLANOGRAM ===== */
     .planogram-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 16px; }
     .planogram-slot { background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; transition: all 0.2s; }
     .planogram-slot:hover { border-color: var(--accent); }
     .planogram-slot label { font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 6px; font-weight: 600; }
     .planogram-slot select { margin-bottom: 0; font-size: 0.8rem; }
 
-    /* ===== FRANCHISE ===== */
     .franchise-card { background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; }
     .franchise-card:hover { border-color: var(--accent); transform: translateX(4px); box-shadow: var(--shadow-md); }
     .franchise-card h3 { font-size: 0.95rem; color: var(--text-primary); font-weight: 600; }
     .franchise-card p { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
     .distance-badge { background: var(--info-bg); color: var(--info-text); padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 0.85rem; white-space: nowrap; }
 
-    /* ===== LOGS ===== */
     .log-item { padding: 12px 14px; border-left: 3px solid var(--border-color); margin-bottom: 8px; background: var(--bg-input); border-radius: 0 10px 10px 0; font-size: 0.85rem; color: var(--text-primary); transition: all 0.2s; }
     .log-item:hover { transform: translateX(4px); }
     .log-item.monitoring { border-left-color: var(--danger); }
     .log-item.forecasting { border-left-color: var(--success); }
     .log-time { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
 
-    /* ===== SCAN IMAGE ===== */
     .scan-img { width: 100%; border-radius: 10px; margin-top: 12px; border: 1px solid var(--border-color); }
     .shelf-result { display: none; margin-top: 20px; }
 
-    /* ===== STOCK EDIT INLINE ===== */
     .stock-edit { display: flex; align-items: center; gap: 6px; }
     .stock-edit input { width: 70px; margin-bottom: 0; padding: 5px 8px; font-size: 0.85rem; }
 
-    /* ===== TOAST ===== */
+    /* ===== AGENT CARDS ===== */
+    .agents-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; }
+
+    .agent-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 18px;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .agent-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--accent);
+    }
+
+    .agent-card.critical::before { background: var(--danger); }
+    .agent-card.warning::before { background: var(--warning); }
+    .agent-card.active::before { background: var(--success); }
+
+    .agent-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+
+    .agent-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .agent-icon { font-size: 1.5rem; }
+    .agent-name { font-size: 0.9rem; font-weight: 700; color: var(--text-primary); }
+    .agent-status { margin-left: auto; }
+
+    .agent-last-action { font-size: 0.8rem; color: var(--text-muted); line-height: 1.4; }
+    .agent-time { font-size: 0.72rem; color: var(--text-muted); margin-top: 6px; }
+
+    .agent-pulse {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--success);
+      animation: pulse 2s infinite;
+      display: inline-block;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.2); }
+    }
+
+    /* ===== AGENT LOG FILTERS ===== */
+    .agent-filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .agent-filter { padding: 5px 14px; border-radius: 20px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-secondary); font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+    .agent-filter:hover { border-color: var(--accent); color: var(--accent); transform: none; }
+    .agent-filter.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+    .agent-log-item {
+      display: flex; gap: 12px; padding: 12px; border-radius: 10px;
+      background: var(--bg-input); border: 1px solid var(--border-color);
+      margin-bottom: 8px; transition: all 0.2s;
+    }
+
+    .agent-log-item:hover { border-color: var(--accent); transform: translateX(4px); }
+
+    .agent-log-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 2px; }
+    .agent-log-body { flex: 1; }
+    .agent-log-agent { font-size: 0.72rem; font-weight: 600; color: var(--accent); margin-bottom: 2px; }
+    .agent-log-message { font-size: 0.85rem; color: var(--text-primary); line-height: 1.4; }
+    .agent-log-time { font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; }
+
+    .severity-critical { border-left: 3px solid var(--danger); }
+    .severity-warning { border-left: 3px solid var(--warning); }
+    .severity-info { border-left: 3px solid var(--success); }
+
+    /* ===== SETTINGS ===== */
+    .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 768px) { .settings-grid { grid-template-columns: 1fr; } }
+
+    .settings-group { margin-bottom: 16px; }
+    .settings-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
+    .settings-group input, .settings-group select { margin-bottom: 0; }
+    .settings-group .hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+
+    .time-range { display: flex; align-items: center; gap: 12px; }
+    .time-range input { flex: 1; margin-bottom: 0; }
+    .time-range span { color: var(--text-muted); font-size: 0.9rem; flex-shrink: 0; }
+
+    /* ===== PURCHASE ORDERS ===== */
+    .po-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; transition: all 0.2s; }
+    .po-card:hover { border-color: var(--accent); box-shadow: var(--shadow-sm); }
+    .po-info h3 { font-size: 0.9rem; font-weight: 700; color: var(--text-primary); }
+    .po-info p { font-size: 0.8rem; color: var(--text-muted); margin-top: 3px; }
+    .po-actions { display: flex; gap: 8px; }
+
     #toast { position: fixed; bottom: 80px; right: 24px; padding: 14px 20px; border-radius: 12px; font-weight: 600; font-size: 0.875rem; display: none; z-index: 9999; max-width: 300px; box-shadow: var(--shadow-lg); }
 
-    /* ===== SETTINGS FAB ===== */
     .settings-fab { position: fixed; bottom: 24px; right: 24px; width: 44px; height: 44px; border-radius: 50%; background: var(--accent); color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; box-shadow: var(--shadow-lg); z-index: 1000; transition: all 0.3s; padding: 0; }
     .settings-fab:hover { transform: scale(1.1) rotate(30deg); }
 
@@ -415,62 +292,52 @@
 
     @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* ===== LOGOUT BTN ===== */
     .logout-btn { background: var(--danger-bg); color: var(--danger-text); border: 1px solid var(--danger); padding: 6px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 600; }
   </style>
 </head>
 <body>
 
-<!-- ===== TOP BAR ===== -->
+<!-- TOP BAR -->
 <div class="topbar">
-  <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" title="Toggle sidebar">☰</button>
-  <span class="topbar-logo">RetailMart AI</span>
-
-  <!-- Top nav shown when sidebar is collapsed -->
+  <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">☰</button>
+  <span class="topbar-logo">🧠 ShelfSense AI</span>
   <nav class="topbar-nav" id="topbarNav">
     <button class="topbar-nav-item active" data-page="overview" onclick="showPage('overview', this)">Overview</button>
     <button class="topbar-nav-item" data-page="inventory" onclick="showPage('inventory', this)">Inventory</button>
+    <button class="topbar-nav-item" data-page="agents" onclick="showPage('agents', this)">Agents</button>
     <button class="topbar-nav-item" data-page="shelf-scan" onclick="showPage('shelf-scan', this)">Shelf Scan</button>
     <button class="topbar-nav-item" data-page="planogram" onclick="showPage('planogram', this)">Planogram</button>
     <button class="topbar-nav-item" data-page="franchise" onclick="showPage('franchise', this)">Franchises</button>
-    <button class="topbar-nav-item" data-page="logs" onclick="showPage('logs', this)">Logs</button>
+    <button class="topbar-nav-item" data-page="orders" onclick="showPage('orders', this)">Orders</button>
+    <button class="topbar-nav-item" data-page="store-settings" onclick="showPage('store-settings', this)">Settings</button>
   </nav>
-
   <div class="topbar-right">
     <button class="logout-btn" onclick="logout()">Logout</button>
   </div>
 </div>
 
-<!-- ===== MAIN AREA ===== -->
+<!-- MAIN AREA -->
 <div class="main-area">
 
-  <!-- ===== SIDEBAR ===== -->
+  <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-section">
-      <div class="sidebar-section-label">Main Menu</div>
-
-      <button class="sidebar-item active" data-page="overview" onclick="showPage('overview', this)">
-        <span class="sidebar-emoji">📊</span> Overview
-      </button>
-      <button class="sidebar-item" data-page="inventory" onclick="showPage('inventory', this)">
-        <span class="sidebar-emoji">📦</span> Inventory
-      </button>
-      <button class="sidebar-item" data-page="shelf-scan" onclick="showPage('shelf-scan', this)">
-        <span class="sidebar-emoji">🔍</span> Shelf Scan
-      </button>
-      <button class="sidebar-item" data-page="planogram" onclick="showPage('planogram', this)">
-        <span class="sidebar-emoji">🗺️</span> Planogram
-      </button>
+      <div class="sidebar-section-label">Main</div>
+      <button class="sidebar-item active" data-page="overview" onclick="showPage('overview', this)"><span class="sidebar-emoji">📊</span> Overview</button>
+      <button class="sidebar-item" data-page="inventory" onclick="showPage('inventory', this)"><span class="sidebar-emoji">📦</span> Inventory</button>
+      <button class="sidebar-item" data-page="agents" onclick="showPage('agents', this)"><span class="sidebar-emoji">🤖</span> AI Agents</button>
+      <button class="sidebar-item" data-page="shelf-scan" onclick="showPage('shelf-scan', this)"><span class="sidebar-emoji">🔍</span> Shelf Scan</button>
+      <button class="sidebar-item" data-page="planogram" onclick="showPage('planogram', this)"><span class="sidebar-emoji">🗺️</span> Planogram</button>
 
       <div class="sidebar-divider"></div>
       <div class="sidebar-section-label">Network</div>
+      <button class="sidebar-item" data-page="franchise" onclick="showPage('franchise', this)"><span class="sidebar-emoji">📍</span> Franchises</button>
+      <button class="sidebar-item" data-page="orders" onclick="showPage('orders', this)"><span class="sidebar-emoji">📋</span> Purchase Orders</button>
 
-      <button class="sidebar-item" data-page="franchise" onclick="showPage('franchise', this)">
-        <span class="sidebar-emoji">📍</span> Franchises
-      </button>
-      <button class="sidebar-item" data-page="logs" onclick="showPage('logs', this)">
-        <span class="sidebar-emoji">📋</span> Logs
-      </button>
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-section-label">System</div>
+      <button class="sidebar-item" data-page="logs" onclick="showPage('logs', this)"><span class="sidebar-emoji">📝</span> Logs</button>
+      <button class="sidebar-item" data-page="store-settings" onclick="showPage('store-settings', this)"><span class="sidebar-emoji">⚙️</span> Store Settings</button>
     </div>
 
     <div class="sidebar-bottom">
@@ -478,34 +345,23 @@
         <div class="sidebar-avatar">SA</div>
         <div>
           <div class="sidebar-username">Store Admin</div>
-          <div class="sidebar-role">Administrator</div>
+          <div class="sidebar-role">ShelfSense AI</div>
         </div>
       </div>
     </div>
   </aside>
 
-  <!-- ===== CONTENT ===== -->
+  <!-- CONTENT -->
   <main class="content">
 
     <!-- OVERVIEW PAGE -->
     <div class="page active" id="page-overview">
       <div class="stats-row">
-        <div class="stat-card">
-          <div class="number" id="statTotal">-</div>
-          <div class="label">Total Items</div>
-        </div>
-        <div class="stat-card">
-          <div class="number" id="statLow" style="color:var(--warning)">-</div>
-          <div class="label">Low Stock</div>
-        </div>
-        <div class="stat-card">
-          <div class="number" id="statOut" style="color:var(--danger)">-</div>
-          <div class="label">Out of Stock</div>
-        </div>
-        <div class="stat-card">
-          <div class="number" id="statHealthy" style="color:var(--success)">-</div>
-          <div class="label">Healthy</div>
-        </div>
+        <div class="stat-card"><div class="number" id="statTotal">-</div><div class="label">Total Items</div></div>
+        <div class="stat-card"><div class="number" id="statLow" style="color:var(--warning)">-</div><div class="label">Low Stock</div></div>
+        <div class="stat-card"><div class="number" id="statOut" style="color:var(--danger)">-</div><div class="label">Out of Stock</div></div>
+        <div class="stat-card"><div class="number" id="statHealthy" style="color:var(--success)">-</div><div class="label">Healthy</div></div>
+        <div class="stat-card"><div class="number" id="statAgents" style="color:var(--accent)">10</div><div class="label">Active Agents</div></div>
       </div>
 
       <div class="card">
@@ -515,11 +371,11 @@
 
       <div class="row">
         <div class="card">
-          <h2>🚨 Monitoring Alerts</h2>
+          <h2>🚨 Recent Agent Alerts</h2>
           <div id="overviewMonitoring">Loading...</div>
         </div>
         <div class="card">
-          <h2>🤖 Forecasting Actions</h2>
+          <h2>🤖 Recent Agent Actions</h2>
           <div id="overviewForecasting">Loading...</div>
         </div>
       </div>
@@ -538,23 +394,54 @@
 
       <div class="card">
         <h2>📦 Current Inventory</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Item</th>
-              <th>Stock</th>
-              <th>Price</th>
-              <th>Status</th>
-              <th>Update Stock</th>
-              <th>Set Price</th>
-              <th>Sale</th>
-              <th>Delete</th>
-            </tr>
-          </thead>
-          <tbody id="inventoryTable"></tbody>
-        </table>
+        <div style="overflow-x:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Stock</th>
+                <th>Price</th>
+                <th>Status</th>
+                <th>Update Stock</th>
+                <th>Set Price</th>
+                <th>Sale</th>
+                <th>Delete</th>
+              </tr>
+            </thead>
+            <tbody id="inventoryTable"></tbody>
+          </table>
+        </div>
         <br>
         <button class="btn-danger" onclick="resetLogs()">🧹 Reset All Logs & Stocks</button>
+      </div>
+    </div>
+
+    <!-- AI AGENTS PAGE -->
+    <div class="page" id="page-agents">
+
+      <!-- Agent Cards Grid -->
+      <div class="agents-grid" id="agentsGrid">
+        <!-- Filled by JS -->
+      </div>
+
+      <!-- Agent Logs -->
+      <div class="card">
+        <h2>📋 Agent Activity Log</h2>
+        <div class="agent-filters">
+          <button class="agent-filter active" onclick="filterAgentLogs('all', this)">All Agents</button>
+          <button class="agent-filter" onclick="filterAgentLogs('Monitoring Agent', this)">🔔 Monitoring</button>
+          <button class="agent-filter" onclick="filterAgentLogs('Forecasting Agent', this)">📊 Forecasting</button>
+          <button class="agent-filter" onclick="filterAgentLogs('Anomaly Detection Agent', this)">🛡️ Anomaly</button>
+          <button class="agent-filter" onclick="filterAgentLogs('Dynamic Pricing Agent', this)">💰 Pricing</button>
+          <button class="agent-filter" onclick="filterAgentLogs('Competitor Analysis Agent', this)">🏆 Competitor</button>
+          <button class="agent-filter" onclick="filterAgentLogs('Supplier Agent', this)">🔄 Supplier</button>
+          <button class="agent-filter" onclick="filterAgentLogs('Customer Behavior Agent', this)">👥 Behavior</button>
+          <button class="agent-filter" onclick="filterAgentLogs('Weather Agent', this)">🌦️ Weather</button>
+          <button class="agent-filter" onclick="filterAgentLogs('Expiry Agent', this)">📅 Expiry</button>
+          <button class="agent-filter" onclick="filterAgentLogs('Route Optimization Agent', this)">🗺️ Route</button>
+          <button class="agent-filter" style="background:var(--danger-bg);color:var(--danger-text);border-color:var(--danger)" onclick="filterAgentLogs('all', this, 'critical')">🚨 Critical Only</button>
+        </div>
+        <div id="agentLogs">Loading agent logs...</div>
       </div>
     </div>
 
@@ -620,8 +507,7 @@
         </div>
 
         <div class="card">
-          <h2>📍 Find Nearby Franchise for Missing Products</h2>
-          <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:12px">Click any missing product to find nearby stores with stock</p>
+          <h2>📍 Find Nearby Franchise</h2>
           <div class="product-tags" id="missingProductBtns"></div>
           <div id="franchiseResults" style="margin-top:16px"></div>
         </div>
@@ -637,9 +523,7 @@
     <div class="page" id="page-planogram">
       <div class="card">
         <h2>🗺️ Shelf Planogram Manager</h2>
-        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:16px">
-          Define which product goes in each slot. The AI uses this to identify products from shelf scans.
-        </p>
+        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:16px">Define which product goes in each slot.</p>
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
           <label style="font-size:0.85rem;color:var(--text-muted);font-weight:500">Select Shelf:</label>
           <select id="planogramShelf" onchange="loadPlanogram()" style="width:200px;margin-bottom:0">
@@ -657,7 +541,6 @@
     <div class="page" id="page-franchise">
       <div class="card">
         <h2>🔍 Find Nearby Franchise</h2>
-        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:16px">Find nearby RetailMart stores that have a specific product in stock</p>
         <div class="row">
           <select id="franchiseProduct">
             <option value="">Select product...</option>
@@ -674,10 +557,20 @@
         </div>
         <div id="franchiseList" style="margin-top:16px"></div>
       </div>
-
       <div class="card">
         <h2>🏪 All Franchise Locations</h2>
         <div id="allFranchises">Loading...</div>
+      </div>
+    </div>
+
+    <!-- PURCHASE ORDERS PAGE -->
+    <div class="page" id="page-orders">
+      <div class="card">
+        <h2>🔄 Purchase Orders</h2>
+        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:16px">
+          Auto-generated by the Supplier Agent when stock falls below minimum levels.
+        </p>
+        <div id="purchaseOrders">Loading...</div>
       </div>
     </div>
 
@@ -685,13 +578,74 @@
     <div class="page" id="page-logs">
       <div class="row">
         <div class="card">
-          <h2>🚨 Monitoring Logs</h2>
+          <h2>🚨 Monitoring Alerts</h2>
           <div id="monitoringLogs">Loading...</div>
         </div>
         <div class="card">
-          <h2>🤖 Forecasting Logs</h2>
+          <h2>🤖 Agent Actions</h2>
           <div id="forecastingLogs">Loading...</div>
         </div>
+      </div>
+    </div>
+
+    <!-- STORE SETTINGS PAGE -->
+    <div class="page" id="page-store-settings">
+      <div class="card">
+        <h2>⚙️ Store Settings</h2>
+        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:20px">
+          Configure your store details. The Anomaly Detection Agent uses shop hours to detect after-hours suspicious activity.
+        </p>
+
+        <div class="settings-grid">
+          <div>
+            <div class="settings-group">
+              <label>🏪 Store Name</label>
+              <input type="text" id="settingStoreName" placeholder="My Retail Store">
+            </div>
+
+            <div class="settings-group">
+              <label>🕐 Shop Hours</label>
+              <div class="time-range">
+                <input type="time" id="settingOpeningTime">
+                <span>to</span>
+                <input type="time" id="settingClosingTime">
+              </div>
+              <p class="hint">Anomaly Agent monitors for theft outside these hours</p>
+            </div>
+
+            <div class="settings-group">
+              <label>📧 Alert Email</label>
+              <input type="email" id="settingAlertEmail" placeholder="your@email.com">
+              <p class="hint">Where to send critical alerts</p>
+            </div>
+          </div>
+
+          <div>
+            <div class="settings-group">
+              <label>🌦️ Weather City</label>
+              <input type="text" id="settingWeatherCity" placeholder="Mumbai">
+              <p class="hint">Used by Weather Agent for stock recommendations</p>
+            </div>
+
+            <div class="card" style="background:var(--accent-light);border-color:var(--accent);margin-top:8px">
+              <h2 style="font-size:0.85rem">🤖 Agent Schedule</h2>
+              <div style="font-size:0.8rem;color:var(--text-secondary);line-height:1.8">
+                🔔 Monitoring Agent — every 30 seconds<br>
+                📊 Forecasting Agent — every 15 minutes<br>
+                🛡️ Anomaly Detection — every 45 seconds<br>
+                💰 Dynamic Pricing — every hour<br>
+                🏆 Competitor Analysis — daily 9 AM<br>
+                🔄 Supplier Agent — every 2 hours<br>
+                👥 Customer Behavior — daily 1 AM<br>
+                🌦️ Weather Agent — daily 8 AM<br>
+                📅 Expiry Agent — daily 7 AM<br>
+                🗺️ Route Optimizer — daily 6 AM
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-primary" onclick="saveSettings()" style="margin-top:8px">💾 Save Settings</button>
       </div>
     </div>
 
@@ -699,18 +653,12 @@
 </div>
 
 <!-- SETTINGS FAB -->
-<button class="settings-fab" id="settingsFab" onclick="toggleSettings()" title="Settings">⚙️</button>
+<button class="settings-fab" id="settingsFab" onclick="toggleSettings()">⚙️</button>
 <div class="settings-panel" id="settingsPanel">
   <h3>🎨 Appearance</h3>
-  <div class="theme-option" data-theme="light" onclick="setTheme('light')">
-    <span class="theme-option-icon">☀️</span> Light Mode
-  </div>
-  <div class="theme-option" data-theme="dark" onclick="setTheme('dark')">
-    <span class="theme-option-icon">🌙</span> Dark Mode
-  </div>
-  <div class="theme-option" data-theme="system" onclick="setTheme('system')">
-    <span class="theme-option-icon">💻</span> System Default
-  </div>
+  <div class="theme-option" data-theme="light" onclick="setTheme('light')"><span class="theme-option-icon">☀️</span> Light Mode</div>
+  <div class="theme-option" data-theme="dark" onclick="setTheme('dark')"><span class="theme-option-icon">🌙</span> Dark Mode</div>
+  <div class="theme-option" data-theme="system" onclick="setTheme('system')"><span class="theme-option-icon">💻</span> System Default</div>
 </div>
 
 <div id="toast"></div>
@@ -725,57 +673,51 @@ let selectedFile = null;
 let sidebarOpen = true;
 let currentPage = "overview";
 
-/* ===== SIDEBAR TOGGLE ===== */
+const AGENT_INFO = {
+  "Monitoring Agent":        { icon: "🔔", desc: "Monitors stock levels every 30 seconds" },
+  "Forecasting Agent":       { icon: "📊", desc: "Predicts demand using exponential smoothing" },
+  "Anomaly Detection Agent": { icon: "🛡️", desc: "Detects theft and unusual stock drops" },
+  "Dynamic Pricing Agent":   { icon: "💰", desc: "Adjusts prices based on demand and stock" },
+  "Competitor Analysis Agent": { icon: "🏆", desc: "Compares prices with market averages" },
+  "Supplier Agent":          { icon: "🔄", desc: "Auto-generates purchase orders" },
+  "Customer Behavior Agent": { icon: "👥", desc: "Finds product bundle opportunities" },
+  "Weather Agent":           { icon: "🌦️", desc: "Adjusts recommendations based on weather" },
+  "Expiry Agent":            { icon: "📅", desc: "Tracks expiry dates and auto-discounts" },
+  "Route Optimization Agent":{ icon: "🗺️", desc: "Finds optimal stock transfer routes" }
+};
+
+/* ===== SIDEBAR ===== */
 function toggleSidebar() {
   sidebarOpen = !sidebarOpen;
   const sidebar = document.getElementById("sidebar");
   const topbarNav = document.getElementById("topbarNav");
-
   if (sidebarOpen) {
     sidebar.classList.remove("collapsed");
     topbarNav.classList.remove("visible");
-    document.getElementById("sidebarToggle").innerHTML = "☰";
   } else {
     sidebar.classList.add("collapsed");
     topbarNav.classList.add("visible");
-    document.getElementById("sidebarToggle").innerHTML = "☰";
   }
-
   localStorage.setItem("sidebarOpen", sidebarOpen);
 }
 
-// Restore sidebar state
 const savedSidebar = localStorage.getItem("sidebarOpen");
-if (savedSidebar === "false") {
-  sidebarOpen = true;
-  toggleSidebar();
-}
+if (savedSidebar === "false") { sidebarOpen = true; toggleSidebar(); }
 
 /* ===== PAGE NAVIGATION ===== */
 function showPage(page, clickedBtn) {
   currentPage = page;
-
-  // Hide all pages
   document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
   document.getElementById("page-" + page).classList.add("active");
-
-  // Update sidebar items
-  document.querySelectorAll(".sidebar-item").forEach(item => {
-    item.classList.toggle("active", item.dataset.page === page);
-  });
-
-  // Update topbar nav items
-  document.querySelectorAll(".topbar-nav-item").forEach(item => {
-    item.classList.toggle("active", item.dataset.page === page);
-  });
-
-  // Load data for page
-  if (page === "overview") loadAdmin();
-  if (page === "inventory") loadAdmin();
-  if (page === "logs") loadAdmin();
+  document.querySelectorAll(".sidebar-item").forEach(item => item.classList.toggle("active", item.dataset.page === page));
+  document.querySelectorAll(".topbar-nav-item").forEach(item => item.classList.toggle("active", item.dataset.page === page));
+  if (page === "overview" || page === "inventory" || page === "logs") loadAdmin();
   if (page === "franchise") loadAllFranchises();
   if (page === "shelf-scan") loadRecentScans();
   if (page === "planogram") loadPlanogram();
+  if (page === "agents") loadAgentDashboard();
+  if (page === "orders") loadPurchaseOrders();
+  if (page === "store-settings") loadSettings();
 }
 
 /* ===== TOAST ===== */
@@ -801,7 +743,6 @@ async function loadAdmin() {
   renderLogs(data.forecasting, "forecastingLogs", "forecasting");
 }
 
-/* ===== STATS ===== */
 function updateStats(inventory) {
   document.getElementById("statTotal").innerText = inventory.length;
   document.getElementById("statLow").innerText = inventory.filter(i => i.stock > 0 && i.stock <= 3).length;
@@ -809,33 +750,24 @@ function updateStats(inventory) {
   document.getElementById("statHealthy").innerText = inventory.filter(i => i.stock > 3).length;
 }
 
-/* ===== INVENTORY TABLE ===== */
 function renderInventoryTable(items) {
   const table = document.getElementById("inventoryTable");
   if (!table) return;
   table.innerHTML = items.map(item => {
-    const effectivePrice = item.onSale ? item.salePrice : item.price;
     let status = item.stock === 0
       ? `<span class="badge badge-red">Out of Stock</span>`
       : item.stock <= 3
       ? `<span class="badge badge-yellow">Low Stock</span>`
       : `<span class="badge badge-green">Healthy</span>`;
-
-    let saleTag = item.onSale
-      ? `<span class="badge badge-purple" style="margin-left:6px">🔥 ${item.salePercent}% OFF</span>`
-      : "";
-
+    let saleTag = item.onSale ? `<span class="badge badge-purple" style="margin-left:6px">🔥 ${item.salePercent}% OFF</span>` : "";
     return `<tr>
       <td><strong>${item.name}</strong>${saleTag}</td>
       <td>${item.stock}</td>
       <td>
-        <div style="font-size:0.85rem">
-          ${item.onSale
-            ? `<span style="text-decoration:line-through;color:var(--text-muted)">₹${item.price}</span>
-               <strong style="color:var(--danger);margin-left:6px">₹${item.salePrice}</strong>`
-            : `<strong>₹${item.price || 99}</strong>`
-          }
-        </div>
+        ${item.onSale
+          ? `<span style="text-decoration:line-through;color:var(--text-muted);font-size:0.8rem">₹${item.price}</span>
+             <strong style="color:var(--danger);margin-left:4px">₹${item.salePrice}</strong>`
+          : `<strong>₹${item.price || 99}</strong>`}
       </td>
       <td>${status}</td>
       <td>
@@ -846,7 +778,7 @@ function renderInventoryTable(items) {
       </td>
       <td>
         <div class="stock-edit">
-          <input type="number" id="price_${item.key}" value="${item.price || 99}" min="0" step="0.01" style="width:80px">
+          <input type="number" id="price_${item.key}" value="${item.price || 99}" min="0" step="1" style="width:80px">
           <button class="btn-success btn-sm" onclick="updatePrice('${item.key}')">Set</button>
         </div>
       </td>
@@ -859,37 +791,16 @@ function renderInventoryTable(items) {
           ${item.onSale ? `<button class="btn-danger btn-sm" onclick="toggleSale('${item.key}', false)">Remove</button>` : ''}
         </div>
       </td>
-      <td>
-        <button class="btn-danger btn-sm" onclick="deleteItem('${item.key}')">Delete</button>
-      </td>
+      <td><button class="btn-danger btn-sm" onclick="deleteItem('${item.key}')">Delete</button></td>
     </tr>`;
   }).join("");
 }
 
-/* ===== UPDATE STOCK ===== */
-async function updateStock(key) {
-  const input = document.getElementById("edit_" + key);
-  const newStock = parseInt(input.value);
-  if (isNaN(newStock) || newStock < 0) return showToast("Invalid stock value", "error");
-
-  const res = await fetch("/admin/update-stock", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: token },
-    body: JSON.stringify({ key, stock: newStock })
-  });
-  const data = await res.json();
-  showToast(data.message || "Stock updated!");
-  loadAdmin();
-}
-
-/* ===== CHART ===== */
 function renderChart(items) {
   const el = document.getElementById("stockChart");
   if (!el) return;
   const isDark = document.documentElement.getAttribute("data-theme") === "dark";
-  const colors = items.map(i =>
-    i.stock === 0 ? "#ef4444" : i.stock <= 3 ? "#f59e0b" : isDark ? "#a78bfa" : "#6366f1"
-  );
+  const colors = items.map(i => i.stock === 0 ? "#ef4444" : i.stock <= 3 ? "#f59e0b" : isDark ? "#a78bfa" : "#6366f1");
   if (chart) {
     chart.data.labels = items.map(i => i.name);
     chart.data.datasets[0].data = items.map(i => i.stock);
@@ -899,10 +810,7 @@ function renderChart(items) {
   }
   chart = new Chart(el.getContext("2d"), {
     type: "bar",
-    data: {
-      labels: items.map(i => i.name),
-      datasets: [{ label: "Stock", data: items.map(i => i.stock), backgroundColor: colors, borderRadius: 8 }]
-    },
+    data: { labels: items.map(i => i.name), datasets: [{ label: "Stock", data: items.map(i => i.stock), backgroundColor: colors, borderRadius: 8 }] },
     options: {
       responsive: true,
       plugins: { legend: { display: false } },
@@ -914,7 +822,207 @@ function renderChart(items) {
   });
 }
 
-/* ===== UPDATE PRICE ===== */
+function renderOverviewLogs(monitoring, forecasting) {
+  const mEl = document.getElementById("overviewMonitoring");
+  const fEl = document.getElementById("overviewForecasting");
+  if (!mEl || !fEl) return;
+  const criticalLogs = monitoring.filter(l => l.severity === "critical" || l.severity === "warning").slice(0, 5);
+  mEl.innerHTML = criticalLogs.length === 0
+    ? "<p style='color:var(--text-muted)'>No alerts</p>"
+    : criticalLogs.map(l => `
+        <div class="log-item ${l.severity === 'critical' ? 'monitoring' : ''}">
+          ${l.message || l.item}
+          <div class="log-time">${l.agent || ''} • ${l.time}</div>
+        </div>`).join("");
+
+  const recentActions = monitoring.slice(0, 5);
+  fEl.innerHTML = recentActions.length === 0
+    ? "<p style='color:var(--text-muted)'>No actions yet</p>"
+    : recentActions.map(l => `
+        <div class="log-item forecasting">
+          ${l.message || l.item}
+          <div class="log-time">${l.agent || ''} • ${l.time}</div>
+        </div>`).join("");
+}
+
+function renderLogs(logs, id, type) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = logs.length === 0
+    ? "<p style='color:var(--text-muted)'>No logs yet</p>"
+    : logs.map(l => `
+        <div class="log-item ${type}">
+          ${l.message || l.item}
+          <div class="log-time">${l.agent || ''} • ${l.time}</div>
+        </div>`).join("");
+}
+
+/* ===== AGENT DASHBOARD ===== */
+async function loadAgentDashboard() {
+  await loadAgentCards();
+  await loadAgentLogs("all");
+}
+
+async function loadAgentCards() {
+  const res = await fetch("/admin/agent-logs", { headers: { Authorization: token } });
+  const logs = await res.json();
+
+  const grid = document.getElementById("agentsGrid");
+  grid.innerHTML = Object.entries(AGENT_INFO).map(([name, info]) => {
+    const agentLogs = logs.filter(l => l.agent === name);
+    const lastLog = agentLogs[0];
+    const hasCritical = agentLogs.some(l => l.severity === "critical");
+    const hasWarning = agentLogs.some(l => l.severity === "warning");
+    const cardClass = hasCritical ? "critical" : hasWarning ? "warning" : "active";
+
+    return `
+      <div class="agent-card ${cardClass}">
+        <div class="agent-header">
+          <span class="agent-icon">${info.icon}</span>
+          <div>
+            <div class="agent-name">${name}</div>
+          </div>
+          <div class="agent-status">
+            <span class="agent-pulse"></span>
+          </div>
+        </div>
+        <div class="agent-last-action">
+          ${lastLog ? lastLog.action : info.desc}
+        </div>
+        <div class="agent-time">
+          ${lastLog ? new Date(lastLog.createdAt).toLocaleString() : 'Waiting for first run...'}
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+let currentAgentFilter = "all";
+let currentSeverityFilter = "all";
+
+async function filterAgentLogs(agent, btn, severity = "all") {
+  currentAgentFilter = agent;
+  currentSeverityFilter = severity;
+  document.querySelectorAll(".agent-filter").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  await loadAgentLogs(agent, severity);
+}
+
+async function loadAgentLogs(agent = "all", severity = "all") {
+  const el = document.getElementById("agentLogs");
+  el.innerHTML = "<p style='color:var(--text-muted)'>Loading...</p>";
+
+  let url = "/admin/agent-logs?";
+  if (agent !== "all") url += `agent=${encodeURIComponent(agent)}&`;
+  if (severity !== "all") url += `severity=${severity}`;
+
+  const res = await fetch(url, { headers: { Authorization: token } });
+  const logs = await res.json();
+
+  if (!logs.length) {
+    el.innerHTML = "<p style='color:var(--text-muted)'>No agent logs yet. Agents run on schedule.</p>";
+    return;
+  }
+
+  const severityIcon = { critical: "🚨", warning: "⚠️", info: "ℹ️" };
+
+  el.innerHTML = logs.map(log => `
+    <div class="agent-log-item severity-${log.severity}">
+      <div class="agent-log-icon">${AGENT_INFO[log.agent]?.icon || "🤖"}</div>
+      <div class="agent-log-body">
+        <div class="agent-log-agent">${log.agent} ${severityIcon[log.severity] || ""}</div>
+        <div class="agent-log-message">${log.action}</div>
+        <div class="agent-log-time">${new Date(log.createdAt).toLocaleString()}</div>
+      </div>
+    </div>
+  `).join("");
+}
+
+/* ===== PURCHASE ORDERS ===== */
+async function loadPurchaseOrders() {
+  const res = await fetch("/admin/purchase-orders", { headers: { Authorization: token } });
+  const orders = await res.json();
+  const el = document.getElementById("purchaseOrders");
+
+  if (!orders.length) {
+    el.innerHTML = "<p style='color:var(--text-muted)'>No purchase orders yet. The Supplier Agent will auto-create them when stock falls below minimum.</p>";
+    return;
+  }
+
+  el.innerHTML = orders.map(order => `
+    <div class="po-card">
+      <div class="po-info">
+        <h3>${AGENT_INFO["Supplier Agent"]?.icon || "🔄"} ${order.itemName}</h3>
+        <p>Qty: <strong>${order.quantity} units</strong> • Supplier: ${order.supplier}</p>
+        <p style="margin-top:4px;font-size:0.75rem;color:var(--text-muted)">${new Date(order.createdAt).toLocaleString()}</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="badge ${order.status === 'pending' ? 'badge-yellow' : order.status === 'sent' ? 'badge-blue' : 'badge-green'}">
+          ${order.status}
+        </span>
+        <div class="po-actions">
+          ${order.status === 'pending' ? `<button class="btn-primary btn-sm" onclick="updatePOStatus('${order._id}', 'sent')">Mark Sent</button>` : ''}
+          ${order.status === 'sent' ? `<button class="btn-success btn-sm" onclick="updatePOStatus('${order._id}', 'received')">Mark Received</button>` : ''}
+        </div>
+      </div>
+    </div>
+  `).join("");
+}
+
+async function updatePOStatus(id, status) {
+  const res = await fetch(`/admin/purchase-orders/${id}/status`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: token },
+    body: JSON.stringify({ status })
+  });
+  const data = await res.json();
+  showToast(data.message);
+  if (status === "received") showToast("✅ Stock updated automatically!", "success");
+  loadPurchaseOrders();
+}
+
+/* ===== STORE SETTINGS ===== */
+async function loadSettings() {
+  const res = await fetch("/admin/settings", { headers: { Authorization: token } });
+  const settings = await res.json();
+  document.getElementById("settingStoreName").value = settings.storeName || "";
+  document.getElementById("settingOpeningTime").value = settings.openingTime || "09:00";
+  document.getElementById("settingClosingTime").value = settings.closingTime || "22:00";
+  document.getElementById("settingAlertEmail").value = settings.alertEmail || "";
+  document.getElementById("settingWeatherCity").value = settings.weatherCity || "Mumbai";
+}
+
+async function saveSettings() {
+  const res = await fetch("/admin/settings", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: token },
+    body: JSON.stringify({
+      storeName: document.getElementById("settingStoreName").value,
+      openingTime: document.getElementById("settingOpeningTime").value,
+      closingTime: document.getElementById("settingClosingTime").value,
+      alertEmail: document.getElementById("settingAlertEmail").value,
+      weatherCity: document.getElementById("settingWeatherCity").value
+    })
+  });
+  const data = await res.json();
+  showToast(data.message);
+}
+
+/* ===== INVENTORY ACTIONS ===== */
+async function updateStock(key) {
+  const input = document.getElementById("edit_" + key);
+  const newStock = parseInt(input.value);
+  if (isNaN(newStock) || newStock < 0) return showToast("Invalid stock value", "error");
+  const res = await fetch("/admin/update-stock", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: token },
+    body: JSON.stringify({ key, stock: newStock })
+  });
+  const data = await res.json();
+  showToast(data.message || "Stock updated!");
+  loadAdmin();
+}
+
 async function updatePrice(key) {
   const price = parseFloat(document.getElementById("price_" + key).value);
   if (isNaN(price) || price < 0) return showToast("Invalid price", "error");
@@ -930,9 +1038,7 @@ async function updatePrice(key) {
 
 async function toggleSale(key, onSale) {
   const salePercent = parseFloat(document.getElementById("sale_" + key).value) || 0;
-  if (onSale && (salePercent <= 0 || salePercent >= 100)) {
-    return showToast("Enter a valid sale % (1-99)", "warning");
-  }
+  if (onSale && (salePercent <= 0 || salePercent >= 100)) return showToast("Enter a valid sale % (1-99)", "warning");
   const res = await fetch("/admin/update-sale", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: token },
@@ -943,31 +1049,6 @@ async function toggleSale(key, onSale) {
   loadAdmin();
 }
 
-/* ===== OVERVIEW LOGS ===== */
-function renderOverviewLogs(monitoring, forecasting) {
-  const mEl = document.getElementById("overviewMonitoring");
-  const fEl = document.getElementById("overviewForecasting");
-  if (!mEl || !fEl) return;
-  mEl.innerHTML = monitoring.slice(0, 5).map(l =>
-    `<div class="log-item monitoring">${l.message || l.item}<div class="log-time">${l.time}</div></div>`
-  ).join("") || "<p style='color:var(--text-muted)'>No alerts yet</p>";
-  fEl.innerHTML = forecasting.slice(0, 5).map(l =>
-    `<div class="log-item forecasting">${l.message || l.item}<div class="log-time">${l.time}</div></div>`
-  ).join("") || "<p style='color:var(--text-muted)'>No actions yet</p>";
-}
-
-/* ===== LOGS ===== */
-function renderLogs(logs, id, type) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.innerHTML = logs.length === 0
-    ? "<p style='color:var(--text-muted)'>No logs yet</p>"
-    : logs.map(l =>
-        `<div class="log-item ${type}">${l.message || l.item + " → " + l.stock}<div class="log-time">${l.time}</div></div>`
-      ).join("");
-}
-
-/* ===== ADD ITEM ===== */
 async function addItem() {
   const name = document.getElementById("itemName").value.trim();
   const stock = Number(document.getElementById("itemStock").value);
@@ -984,7 +1065,6 @@ async function addItem() {
   loadAdmin();
 }
 
-/* ===== DELETE ITEM ===== */
 async function deleteItem(key) {
   if (!confirm("Delete this item?")) return;
   await fetch(`/admin/delete-item/${key}`, { method: "DELETE", headers: { Authorization: token } });
@@ -992,13 +1072,9 @@ async function deleteItem(key) {
   loadAdmin();
 }
 
-/* ===== RESET ===== */
 async function resetLogs() {
   if (!confirm("Reset all logs and stocks?")) return;
-  await fetch("/admin/reset-logs", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: token }
-  });
+  await fetch("/admin/reset-logs", { method: "POST", headers: { "Content-Type": "application/json", Authorization: token } });
   showToast("Reset successful");
   loadAdmin();
 }
@@ -1029,9 +1105,7 @@ async function scanShelf() {
   formData.append("total_slots", totalSlots);
   formData.append("shelf_id", shelfId);
   try {
-    const res = await fetch("/admin/scan-shelf", {
-      method: "POST", headers: { Authorization: token }, body: formData
-    });
+    const res = await fetch("/admin/scan-shelf", { method: "POST", headers: { Authorization: token }, body: formData });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
     renderScanResult(data);
@@ -1061,31 +1135,21 @@ function renderScanResult(data) {
     const detail = data.detection_details?.find(d => d.slot === i);
     const div = document.createElement("div");
     div.className = `slot ${isOccupied ? "occupied" : "empty"}`;
-    div.innerHTML = `
-      <div class="slot-number">Slot ${i}</div>
-      <div style="font-size:1.2rem">${isOccupied ? "✅" : "❌"}</div>
-      <div style="font-size:0.65rem;margin-top:2px">${isOccupied ? (detail?.product || "") : "Empty"}</div>
-    `;
+    div.innerHTML = `<div class="slot-number">Slot ${i}</div><div style="font-size:1.2rem">${isOccupied ? "✅" : "❌"}</div><div style="font-size:0.65rem;margin-top:2px">${isOccupied ? (detail?.product || "") : "Empty"}</div>`;
     grid.appendChild(div);
   }
 
   document.getElementById("presentProducts").innerHTML = data.present_products.length === 0
     ? "<p style='color:var(--text-muted)'>None detected</p>"
-    : data.present_products.map(p =>
-        `<span class="product-tag" style="background:var(--success-bg);color:var(--success-text)">✅ ${p}</span>`
-      ).join("");
+    : data.present_products.map(p => `<span class="product-tag" style="background:var(--success-bg);color:var(--success-text)">✅ ${p}</span>`).join("");
 
   document.getElementById("missingProducts").innerHTML = data.missing_products.length === 0
     ? "<p style='color:var(--text-muted)'>None missing ✅</p>"
-    : data.missing_products.map(p =>
-        `<span class="product-tag" style="background:var(--danger-bg);color:var(--danger-text)">❌ ${p}</span>`
-      ).join("");
+    : data.missing_products.map(p => `<span class="product-tag" style="background:var(--danger-bg);color:var(--danger-text)">❌ ${p}</span>`).join("");
 
   document.getElementById("missingProductBtns").innerHTML = data.missing_products.length === 0
     ? "<p style='color:var(--text-muted)'>No missing products 🎉</p>"
-    : data.missing_products.map(p =>
-        `<button class="btn-warning" style="font-size:0.8rem" onclick="findFranchiseForProduct('${p}')">📍 Find ${p} nearby</button>`
-      ).join("");
+    : data.missing_products.map(p => `<button class="btn-warning" style="font-size:0.8rem" onclick="findFranchiseForProduct('${p}')">📍 Find ${p} nearby</button>`).join("");
 }
 
 async function loadRecentScans() {
@@ -1099,8 +1163,7 @@ async function loadRecentScans() {
           <strong>${s.shelf_id}</strong> — ${s.occupied_slots}/${s.total_slots} slots occupied
           <span class="badge ${s.empty_slots > 5 ? 'badge-red' : 'badge-green'}" style="margin-left:8px">${s.empty_slots} empty</span>
           <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px">${s.detectedAt}</div>
-        </div>
-      `).join("");
+        </div>`).join("");
 }
 
 /* ===== PLANOGRAM ===== */
@@ -1124,14 +1187,8 @@ async function loadPlanogram() {
   if (!grid) return;
   grid.innerHTML = "";
   for (let i = 1; i <= 10; i++) {
-    const options = PRODUCTS.map(p =>
-      `<option value="${p.key}" ${layout[i] === p.key ? "selected" : ""}>${p.name}</option>`
-    ).join("");
-    grid.innerHTML += `
-      <div class="planogram-slot">
-        <label>Slot ${i}</label>
-        <select id="slot_${i}">${options}</select>
-      </div>`;
+    const options = PRODUCTS.map(p => `<option value="${p.key}" ${layout[i] === p.key ? "selected" : ""}>${p.name}</option>`).join("");
+    grid.innerHTML += `<div class="planogram-slot"><label>Slot ${i}</label><select id="slot_${i}">${options}</select></div>`;
   }
 }
 
@@ -1156,8 +1213,7 @@ async function loadAllFranchises() {
     <div class="franchise-card">
       <div><h3>🏪 ${f.name}</h3><p>📍 ${f.address}</p></div>
       <span class="badge badge-blue">Active</span>
-    </div>
-  `).join("");
+    </div>`).join("");
 }
 
 async function findFranchise() {
@@ -1167,38 +1223,31 @@ async function findFranchise() {
 }
 
 async function findFranchiseForProduct(product, targetEl) {
-  const lat = 19.0760;
-  const lng = 72.8777;
-  const res = await fetch(`/nearby-franchises?product=${product}&lat=${lat}&lng=${lng}`, {
-    headers: { Authorization: token }
-  });
+  const lat = 19.0760, lng = 72.8777;
+  const res = await fetch(`/nearby-franchises?product=${product}&lat=${lat}&lng=${lng}`, { headers: { Authorization: token } });
   const results = await res.json();
   const el = targetEl || document.getElementById("franchiseResults");
   el.innerHTML = results.length === 0
     ? `<p style='color:var(--text-muted)'>No nearby stores have ${product} in stock</p>`
-    : `<h3 style="margin-bottom:12px;color:var(--text-accent);font-size:0.9rem">Stores with <strong>${product}</strong> in stock:</h3>
+    : `<h3 style="margin-bottom:12px;color:var(--text-accent);font-size:0.9rem">Stores with <strong>${product}</strong>:</h3>
       ${results.map(f => `
         <div class="franchise-card">
-          <div><h3>🏪 ${f.name}</h3><p>📍 ${f.address}</p><p style="color:var(--success);margin-top:4px">📦 Stock: ${f.stock} units</p></div>
+          <div><h3>🏪 ${f.name}</h3><p>📍 ${f.address}</p><p style="color:var(--success);margin-top:4px">📦 ${f.stock} units</p></div>
           <div class="distance-badge">📏 ${f.distance} km</div>
-        </div>
-      `).join("")}`;
+        </div>`).join("")}`;
 }
 
 /* ===== LOGOUT ===== */
 async function logout() {
-  await fetch("/logout", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ token })
-  });
+  await fetch("/logout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token }) });
   localStorage.clear();
   window.location.href = "login.html";
 }
 
 /* ===== INIT ===== */
 loadAdmin();
-setInterval(loadAdmin, 10000);
+setInterval(loadAdmin, 15000);
+setInterval(() => { if (currentPage === "agents") loadAgentDashboard(); }, 30000);
 </script>
 
 </body>
