@@ -543,8 +543,11 @@
             <tr>
               <th>Item</th>
               <th>Stock</th>
+              <th>Price</th>
               <th>Status</th>
               <th>Update Stock</th>
+              <th>Set Price</th>
+              <th>Sale</th>
               <th>Delete</th>
             </tr>
           </thead>
@@ -811,19 +814,49 @@ function renderInventoryTable(items) {
   const table = document.getElementById("inventoryTable");
   if (!table) return;
   table.innerHTML = items.map(item => {
+    const effectivePrice = item.onSale ? item.salePrice : item.price;
     let status = item.stock === 0
       ? `<span class="badge badge-red">Out of Stock</span>`
       : item.stock <= 3
       ? `<span class="badge badge-yellow">Low Stock</span>`
       : `<span class="badge badge-green">Healthy</span>`;
+
+    let saleTag = item.onSale
+      ? `<span class="badge badge-purple" style="margin-left:6px">🔥 ${item.salePercent}% OFF</span>`
+      : "";
+
     return `<tr>
-      <td><strong>${item.name}</strong></td>
+      <td><strong>${item.name}</strong>${saleTag}</td>
       <td>${item.stock}</td>
+      <td>
+        <div style="font-size:0.85rem">
+          ${item.onSale
+            ? `<span style="text-decoration:line-through;color:var(--text-muted)">₹${item.price}</span>
+               <strong style="color:var(--danger);margin-left:6px">₹${item.salePrice}</strong>`
+            : `<strong>₹${item.price || 99}</strong>`
+          }
+        </div>
+      </td>
       <td>${status}</td>
       <td>
         <div class="stock-edit">
-          <input type="number" id="edit_${item.key}" value="${item.stock}" min="0">
+          <input type="number" id="edit_${item.key}" value="${item.stock}" min="0" style="width:70px">
           <button class="btn-primary btn-sm" onclick="updateStock('${item.key}')">Update</button>
+        </div>
+      </td>
+      <td>
+        <div class="stock-edit">
+          <input type="number" id="price_${item.key}" value="${item.price || 99}" min="0" step="0.01" style="width:80px">
+          <button class="btn-success btn-sm" onclick="updatePrice('${item.key}')">Set</button>
+        </div>
+      </td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <input type="number" id="sale_${item.key}" value="${item.salePercent || 0}" min="0" max="90" style="width:60px" placeholder="%">
+          <button class="btn-warning btn-sm" onclick="toggleSale('${item.key}', ${!item.onSale})">
+            ${item.onSale ? '🔥 On Sale' : 'Set Sale'}
+          </button>
+          ${item.onSale ? `<button class="btn-danger btn-sm" onclick="toggleSale('${item.key}', false)">Remove</button>` : ''}
         </div>
       </td>
       <td>
@@ -879,6 +912,35 @@ function renderChart(items) {
       }
     }
   });
+}
+
+/* ===== UPDATE PRICE ===== */
+async function updatePrice(key) {
+  const price = parseFloat(document.getElementById("price_" + key).value);
+  if (isNaN(price) || price < 0) return showToast("Invalid price", "error");
+  const res = await fetch("/admin/update-price", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: token },
+    body: JSON.stringify({ key, price })
+  });
+  const data = await res.json();
+  showToast(data.message);
+  loadAdmin();
+}
+
+async function toggleSale(key, onSale) {
+  const salePercent = parseFloat(document.getElementById("sale_" + key).value) || 0;
+  if (onSale && (salePercent <= 0 || salePercent >= 100)) {
+    return showToast("Enter a valid sale % (1-99)", "warning");
+  }
+  const res = await fetch("/admin/update-sale", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: token },
+    body: JSON.stringify({ key, onSale, salePercent })
+  });
+  const data = await res.json();
+  showToast(data.message);
+  loadAdmin();
 }
 
 /* ===== OVERVIEW LOGS ===== */

@@ -1,7 +1,7 @@
 /* =========================================
    RETAIL MART AGENTIC AI SYSTEM
    server.js — Main Backend
-   With Complete Cybersecurity Layer
+   With Razorpay Payment Integration
 ========================================= */
 
 require("dotenv").config();
@@ -17,10 +17,20 @@ const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const mongoSanitize = require("express-mongo-sanitize");
 const cors = require("cors");
+const Razorpay = require("razorpay");
+const crypto = require("crypto");
 
 const { mapSlotsToProducts, updatePlanogram, getPlanogram } = require("./slotProductMapper");
 
 const app = express();
+
+/* =========================
+   RAZORPAY INSTANCE
+========================= */
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET
+});
 
 /* =========================
    SECURITY LAYER 1 — HELMET
@@ -53,7 +63,7 @@ app.use(cors({
 }));
 
 /* =========================
-   SECURITY LAYER 3 — RATE LIMITING
+   RATE LIMITING
 ========================= */
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -88,32 +98,25 @@ app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 
 /* =========================
-   SECURITY LAYER 4 — MONGO SANITIZE
+   MONGO SANITIZE
 ========================= */
 app.use(mongoSanitize());
 
 /* =========================
-   SECURITY LAYER 5 — REQUEST LOGGING
+   REQUEST LOGGING
 ========================= */
 app.use((req, res, next) => {
   const timestamp = new Date().toISOString();
   const ip = req.ip || req.connection.remoteAddress;
   console.log(`[${timestamp}] ${req.method} ${req.path} — IP: ${ip}`);
-
-  const suspicious = [
-    "<script", "javascript:", "eval(", "DROP TABLE",
-    "$where", "../../", "passwd", "etc/shadow"
-  ];
-
+  const suspicious = ["<script", "javascript:", "eval(", "DROP TABLE", "$where", "../../"];
   const body = JSON.stringify(req.body || "");
   const query = JSON.stringify(req.query || "");
-
   suspicious.forEach(pattern => {
     if (body.includes(pattern) || query.includes(pattern)) {
       console.warn(`🚨 SUSPICIOUS REQUEST from ${ip}: ${pattern}`);
     }
   });
-
   next();
 });
 
@@ -174,31 +177,74 @@ const ItemSchema = new mongoose.Schema({
   key: String,
   name: { type: String, maxlength: 100 },
   stock: { type: Number, min: 0, max: 99999 },
-  salesHistory: { type: [Number], default: [] }
+  salesHistory: { type: [Number], default: [] },
+  ratings: { type: [Number], default: [] },
+  avgRating: { type: Number, default: 0 },
+  totalRatings: { type: Number, default: 0 },
+  price: { type: Number, default: 99 },
+  onSale: { type: Boolean, default: false },
+  salePercent: { type: Number, default: 0 },
+  salePrice: { type: Number, default: 0 }
 });
 
-const OrderSchema = new mongoose.Schema({ cart: Object, time: String });
+const OrderSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  userEmail: String,
+  cart: Object,
+  itemNames: Object,
+  totalItems: Number,
+  totalAmount: Number,
+  paymentId: String,
+  paymentStatus: { type: String, default: "pending", enum: ["pending", "paid", "failed"] },
+  time: String,
+  createdAt: { type: Date, default: Date.now }
+});
 
 const LogSchema = new mongoose.Schema({
-  type: String, item: String, stock: Number, message: String, time: String
+  type: String,
+  item: String,
+  stock: Number,
+  message: String,
+  time: String
 });
 
 const ShelfScanSchema = new mongoose.Schema({
-  shelf_id: String, imagePath: String, total_slots: Number,
-  occupied_slots: Number, empty_slots: Number,
-  occupied_slot_numbers: Array, empty_slot_numbers: Array,
-  present_products: Array, missing_products: Array,
-  detection_details: Array, stock_counts: Object,
-  fill_percentage: Number, detectedAt: String
+  shelf_id: String,
+  imagePath: String,
+  total_slots: Number,
+  occupied_slots: Number,
+  empty_slots: Number,
+  occupied_slot_numbers: Array,
+  empty_slot_numbers: Array,
+  present_products: Array,
+  missing_products: Array,
+  detection_details: Array,
+  stock_counts: Object,
+  fill_percentage: Number,
+  detectedAt: String
 });
 
 const FranchiseSchema = new mongoose.Schema({
-  name: String, address: String, lat: Number, lng: Number, inventory: Object
+  name: String,
+  address: String,
+  lat: Number,
+  lng: Number,
+  inventory: Object
 });
 
 const SecurityLogSchema = new mongoose.Schema({
-  type: String, ip: String, path: String, message: String,
+  type: String,
+  ip: String,
+  path: String,
+  message: String,
   time: { type: Date, default: Date.now }
+});
+
+const RatingSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  itemKey: String,
+  rating: { type: Number, min: 1, max: 5 },
+  createdAt: { type: Date, default: Date.now }
 });
 
 /* =========================
@@ -211,6 +257,7 @@ const Log = mongoose.model("Log", LogSchema);
 const ShelfScan = mongoose.model("ShelfScan", ShelfScanSchema);
 const Franchise = mongoose.model("Franchise", FranchiseSchema);
 const SecurityLog = mongoose.model("SecurityLog", SecurityLogSchema);
+const Rating = mongoose.model("Rating", RatingSchema);
 
 /* =========================
    INIT
@@ -227,14 +274,14 @@ async function init() {
 
   if ((await Item.countDocuments()) === 0) {
     await Item.insertMany([
-      { key: "chocolates", name: "Chocolates", stock: 5, salesHistory: [2,3,2,4,3] },
-      { key: "biscuits", name: "Biscuits", stock: 8, salesHistory: [1,2,3,2,1] },
-      { key: "chips", name: "Chips", stock: 6, salesHistory: [3,4,3,5,4] },
-      { key: "juice", name: "Juice", stock: 7, salesHistory: [2,2,3,2,3] },
-      { key: "soft-drinks", name: "Soft Drinks", stock: 9, salesHistory: [4,5,4,6,5] },
-      { key: "canned-food", name: "Canned Food", stock: 4, salesHistory: [1,1,2,1,2] },
-      { key: "rice", name: "Rice", stock: 7, salesHistory: [2,3,2,3,2] },
-      { key: "salt", name: "Salt", stock: 10, salesHistory: [1,1,1,2,1] }
+      { key: "chocolates", name: "Chocolates", stock: 5, salesHistory: [2,3,2,4,3], price: 149 },
+      { key: "biscuits", name: "Biscuits", stock: 8, salesHistory: [1,2,3,2,1], price: 49 },
+      { key: "chips", name: "Chips", stock: 6, salesHistory: [3,4,3,5,4], price: 29 },
+      { key: "juice", name: "Juice", stock: 7, salesHistory: [2,2,3,2,3], price: 99 },
+      { key: "soft-drinks", name: "Soft Drinks", stock: 9, salesHistory: [4,5,4,6,5], price: 59 },
+      { key: "canned-food", name: "Canned Food", stock: 4, salesHistory: [1,1,2,1,2], price: 199 },
+      { key: "rice", name: "Rice", stock: 7, salesHistory: [2,3,2,3,2], price: 89 },
+      { key: "salt", name: "Salt", stock: 10, salesHistory: [1,1,1,2,1], price: 25 }
     ]);
     console.log("✅ Inventory initialized");
   }
@@ -279,10 +326,7 @@ function auth(role) {
   return (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (!authHeader) return res.status(401).json({ message: "No token provided" });
-
-    const token = authHeader.startsWith("Bearer ")
-      ? authHeader.slice(7) : authHeader;
-
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : authHeader;
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       if (role && decoded.role !== role) {
@@ -373,11 +417,11 @@ app.post("/login", loginLimiter, async (req, res) => {
     await user.save();
 
     const token = jwt.sign(
-      { id: user._id, role: user.role, email: user.email },
+      { id: user._id, role: user.role, email: user.email, fname: user.fname },
       process.env.JWT_SECRET,
       { expiresIn: "24h" }
     );
-    res.json({ token, role: user.role });
+    res.json({ token, role: user.role, fname: user.fname });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
@@ -438,7 +482,7 @@ setInterval(async () => {
 }, 15000);
 
 /* =========================
-   SHOP & CHECKOUT
+   SHOP ITEMS
 ========================= */
 app.get("/shop-items", auth("customer"), async (req, res) => {
   try {
@@ -446,23 +490,104 @@ app.get("/shop-items", auth("customer"), async (req, res) => {
     const view = {};
     items.forEach(i => {
       view[i.key] = {
-        name: i.name, stock: i.stock,
+        name: i.name,
+        stock: i.stock,
+        price: i.price || 99,
+        onSale: i.onSale || false,
+        salePercent: i.salePercent || 0,
+        salePrice: i.salePrice || i.price || 99,
         canBuy: i.stock > 0,
-        warning: i.stock <= 3 ? i.stock : null
+        warning: i.stock <= 3 ? i.stock : null,
+        avgRating: i.avgRating || 0,
+        totalRatings: i.totalRatings || 0
       };
     });
     res.json(view);
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
-app.post("/checkout", auth("customer"), async (req, res) => {
+/* =========================
+   RAZORPAY — CREATE ORDER
+========================= */
+app.post("/create-payment-order", auth("customer"), async (req, res) => {
   try {
-    const cart = req.body.cart;
+    const { cart } = req.body;
     if (!cart || typeof cart !== "object") {
       return res.status(400).json({ message: "Invalid cart" });
     }
+
+    // Calculate total amount in paise (Razorpay uses paise)
+    let totalAmount = 0;
+    for (const key in cart) {
+      const item = await Item.findOne({ key });
+      if (item && cart[key] > 0) {
+        totalAmount += (item.price || 99) * cart[key];
+      }
+    }
+
+    if (totalAmount === 0) {
+      return res.status(400).json({ message: "Cart is empty" });
+    }
+
+    // Create Razorpay order
+    const order = await razorpay.orders.create({
+      amount: totalAmount * 100, // convert to paise
+      currency: "INR",
+      receipt: `order_${Date.now()}`,
+      notes: {
+        userId: req.user.id,
+        userEmail: req.user.email
+      }
+    });
+
+    res.json({
+      orderId: order.id,
+      amount: order.amount,
+      currency: order.currency,
+      keyId: process.env.RAZORPAY_KEY_ID
+    });
+  } catch (err) {
+    console.error("Payment order error:", err.message);
+    res.status(500).json({ message: "Failed to create payment order" });
+  }
+});
+
+/* =========================
+   RAZORPAY — VERIFY PAYMENT
+========================= */
+app.post("/verify-payment", auth("customer"), async (req, res) => {
+  try {
+    const {
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+      cart
+    } = req.body;
+
+    // Verify signature
+    const body = razorpay_order_id + "|" + razorpay_payment_id;
+    const expectedSignature = crypto
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+      .update(body.toString())
+      .digest("hex");
+
+    if (expectedSignature !== razorpay_signature) {
+      await SecurityLog.create({
+        type: "payment_fraud_attempt",
+        ip: req.ip,
+        path: "/verify-payment",
+        message: `Invalid payment signature from ${req.user.email}`
+      });
+      return res.status(400).json({ message: "Payment verification failed" });
+    }
+
+    // Payment verified — deduct stock
     const adjusted = {};
+    const itemNames = {};
     const notices = [];
+    let totalItems = 0;
+    let totalAmount = 0;
+
     for (const key in cart) {
       if (!validateInput(key, 50)) continue;
       const item = await Item.findOne({ key });
@@ -470,14 +595,143 @@ app.post("/checkout", auth("customer"), async (req, res) => {
       const qty = Math.max(0, Math.min(parseInt(cart[key]) || 0, 100));
       const allowed = Math.min(qty, item.stock);
       adjusted[key] = allowed;
+      itemNames[key] = item.name;
+      totalItems += allowed;
+      totalAmount += (item.price || 99) * allowed;
       if (qty > item.stock) notices.push(`${item.name}: only ${item.stock} available`);
       await Item.updateOne({ key }, {
         $inc: { stock: -allowed },
         $push: { salesHistory: { $each: [allowed], $slice: -30 } }
       });
     }
-    await Order.create({ cart: adjusted, time: new Date().toLocaleString() });
+
+    // Save order
+    await Order.create({
+      userId: req.user.id,
+      userEmail: req.user.email,
+      cart: adjusted,
+      itemNames,
+      totalItems,
+      totalAmount,
+      paymentId: razorpay_payment_id,
+      paymentStatus: "paid",
+      time: new Date().toLocaleString()
+    });
+
+    res.json({
+      message: "Payment successful! Order placed.",
+      paymentId: razorpay_payment_id,
+      notices
+    });
+  } catch (err) {
+    console.error("Payment verify error:", err.message);
+    res.status(500).json({ message: "Payment verification error" });
+  }
+});
+
+/* =========================
+   CHECKOUT (Free/Direct)
+========================= */
+app.post("/checkout", auth("customer"), async (req, res) => {
+  try {
+    const cart = req.body.cart;
+    if (!cart || typeof cart !== "object") {
+      return res.status(400).json({ message: "Invalid cart" });
+    }
+    const adjusted = {};
+    const itemNames = {};
+    const notices = [];
+    let totalItems = 0;
+    let totalAmount = 0;
+
+    for (const key in cart) {
+      if (!validateInput(key, 50)) continue;
+      const item = await Item.findOne({ key });
+      if (!item) continue;
+      const qty = Math.max(0, Math.min(parseInt(cart[key]) || 0, 100));
+      const allowed = Math.min(qty, item.stock);
+      adjusted[key] = allowed;
+      itemNames[key] = item.name;
+      totalItems += allowed;
+      totalAmount += (item.price || 99) * allowed;
+      if (qty > item.stock) notices.push(`${item.name}: only ${item.stock} available`);
+      await Item.updateOne({ key }, {
+        $inc: { stock: -allowed },
+        $push: { salesHistory: { $each: [allowed], $slice: -30 } }
+      });
+    }
+
+    await Order.create({
+      userId: req.user.id,
+      userEmail: req.user.email,
+      cart: adjusted,
+      itemNames,
+      totalItems,
+      totalAmount,
+      paymentStatus: "paid",
+      time: new Date().toLocaleString()
+    });
+
     res.json({ message: "Order placed successfully", notices });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* =========================
+   ORDER HISTORY
+========================= */
+app.get("/my-orders", auth("customer"), async (req, res) => {
+  try {
+    const orders = await Order.find({ userId: req.user.id })
+      .sort({ createdAt: -1 })
+      .limit(20);
+    res.json(orders);
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* =========================
+   RATINGS
+========================= */
+app.post("/rate-product", auth("customer"), async (req, res) => {
+  try {
+    const { itemKey, rating } = req.body;
+    if (!itemKey || !rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ message: "Invalid rating" });
+    }
+    const item = await Item.findOne({ key: itemKey });
+    if (!item) return res.status(404).json({ message: "Item not found" });
+
+    const existing = await Rating.findOne({ userId: req.user.id, itemKey });
+    if (existing) {
+      existing.rating = rating;
+      await existing.save();
+    } else {
+      await Rating.create({ userId: req.user.id, itemKey, rating });
+    }
+
+    const allRatings = await Rating.find({ itemKey });
+    const avg = allRatings.reduce((a, b) => a + b.rating, 0) / allRatings.length;
+
+    await Item.updateOne({ key: itemKey }, {
+      $set: {
+        avgRating: Math.round(avg * 10) / 10,
+        totalRatings: allRatings.length
+      }
+    });
+
+    res.json({
+      message: "Rating saved!",
+      avgRating: Math.round(avg * 10) / 10,
+      totalRatings: allRatings.length
+    });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+app.get("/my-ratings", auth("customer"), async (req, res) => {
+  try {
+    const ratings = await Rating.find({ userId: req.user.id });
+    const ratingMap = {};
+    ratings.forEach(r => { ratingMap[r.itemKey] = r.rating; });
+    res.json(ratingMap);
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
@@ -500,6 +754,44 @@ app.post("/admin/add-item", auth("admin"), async (req, res) => {
     }
     await Item.create({ key, name, stock: stockNum, salesHistory: [] });
     res.json({ message: "Item added successfully" });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* =========================
+   UPDATE PRICE
+========================= */
+app.post("/admin/update-price", auth("admin"), async (req, res) => {
+  try {
+    const { key, price } = req.body;
+    if (!key) return res.status(400).json({ message: "Invalid key" });
+    const priceNum = parseFloat(price);
+    if (isNaN(priceNum) || priceNum < 0) {
+      return res.status(400).json({ message: "Invalid price" });
+    }
+    await Item.updateOne({ key }, { $set: { price: priceNum } });
+    res.json({ message: `Price updated to ₹${priceNum}` });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* =========================
+   UPDATE SALE
+========================= */
+app.post("/admin/update-sale", auth("admin"), async (req, res) => {
+  try {
+    const { key, onSale, salePercent } = req.body;
+    if (!key) return res.status(400).json({ message: "Invalid key" });
+
+    const item = await Item.findOne({ key });
+    if (!item) return res.status(404).json({ message: "Item not found" });
+
+    const pct = parseFloat(salePercent) || 0;
+    const salePrice = onSale ? Math.round(item.price * (1 - pct / 100)) : item.price;
+
+    await Item.updateOne({ key }, {
+      $set: { onSale, salePercent: pct, salePrice }
+    });
+
+    res.json({ message: onSale ? `Sale set: ${pct}% off` : "Sale removed" });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
@@ -734,4 +1026,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);
   console.log(`🔒 Security layer active`);
+  console.log(`💳 Razorpay payment gateway active`);
 });
