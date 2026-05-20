@@ -1,6 +1,7 @@
 /* =========================================
    RETAIL MART AGENTIC AI SYSTEM
    server.js — Main Backend
+   With Complete Cybersecurity Layer
 ========================================= */
 
 require("dotenv").config();
@@ -12,11 +13,113 @@ const path = require("path");
 const fs = require("fs");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
+const mongoSanitize = require("express-mongo-sanitize");
+const cors = require("cors");
 
 const { mapSlotsToProducts, updatePlanogram, getPlanogram } = require("./slotProductMapper");
 
 const app = express();
-app.use(express.json());
+
+/* =========================
+   SECURITY LAYER 1 — HELMET
+========================= */
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false
+}));
+
+/* =========================
+   SECURITY LAYER 2 — CORS
+========================= */
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
+app.use(cors({
+  origin: function(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true
+}));
+
+/* =========================
+   SECURITY LAYER 3 — RATE LIMITING
+========================= */
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: { message: "Too many requests, please try again later" },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { message: "Too many login attempts, please try again in 15 minutes" },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+const signupLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 3,
+  message: { message: "Too many signup attempts, please try again in an hour" },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+app.use("/api", generalLimiter);
+
+/* =========================
+   BODY PARSING
+========================= */
+app.use(express.json({ limit: "10kb" }));
+app.use(express.urlencoded({ extended: true, limit: "10kb" }));
+
+/* =========================
+   SECURITY LAYER 4 — MONGO SANITIZE
+========================= */
+app.use(mongoSanitize());
+
+/* =========================
+   SECURITY LAYER 5 — REQUEST LOGGING
+========================= */
+app.use((req, res, next) => {
+  const timestamp = new Date().toISOString();
+  const ip = req.ip || req.connection.remoteAddress;
+  console.log(`[${timestamp}] ${req.method} ${req.path} — IP: ${ip}`);
+
+  const suspicious = [
+    "<script", "javascript:", "eval(", "DROP TABLE",
+    "$where", "../../", "passwd", "etc/shadow"
+  ];
+
+  const body = JSON.stringify(req.body || "");
+  const query = JSON.stringify(req.query || "");
+
+  suspicious.forEach(pattern => {
+    if (body.includes(pattern) || query.includes(pattern)) {
+      console.warn(`🚨 SUSPICIOUS REQUEST from ${ip}: ${pattern}`);
+    }
+  });
+
+  next();
+});
+
+/* =========================
+   STATIC FILES
+========================= */
 app.use(express.static("public"));
 app.use("/uploads", express.static("uploads"));
 
@@ -30,7 +133,20 @@ const storage = multer.diskStorage({
   filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
 });
 
-const upload = multer({ storage });
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("Only JPG, PNG and WEBP images are allowed"), false);
+  }
+};
+
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: 10 * 1024 * 1024 }
+});
 
 /* =========================
    MONGODB CONNECTION
@@ -44,55 +160,45 @@ mongoose
    SCHEMAS
 ========================= */
 const UserSchema = new mongoose.Schema({
-  role: { type: String, default: "customer" },
-  fname: String,
-  lname: String,
-  email: { type: String, unique: true },
-  password: String
+  role: { type: String, default: "customer", enum: ["customer", "admin"] },
+  fname: { type: String, maxlength: 50 },
+  lname: { type: String, maxlength: 50 },
+  email: { type: String, unique: true, lowercase: true },
+  password: String,
+  loginAttempts: { type: Number, default: 0 },
+  lockUntil: { type: Date, default: null },
+  createdAt: { type: Date, default: Date.now }
 });
 
 const ItemSchema = new mongoose.Schema({
   key: String,
-  name: String,
-  stock: Number,
+  name: { type: String, maxlength: 100 },
+  stock: { type: Number, min: 0, max: 99999 },
   salesHistory: { type: [Number], default: [] }
 });
 
-const OrderSchema = new mongoose.Schema({
-  cart: Object,
-  time: String
-});
+const OrderSchema = new mongoose.Schema({ cart: Object, time: String });
 
 const LogSchema = new mongoose.Schema({
-  type: String,
-  item: String,
-  stock: Number,
-  message: String,
-  time: String
+  type: String, item: String, stock: Number, message: String, time: String
 });
 
 const ShelfScanSchema = new mongoose.Schema({
-  shelf_id: String,
-  imagePath: String,
-  total_slots: Number,
-  occupied_slots: Number,
-  empty_slots: Number,
-  occupied_slot_numbers: Array,
-  empty_slot_numbers: Array,
-  present_products: Array,
-  missing_products: Array,
-  detection_details: Array,
-  stock_counts: Object,
-  fill_percentage: Number,
-  detectedAt: String
+  shelf_id: String, imagePath: String, total_slots: Number,
+  occupied_slots: Number, empty_slots: Number,
+  occupied_slot_numbers: Array, empty_slot_numbers: Array,
+  present_products: Array, missing_products: Array,
+  detection_details: Array, stock_counts: Object,
+  fill_percentage: Number, detectedAt: String
 });
 
 const FranchiseSchema = new mongoose.Schema({
-  name: String,
-  address: String,
-  lat: Number,
-  lng: Number,
-  inventory: Object
+  name: String, address: String, lat: Number, lng: Number, inventory: Object
+});
+
+const SecurityLogSchema = new mongoose.Schema({
+  type: String, ip: String, path: String, message: String,
+  time: { type: Date, default: Date.now }
 });
 
 /* =========================
@@ -104,13 +210,14 @@ const Order = mongoose.model("Order", OrderSchema);
 const Log = mongoose.model("Log", LogSchema);
 const ShelfScan = mongoose.model("ShelfScan", ShelfScanSchema);
 const Franchise = mongoose.model("Franchise", FranchiseSchema);
+const SecurityLog = mongoose.model("SecurityLog", SecurityLogSchema);
 
 /* =========================
    INIT
 ========================= */
 async function init() {
   if (!(await User.findOne({ role: "admin" }))) {
-    const hashedPassword = await bcrypt.hash("admin123", 10);
+    const hashedPassword = await bcrypt.hash("admin123", 12);
     await User.create({
       role: "admin", fname: "Store", lname: "Admin",
       email: "admin", password: hashedPassword
@@ -178,45 +285,102 @@ function auth(role) {
 
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      if (role && decoded.role !== role) return res.status(403).json({ message: "Forbidden" });
+      if (role && decoded.role !== role) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
       req.user = decoded;
       next();
     } catch (err) {
+      SecurityLog.create({
+        type: "auth_failure", ip: req.ip, path: req.path,
+        message: `Invalid token: ${err.message}`
+      }).catch(() => {});
       return res.status(401).json({ message: "Invalid or expired token" });
     }
   };
 }
 
 /* =========================
+   INPUT VALIDATION
+========================= */
+function validateInput(str, maxLen = 200) {
+  if (!str) return false;
+  if (str.length > maxLen) return false;
+  const dangerous = ["<script", "javascript:", "$where", "DROP TABLE", "eval("];
+  return !dangerous.some(p => str.toLowerCase().includes(p.toLowerCase()));
+}
+
+/* =========================
    SIGNUP
 ========================= */
-app.post("/signup", async (req, res) => {
+app.post("/signup", signupLimiter, async (req, res) => {
   try {
     const { fname, lname, email, password } = req.body;
-    if (await User.findOne({ email })) return res.status(400).json({ message: "User already exists" });
-    const hashedPassword = await bcrypt.hash(password, 10);
-    await User.create({ fname, lname, email, password: hashedPassword });
+    if (!fname || !lname || !email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+    if (!validateInput(fname, 50) || !validateInput(lname, 50)) {
+      return res.status(400).json({ message: "Invalid name" });
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters" });
+    }
+    if (await User.findOne({ email: email.toLowerCase() })) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+    const hashedPassword = await bcrypt.hash(password, 12);
+    await User.create({ fname, lname, email: email.toLowerCase(), password: hashedPassword });
     res.json({ message: "Account created successfully" });
-  } catch (err) { res.status(500).json({ message: err.message }); }
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
 });
 
 /* =========================
    LOGIN
 ========================= */
-app.post("/login", async (req, res) => {
+app.post("/login", loginLimiter, async (req, res) => {
   try {
     const { username, password } = req.body;
-    const user = await User.findOne({ email: username });
+    if (!username || !password) {
+      return res.status(400).json({ message: "Username and password required" });
+    }
+    const user = await User.findOne({ email: username.toLowerCase() });
     if (!user) return res.status(401).json({ message: "Invalid credentials" });
+
+    if (user.lockUntil && user.lockUntil > Date.now()) {
+      const minutesLeft = Math.ceil((user.lockUntil - Date.now()) / 60000);
+      return res.status(423).json({ message: `Account locked. Try again in ${minutesLeft} minutes` });
+    }
+
     const passwordMatch = await bcrypt.compare(password, user.password);
-    if (!passwordMatch) return res.status(401).json({ message: "Invalid credentials" });
+    if (!passwordMatch) {
+      user.loginAttempts += 1;
+      if (user.loginAttempts >= 5) {
+        user.lockUntil = new Date(Date.now() + 30 * 60 * 1000);
+        user.loginAttempts = 0;
+        await SecurityLog.create({
+          type: "account_locked", ip: req.ip, path: "/login",
+          message: `Account ${username} locked after 5 failed attempts`
+        });
+      }
+      await user.save();
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    user.loginAttempts = 0;
+    user.lockUntil = null;
+    await user.save();
+
     const token = jwt.sign(
       { id: user._id, role: user.role, email: user.email },
       process.env.JWT_SECRET,
       { expiresIn: "24h" }
     );
     res.json({ token, role: user.role });
-  } catch (err) { res.status(500).json({ message: err.message }); }
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
 });
 
 /* =========================
@@ -288,20 +452,25 @@ app.get("/shop-items", auth("customer"), async (req, res) => {
       };
     });
     res.json(view);
-  } catch (err) { res.status(500).json({ message: err.message }); }
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
 app.post("/checkout", auth("customer"), async (req, res) => {
   try {
     const cart = req.body.cart;
+    if (!cart || typeof cart !== "object") {
+      return res.status(400).json({ message: "Invalid cart" });
+    }
     const adjusted = {};
     const notices = [];
     for (const key in cart) {
+      if (!validateInput(key, 50)) continue;
       const item = await Item.findOne({ key });
       if (!item) continue;
-      const allowed = Math.min(cart[key], item.stock);
+      const qty = Math.max(0, Math.min(parseInt(cart[key]) || 0, 100));
+      const allowed = Math.min(qty, item.stock);
       adjusted[key] = allowed;
-      if (cart[key] > item.stock) notices.push(`${item.name}: only ${item.stock} available`);
+      if (qty > item.stock) notices.push(`${item.name}: only ${item.stock} available`);
       await Item.updateOne({ key }, {
         $inc: { stock: -allowed },
         $push: { salesHistory: { $each: [allowed], $slice: -30 } }
@@ -309,7 +478,7 @@ app.post("/checkout", auth("customer"), async (req, res) => {
     }
     await Order.create({ cart: adjusted, time: new Date().toLocaleString() });
     res.json({ message: "Order placed successfully", notices });
-  } catch (err) { res.status(500).json({ message: err.message }); }
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
 /* =========================
@@ -318,29 +487,46 @@ app.post("/checkout", auth("customer"), async (req, res) => {
 app.post("/admin/add-item", auth("admin"), async (req, res) => {
   try {
     const { name, stock } = req.body;
+    if (!name || !validateInput(name, 100)) {
+      return res.status(400).json({ message: "Invalid item name" });
+    }
+    const stockNum = parseInt(stock);
+    if (isNaN(stockNum) || stockNum < 0 || stockNum > 99999) {
+      return res.status(400).json({ message: "Invalid stock value" });
+    }
     const key = name.toLowerCase().replace(/\s+/g, "-");
-    if (await Item.findOne({ key })) return res.status(400).json({ message: "Item already exists" });
-    await Item.create({ key, name, stock, salesHistory: [] });
+    if (await Item.findOne({ key })) {
+      return res.status(400).json({ message: "Item already exists" });
+    }
+    await Item.create({ key, name, stock: stockNum, salesHistory: [] });
     res.json({ message: "Item added successfully" });
-  } catch (err) { res.status(500).json({ message: err.message }); }
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
 app.post("/admin/update-stock", auth("admin"), async (req, res) => {
   try {
     const { key, stock } = req.body;
-    if (!key || stock === undefined) return res.status(400).json({ message: "key and stock required" });
-    await Item.updateOne({ key }, { $set: { stock: parseInt(stock) } });
-    res.json({ message: `Stock updated to ${stock}` });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+    if (!key || !validateInput(key, 50)) {
+      return res.status(400).json({ message: "Invalid key" });
+    }
+    const stockNum = parseInt(stock);
+    if (isNaN(stockNum) || stockNum < 0 || stockNum > 99999) {
+      return res.status(400).json({ message: "Invalid stock value" });
+    }
+    await Item.updateOne({ key }, { $set: { stock: stockNum } });
+    res.json({ message: `Stock updated to ${stockNum}` });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
 app.delete("/admin/delete-item/:key", auth("admin"), async (req, res) => {
   try {
-    await Item.deleteOne({ key: req.params.key });
+    const key = req.params.key;
+    if (!validateInput(key, 50)) {
+      return res.status(400).json({ message: "Invalid key" });
+    }
+    await Item.deleteOne({ key });
     res.json({ message: "Item deleted" });
-  } catch (err) { res.status(500).json({ message: err.message }); }
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
 app.get("/admin-data", auth("admin"), async (req, res) => {
@@ -349,7 +535,7 @@ app.get("/admin-data", auth("admin"), async (req, res) => {
     const monitoring = await Log.find({ type: "monitoring" }).sort({ _id: -1 }).limit(20);
     const forecasting = await Log.find({ type: "forecasting" }).sort({ _id: -1 }).limit(20);
     res.json({ inventory, monitoring, forecasting });
-  } catch (err) { res.status(500).json({ message: err.message }); }
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
 app.post("/admin/reset-logs", auth("admin"), async (req, res) => {
@@ -362,8 +548,15 @@ app.post("/admin/reset-logs", auth("admin"), async (req, res) => {
     for (const key in defaults) {
       await Item.updateOne({ key }, { $set: { stock: defaults[key], salesHistory: [] } });
     }
-    res.json({ message: "Logs and stocks reset successfully" });
-  } catch (err) { res.status(500).json({ message: err.message }); }
+    res.json({ message: "Reset successful" });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+app.get("/admin/security-logs", auth("admin"), async (req, res) => {
+  try {
+    const logs = await SecurityLog.find().sort({ time: -1 }).limit(50);
+    res.json(logs);
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
 /* =========================
@@ -371,72 +564,52 @@ app.post("/admin/reset-logs", auth("admin"), async (req, res) => {
 ========================= */
 app.get("/admin/planogram", auth("admin"), (req, res) => {
   try { res.json(getPlanogram()); }
-  catch (err) { res.status(500).json({ message: err.message }); }
+  catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
 app.post("/admin/planogram", auth("admin"), (req, res) => {
   try {
     const { shelfId, slotMapping } = req.body;
-    if (!shelfId || !slotMapping) return res.status(400).json({ message: "shelfId and slotMapping required" });
+    if (!shelfId || !slotMapping) {
+      return res.status(400).json({ message: "shelfId and slotMapping required" });
+    }
     updatePlanogram(shelfId, slotMapping);
     res.json({ message: `Planogram updated for ${shelfId}` });
-  } catch (err) { res.status(500).json({ message: err.message }); }
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
 /* =========================
    SHELF SCAN — YOLO
-   ⭐ KEY FIX: Now correctly passes
-   total_slots and shelf_id from
-   the admin form to ML service
 ========================= */
 app.post("/admin/scan-shelf", auth("admin"), upload.single("image"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: "No image uploaded" });
-
     const imagePath = `/uploads/${req.file.filename}`;
-
-    // ⭐ Read total_slots and shelf_id from the form data
     const totalSlots = parseInt(req.body.total_slots) || 8;
     const shelfId = req.body.shelf_id || "SHELF_001";
 
-    console.log(`📊 Scanning ${shelfId} with ${totalSlots} slots...`);
-
-    // Send to ML service with correct slot count
     const mlResponse = await fetch("http://127.0.0.1:5001/process-shelf-image", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        imagePath,
-        total_slots: totalSlots,
-        shelf_id: shelfId
-      })
+      body: JSON.stringify({ imagePath, total_slots: totalSlots, shelf_id: shelfId })
     });
 
     if (!mlResponse.ok) throw new Error("ML service error");
     const mlData = await mlResponse.json();
 
-    console.log(`✅ ML result: ${mlData.occupied_slots} occupied, ${mlData.empty_slots} empty`);
-
-    // Map slots to products using planogram
     let presentProducts = mlData.present_products || [];
     let missingProducts = mlData.missing_products || [];
 
     try {
-      const mapped = mapSlotsToProducts(
-        shelfId,
-        mlData.occupied_slot_numbers,
-        mlData.empty_slot_numbers
-      );
+      const mapped = mapSlotsToProducts(shelfId, mlData.occupied_slot_numbers, mlData.empty_slot_numbers);
       presentProducts = mapped.present_products;
       missingProducts = mapped.missing_products;
     } catch (mapErr) {
       console.log("Planogram mapping note:", mapErr.message);
     }
 
-    // Save scan to MongoDB
     await ShelfScan.create({
-      shelf_id: shelfId,
-      imagePath,
+      shelf_id: shelfId, imagePath,
       total_slots: mlData.total_slots,
       occupied_slots: mlData.occupied_slots,
       empty_slots: mlData.empty_slots,
@@ -450,21 +623,17 @@ app.post("/admin/scan-shelf", auth("admin"), upload.single("image"), async (req,
       detectedAt: new Date().toLocaleString()
     });
 
-    // Log alert if low stock
     if (mlData.low_stock_alert) {
       await Log.create({
-        type: "monitoring",
-        item: "Shelf Scan",
-        stock: mlData.occupied_slots,
-        message: `🚨 Low stock on ${shelfId}: ${mlData.occupied_slots}/${mlData.total_slots} slots occupied. Missing: ${missingProducts.join(", ")}`,
+        type: "monitoring", item: "Shelf Scan", stock: mlData.occupied_slots,
+        message: `🚨 Low stock on ${shelfId}: ${mlData.occupied_slots}/${mlData.total_slots} slots occupied`,
         time: new Date().toLocaleString()
       });
     }
 
     res.json({
       message: "Shelf scanned successfully",
-      imagePath,
-      shelf_id: shelfId,
+      imagePath, shelf_id: shelfId,
       total_slots: mlData.total_slots,
       occupied_slots: mlData.occupied_slots,
       empty_slots: mlData.empty_slots,
@@ -478,7 +647,6 @@ app.post("/admin/scan-shelf", auth("admin"), upload.single("image"), async (req,
       low_stock_alert: mlData.low_stock_alert,
       total_detections: mlData.total_detections
     });
-
   } catch (err) {
     console.error("Scan error:", err.message);
     res.status(500).json({ message: err.message });
@@ -489,7 +657,7 @@ app.get("/admin/shelf-scans", auth("admin"), async (req, res) => {
   try {
     const scans = await ShelfScan.find().sort({ _id: -1 }).limit(10);
     res.json(scans);
-  } catch (err) { res.status(500).json({ message: err.message }); }
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
 /* =========================
@@ -509,31 +677,61 @@ function calculateDistance(lat1, lng1, lat2, lng2) {
 app.get("/nearby-franchises", auth("customer"), async (req, res) => {
   try {
     const { product, lat, lng } = req.query;
-    if (!product || !lat || !lng) return res.status(400).json({ message: "product, lat, lng required" });
+    if (!product || !lat || !lng) {
+      return res.status(400).json({ message: "product, lat, lng required" });
+    }
+    if (!validateInput(product, 50)) {
+      return res.status(400).json({ message: "Invalid product" });
+    }
     const franchises = await Franchise.find();
     const results = franchises
       .filter(f => f.inventory[product] && f.inventory[product] > 0)
       .map(f => ({
-        name: f.name,
-        address: f.address,
+        name: f.name, address: f.address,
         stock: f.inventory[product],
         distance: calculateDistance(parseFloat(lat), parseFloat(lng), f.lat, f.lng).toFixed(2),
         lat: f.lat, lng: f.lng
       }))
       .sort((a, b) => a.distance - b.distance);
     res.json(results);
-  } catch (err) { res.status(500).json({ message: err.message }); }
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
 app.get("/admin/franchises", auth("admin"), async (req, res) => {
   try {
     const franchises = await Franchise.find();
     res.json(franchises);
-  } catch (err) { res.status(500).json({ message: err.message }); }
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* =========================
+   GLOBAL ERROR HANDLER
+========================= */
+app.use((err, req, res, next) => {
+  console.error("Error:", err.message);
+  if (err.message.includes("CORS") || err.message.includes("rate limit")) {
+    SecurityLog.create({
+      type: "security_error", ip: req.ip,
+      path: req.path, message: err.message
+    }).catch(() => {});
+  }
+  res.status(err.status || 500).json({
+    message: err.message || "Internal server error"
+  });
+});
+
+/* =========================
+   404 HANDLER
+========================= */
+app.use((req, res) => {
+  res.status(404).json({ message: "Route not found" });
 });
 
 /* =========================
    START SERVER
 ========================= */
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Server running at http://localhost:${PORT}`));
+app.listen(PORT, () => {
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
+  console.log(`🔒 Security layer active`);
+});
