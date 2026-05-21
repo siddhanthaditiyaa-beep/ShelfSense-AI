@@ -1,63 +1,44 @@
 (function() {
-  const saved = localStorage.getItem("rm-theme") || "system";
+  const saved = localStorage.getItem("shelfsense-theme") || "dark";
   applyTheme(saved);
 
-  function applyTheme(preference) {
+  function applyTheme(theme) {
     const root = document.documentElement;
-    if (preference === "dark") {
-      root.setAttribute("data-theme", "dark");
-    } else if (preference === "light") {
-      root.removeAttribute("data-theme");
-    } else {
+    if (theme === "system") {
       const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      if (prefersDark) {
-        root.setAttribute("data-theme", "dark");
-      } else {
-        root.removeAttribute("data-theme");
-      }
+      root.setAttribute("data-theme", prefersDark ? "dark" : "light");
+    } else {
+      root.setAttribute("data-theme", theme);
     }
   }
 
-  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
-    const saved = localStorage.getItem("rm-theme") || "system";
-    if (saved === "system") applyTheme("system");
-  });
-
-  window.setTheme = function(preference) {
-    localStorage.setItem("rm-theme", preference);
-    applyTheme(preference);
-
-    // Update active state
-    document.querySelectorAll(".theme-option").forEach(opt => {
-      opt.classList.toggle("active", opt.dataset.theme === preference);
-    });
-
-    // ⭐ Auto close panel after selection
-    setTimeout(() => {
-      const panel = document.getElementById("settingsPanel");
-      if (panel) panel.classList.remove("open");
-    }, 200);
+  window.setTheme = function(theme) {
+    localStorage.setItem("shelfsense-theme", theme);
+    applyTheme(theme);
+    updateThemeUI(theme);
+    const panel = document.getElementById("settingsPanel");
+    if (panel) panel.classList.remove("open");
   };
 
   window.toggleSettings = function() {
     const panel = document.getElementById("settingsPanel");
-    if (!panel) return;
-    panel.classList.toggle("open");
-
-    // Set active state when opening
-    const saved = localStorage.getItem("rm-theme") || "system";
-    document.querySelectorAll(".theme-option").forEach(opt => {
-      opt.classList.toggle("active", opt.dataset.theme === saved);
-    });
+    if (panel) {
+      panel.classList.toggle("open");
+      updateThemeUI(localStorage.getItem("shelfsense-theme") || "dark");
+    }
   };
 
-  // Close when clicking outside
-  document.addEventListener("click", function(e) {
-    const panel = document.getElementById("settingsPanel");
-    const fab = document.getElementById("settingsFab");
-    if (panel && fab && !panel.contains(e.target) && !fab.contains(e.target)) {
-      panel.classList.remove("open");
-    }
+  function updateThemeUI(current) {
+    document.querySelectorAll(".theme-option").forEach(opt => {
+      opt.classList.toggle("active", opt.dataset.theme === current);
+    });
+  }
+
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+    if (localStorage.getItem("shelfsense-theme") === "system") applyTheme("system");
   });
 
+  document.addEventListener("DOMContentLoaded", () => {
+    updateThemeUI(localStorage.getItem("shelfsense-theme") || "dark");
+  });
 })();

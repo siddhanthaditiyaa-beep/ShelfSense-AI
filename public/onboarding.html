@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Setup Your Store | ShelfSense AI</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #6366f1; --secondary: #a78bfa;
+      --dark: #0f0f23; --dark2: #1a1a3e;
+      --text: #ffffff; --text-muted: rgba(255,255,255,0.6);
+      --border: rgba(255,255,255,0.1); --card-bg: rgba(255,255,255,0.05);
+      --success: #22c55e; --danger: #ef4444;
+    }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--dark); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(99,102,241,0.2), transparent), var(--dark); }
+
+    .onboarding-container { width: 100%; max-width: 560px; }
+
+    .steps { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 40px; }
+    .step { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.82rem; font-weight: 700; border: 2px solid var(--border); color: var(--text-muted); transition: all 0.3s; }
+    .step.active { background: var(--primary); border-color: var(--primary); color: white; }
+    .step.done { background: var(--success); border-color: var(--success); color: white; }
+    .step-line { flex: 1; height: 2px; background: var(--border); max-width: 60px; }
+    .step-line.done { background: var(--success); }
+
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 36px; }
+    .card-header { margin-bottom: 28px; }
+    .card-header h2 { font-size: 1.5rem; font-weight: 800; margin-bottom: 6px; }
+    .card-header p { color: var(--text-muted); font-size: 0.9rem; }
+
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
+    .form-group input, .form-group select { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); background: rgba(255,255,255,0.05); color: var(--text); font-size: 0.9rem; font-family: inherit; transition: all 0.2s; }
+    .form-group input:focus, .form-group select:focus { outline: none; border-color: rgba(99,102,241,0.6); box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+    .form-group input::placeholder { color: rgba(255,255,255,0.3); }
+    .form-group .hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .time-range { display: flex; align-items: center; gap: 10px; }
+    .time-range input { flex: 1; }
+    .time-range span { color: var(--text-muted); flex-shrink: 0; font-size: 0.85rem; }
+
+    .next-btn { width: 100%; padding: 14px; border-radius: 10px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; font-size: 1rem; font-weight: 700; border: none; cursor: pointer; transition: all 0.2s; margin-top: 8px; }
+    .next-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(99,102,241,0.4); }
+
+    .skip-btn { width: 100%; padding: 12px; border-radius: 10px; background: transparent; color: var(--text-muted); border: 1px solid var(--border); font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-top: 10px; }
+    .skip-btn:hover { border-color: rgba(255,255,255,0.3); color: var(--text); transform: translateY(-1px); }
+
+    .success-screen { text-align: center; }
+    .success-icon { font-size: 4rem; margin-bottom: 16px; }
+    .success-screen h2 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+    .success-screen p { color: var(--text-muted); margin-bottom: 32px; font-size: 0.95rem; line-height: 1.6; }
+
+    .agent-list { background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); border-radius: 14px; padding: 20px; margin-bottom: 24px; text-align: left; }
+    .agent-list-title { font-size: 0.82rem; font-weight: 700; color: var(--secondary); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .agent-row { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px; }
+    .agent-row:last-child { margin-bottom: 0; }
+    .agent-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); animation: pulse 2s infinite; flex-shrink: 0; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    .go-btn { width: 100%; padding: 16px; border-radius: 12px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; font-size: 1.1rem; font-weight: 700; border: none; cursor: pointer; transition: all 0.2s; }
+    .go-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(99,102,241,0.5); }
+
+    .logo { display: flex; align-items: center; gap: 10px; font-size: 1.1rem; font-weight: 700; margin-bottom: 40px; justify-content: center; }
+    .logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+  </style>
+</head>
+<body>
+
+<div class="onboarding-container">
+  <div class="logo">
+    <div class="logo-icon">🧠</div>
+    ShelfSense AI
+  </div>
+
+  <div class="steps">
+    <div class="step active" id="step1">1</div>
+    <div class="step-line" id="line1"></div>
+    <div class="step" id="step2">2</div>
+    <div class="step-line" id="line2"></div>
+    <div class="step" id="step3">✓</div>
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="card" id="cardStep1">
+    <div class="card-header">
+      <h2>🏪 Tell us about your store</h2>
+      <p>This helps personalize your ShelfSense AI experience</p>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Store Name *</label>
+        <input type="text" id="s1StoreName" placeholder="My Retail Store">
+      </div>
+      <div class="form-group">
+        <label>Phone Number</label>
+        <input type="tel" id="s1Phone" placeholder="+91 98765 43210">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Store Address</label>
+      <input type="text" id="s1Address" placeholder="123 Main Street, Mumbai">
+    </div>
+    <div class="form-group">
+      <label>City (for Weather Agent)</label>
+      <input type="text" id="s1City" placeholder="Mumbai" value="Mumbai">
+      <p class="hint">The Weather Agent uses this to give stock recommendations based on local weather</p>
+    </div>
+    <button class="next-btn" onclick="goToStep2()">Next → Shop Hours</button>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="card" id="cardStep2" style="display:none">
+    <div class="card-header">
+      <h2>🕐 Set your shop hours</h2>
+      <p>The Anomaly Detection Agent monitors for theft outside these hours</p>
+    </div>
+    <div class="form-group">
+      <label>Shop Hours</label>
+      <div class="time-range">
+        <input type="time" id="s2Opening" value="09:00">
+        <span>to</span>
+        <input type="time" id="s2Closing" value="22:00">
+      </div>
+      <p class="hint">If stock drops outside these hours, you'll get an immediate theft alert email</p>
+    </div>
+    <div class="form-group" style="margin-top:16px">
+      <label>Alert Email</label>
+      <input type="email" id="s2AlertEmail" placeholder="your@gmail.com">
+      <p class="hint">Where to send critical alerts (theft, out of stock, expiry)</p>
+    </div>
+    <button class="next-btn" onclick="completeOnboarding()">Complete Setup 🚀</button>
+    <button class="skip-btn" onclick="skipOnboarding()">Skip for now</button>
+  </div>
+
+  <!-- STEP 3 — Success -->
+  <div class="card" id="cardStep3" style="display:none">
+    <div class="success-screen">
+      <div class="success-icon">🎉</div>
+      <h2>You're all set!</h2>
+      <p>Your store is ready. All 10 AI agents are now active and working for you 24/7.</p>
+      <div class="agent-list">
+        <div class="agent-list-title">✅ Active Agents</div>
+        <div class="agent-row"><div class="agent-dot"></div>🔔 Monitoring Agent — watching every 30 seconds</div>
+        <div class="agent-row"><div class="agent-dot"></div>📊 Forecasting Agent — predicting demand</div>
+        <div class="agent-row"><div class="agent-dot"></div>🛡️ Anomaly Detection — protecting your store</div>
+        <div class="agent-row"><div class="agent-dot"></div>💰 Dynamic Pricing — optimizing revenue</div>
+        <div class="agent-row"><div class="agent-dot"></div>🏆 Competitor Analysis — tracking market</div>
+        <div class="agent-row"><div class="agent-dot"></div>🔄 Supplier Agent — managing orders</div>
+        <div class="agent-row"><div class="agent-dot"></div>👥 Customer Behavior — finding bundles</div>
+        <div class="agent-row"><div class="agent-dot"></div>🌦️ Weather Agent — weather recommendations</div>
+        <div class="agent-row"><div class="agent-dot"></div>📅 Expiry Agent — tracking dates</div>
+        <div class="agent-row"><div class="agent-dot"></div>🗺️ Route Optimizer — finding stock sources</div>
+      </div>
+      <button class="go-btn" onclick="goToDashboard()">Go to Dashboard →</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const token = localStorage.getItem("token");
+if (!token) window.location.href = "register.html";
+
+const urlParams = new URLSearchParams(window.location.search);
+const urlToken = urlParams.get("token");
+if (urlToken) {
+  localStorage.setItem("token", urlToken);
+  localStorage.setItem("role", "admin");
+}
+
+const storeName = localStorage.getItem("storeName");
+if (storeName) document.getElementById("s1StoreName").value = storeName;
+
+function updateSteps(currentStep) {
+  for (let i = 1; i <= 3; i++) {
+    const stepEl = document.getElementById(`step${i}`);
+    if (i < currentStep) { stepEl.classList.remove("active"); stepEl.classList.add("done"); stepEl.innerText = "✓"; }
+    else if (i === currentStep) { stepEl.classList.add("active"); stepEl.classList.remove("done"); }
+    else { stepEl.classList.remove("active", "done"); stepEl.innerText = i === 3 ? "✓" : i; }
+  }
+  for (let i = 1; i <= 2; i++) {
+    const lineEl = document.getElementById(`line${i}`);
+    if (i < currentStep) lineEl.classList.add("done");
+    else lineEl.classList.remove("done");
+  }
+}
+
+function goToStep2() {
+  const storeName = document.getElementById("s1StoreName").value.trim();
+  if (!storeName) { alert("Please enter your store name"); return; }
+  document.getElementById("cardStep1").style.display = "none";
+  document.getElementById("cardStep2").style.display = "block";
+  updateSteps(2);
+}
+
+async function completeOnboarding() {
+  const token = localStorage.getItem("token");
+  try {
+    await fetch("/complete-onboarding", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: token },
+      body: JSON.stringify({
+        storeName: document.getElementById("s1StoreName").value,
+        address: document.getElementById("s1Address").value,
+        phone: document.getElementById("s1Phone").value,
+        openingTime: document.getElementById("s2Opening").value,
+        closingTime: document.getElementById("s2Closing").value,
+        weatherCity: document.getElementById("s1City").value || "Mumbai"
+      })
+    });
+  } catch (err) { console.log("Onboarding note:", err.message); }
+  document.getElementById("cardStep2").style.display = "none";
+  document.getElementById("cardStep3").style.display = "block";
+  updateSteps(3);
+}
+
+function skipOnboarding() {
+  document.getElementById("cardStep2").style.display = "none";
+  document.getElementById("cardStep3").style.display = "block";
+  updateSteps(3);
+}
+
+function goToDashboard() {
+  window.location.href = "admin.html";
+}
+</script>
+</body>
+</html>

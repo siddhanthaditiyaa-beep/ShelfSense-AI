@@ -11,82 +11,65 @@
     body { display: flex; flex-direction: column; min-height: 100vh; }
 
     .topbar {
-      height: 52px;
-      background: var(--header-bg);
+      height: 52px; background: var(--header-bg);
       border-bottom: 1px solid var(--header-border);
-      display: flex;
-      align-items: center;
-      padding: 0 16px;
-      gap: 12px;
-      position: sticky;
-      top: 0;
-      z-index: 200;
-      backdrop-filter: blur(12px);
+      display: flex; align-items: center; padding: 0 16px; gap: 12px;
+      position: sticky; top: 0; z-index: 200; backdrop-filter: blur(12px);
     }
 
     .sidebar-toggle {
-      width: 34px; height: 34px;
-      border-radius: 8px;
-      border: 1px solid var(--border-color);
-      background: var(--bg-card);
-      color: var(--text-primary);
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; font-size: 16px; flex-shrink: 0;
-      transition: all 0.2s; padding: 0;
+      width: 34px; height: 34px; border-radius: 8px;
+      border: 1px solid var(--border-color); background: var(--bg-card);
+      color: var(--text-primary); display: flex; align-items: center;
+      justify-content: center; cursor: pointer; font-size: 16px;
+      flex-shrink: 0; transition: all 0.2s; padding: 0;
     }
-
     .sidebar-toggle:hover { background: var(--accent-light); border-color: var(--accent); color: var(--accent); transform: none; }
 
     .topbar-logo { font-size: 1rem; font-weight: 700; color: var(--text-accent); white-space: nowrap; }
-
     .topbar-nav { display: none; align-items: center; gap: 2px; flex: 1; overflow-x: auto; }
     .topbar-nav.visible { display: flex; }
-
-    .topbar-nav-item {
-      padding: 5px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 500;
-      color: var(--text-muted); cursor: pointer; white-space: nowrap;
-      border: none; background: transparent; transition: all 0.2s;
-    }
+    .topbar-nav-item { padding: 5px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 500; color: var(--text-muted); cursor: pointer; white-space: nowrap; border: none; background: transparent; transition: all 0.2s; }
     .topbar-nav-item:hover { color: var(--text-primary); background: var(--bg-tertiary); transform: none; }
     .topbar-nav-item.active { background: var(--accent-light); color: var(--accent); font-weight: 600; }
-
     .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-
     .main-area { display: flex; flex: 1; overflow: hidden; }
 
     .sidebar {
-      width: 220px;
-      background: var(--bg-secondary);
+      width: 220px; background: var(--bg-secondary);
       border-right: 1px solid var(--border-color);
       display: flex; flex-direction: column; flex-shrink: 0;
       transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
       overflow: hidden;
     }
-
     .sidebar.collapsed { width: 0; opacity: 0; border-right: none; }
-
     .sidebar-section { padding: 8px; flex: 1; overflow-y: auto; }
     .sidebar-section-label { font-size: 0.7rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; padding: 8px 10px 4px; }
-
-    .sidebar-item {
-      display: flex; align-items: center; gap: 10px; padding: 9px 12px;
-      border-radius: 8px; cursor: pointer; font-size: 0.875rem; font-weight: 500;
-      color: var(--text-secondary); transition: all 0.15s; white-space: nowrap;
-      border: none; background: transparent; width: 100%; text-align: left;
-    }
-    .sidebar-item:hover { background: var(--bg-tertiary); color: var(--text-primary); transform: none; }
+    .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 8px; cursor: pointer; font-size: 0.875rem; font-weight: 500; color: var(--text-secondary); transition: all 0.15s; white-space: nowrap; border: none; background: transparent; width: 100%; text-align: left; }
+    .sidebar-item:hover { background: var(--accent-light); color: var(--text-primary); transform: none; }
     .sidebar-item.active { background: var(--accent-light); color: var(--accent); font-weight: 600; }
     .sidebar-emoji { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
     .sidebar-divider { height: 1px; background: var(--border-color); margin: 8px; }
 
     .sidebar-bottom { padding: 12px 8px; border-top: 1px solid var(--border-color); }
-    .sidebar-user { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; }
-    .sidebar-avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--accent-light); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0; }
-    .sidebar-username { font-size: 0.8rem; font-weight: 600; color: var(--text-primary); }
+    .sidebar-user {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 10px; border-radius: 10px; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .sidebar-user:hover { background: var(--accent-light); }
+    .sidebar-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: linear-gradient(135deg, #6366f1, #a78bfa);
+      color: white; display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700; flex-shrink: 0; overflow: hidden;
+    }
+    .sidebar-username { font-size: 0.82rem; font-weight: 600; color: var(--text-primary); }
     .sidebar-role { font-size: 0.7rem; color: var(--text-muted); }
+    .sidebar-chevron { margin-left: auto; color: var(--text-muted); font-size: 0.7rem; transition: transform 0.2s; }
+    .sidebar-user.open .sidebar-chevron { transform: rotate(180deg); }
 
     .content { flex: 1; overflow-y: auto; padding: 24px; }
-
     .page { display: none; }
     .page.active { display: block; }
 
@@ -106,7 +89,7 @@
     table { width: 100%; border-collapse: collapse; }
     th { background: var(--bg-tertiary); color: var(--text-muted); padding: 10px 14px; text-align: left; font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
     td { padding: 10px 14px; border-bottom: 1px solid var(--border-color); font-size: 0.875rem; color: var(--text-primary); }
-    tr:hover td { background: var(--bg-tertiary); }
+    tr:hover td { background: var(--accent-light); }
 
     .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; display: inline-block; }
     .badge-green { background: var(--success-bg); color: var(--success-text); }
@@ -115,12 +98,7 @@
     .badge-blue { background: var(--info-bg); color: var(--info-text); }
     .badge-purple { background: var(--accent-light); color: var(--accent); }
 
-    input, select, textarea {
-      background: var(--bg-input); border: 1px solid var(--border-color);
-      color: var(--text-primary); padding: 10px 14px; border-radius: 8px;
-      font-size: 0.9rem; width: 100%; margin-bottom: 10px;
-      transition: all 0.2s; font-family: inherit;
-    }
+    input, select, textarea { background: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-primary); padding: 10px 14px; border-radius: 8px; font-size: 0.9rem; width: 100%; margin-bottom: 10px; transition: all 0.2s; font-family: inherit; }
     input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
 
     button { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; font-size: 0.875rem; transition: all 0.2s; font-family: inherit; }
@@ -176,95 +154,54 @@
 
     .scan-img { width: 100%; border-radius: 10px; margin-top: 12px; border: 1px solid var(--border-color); }
     .shelf-result { display: none; margin-top: 20px; }
-
     .stock-edit { display: flex; align-items: center; gap: 6px; }
     .stock-edit input { width: 70px; margin-bottom: 0; padding: 5px 8px; font-size: 0.85rem; }
 
-    /* ===== AGENT CARDS ===== */
+    /* AGENT CARDS */
     .agents-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; }
-
-    .agent-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 14px;
-      padding: 18px;
-      transition: all 0.3s;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .agent-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      background: var(--accent);
-    }
-
+    .agent-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 18px; transition: all 0.3s; position: relative; overflow: hidden; }
+    .agent-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #6366f1, #a78bfa); }
     .agent-card.critical::before { background: var(--danger); }
     .agent-card.warning::before { background: var(--warning); }
     .agent-card.active::before { background: var(--success); }
-
     .agent-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
-
     .agent-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
     .agent-icon { font-size: 1.5rem; }
     .agent-name { font-size: 0.9rem; font-weight: 700; color: var(--text-primary); }
     .agent-status { margin-left: auto; }
-
     .agent-last-action { font-size: 0.8rem; color: var(--text-muted); line-height: 1.4; }
     .agent-time { font-size: 0.72rem; color: var(--text-muted); margin-top: 6px; }
+    .agent-pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--success); animation: pulse 2s infinite; display: inline-block; }
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.2); } }
 
-    .agent-pulse {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: var(--success);
-      animation: pulse 2s infinite;
-      display: inline-block;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.5; transform: scale(1.2); }
-    }
-
-    /* ===== AGENT LOG FILTERS ===== */
+    /* AGENT LOGS */
     .agent-filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
     .agent-filter { padding: 5px 14px; border-radius: 20px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-secondary); font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
     .agent-filter:hover { border-color: var(--accent); color: var(--accent); transform: none; }
     .agent-filter.active { background: var(--accent); color: white; border-color: var(--accent); }
-
-    .agent-log-item {
-      display: flex; gap: 12px; padding: 12px; border-radius: 10px;
-      background: var(--bg-input); border: 1px solid var(--border-color);
-      margin-bottom: 8px; transition: all 0.2s;
-    }
-
+    .agent-log-item { display: flex; gap: 12px; padding: 12px; border-radius: 10px; background: var(--bg-input); border: 1px solid var(--border-color); margin-bottom: 8px; transition: all 0.2s; }
     .agent-log-item:hover { border-color: var(--accent); transform: translateX(4px); }
-
     .agent-log-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 2px; }
     .agent-log-body { flex: 1; }
     .agent-log-agent { font-size: 0.72rem; font-weight: 600; color: var(--accent); margin-bottom: 2px; }
     .agent-log-message { font-size: 0.85rem; color: var(--text-primary); line-height: 1.4; }
     .agent-log-time { font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; }
-
     .severity-critical { border-left: 3px solid var(--danger); }
     .severity-warning { border-left: 3px solid var(--warning); }
     .severity-info { border-left: 3px solid var(--success); }
 
-    /* ===== SETTINGS ===== */
+    /* SETTINGS */
     .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
     @media (max-width: 768px) { .settings-grid { grid-template-columns: 1fr; } }
-
     .settings-group { margin-bottom: 16px; }
     .settings-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
     .settings-group input, .settings-group select { margin-bottom: 0; }
     .settings-group .hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
-
     .time-range { display: flex; align-items: center; gap: 12px; }
     .time-range input { flex: 1; margin-bottom: 0; }
     .time-range span { color: var(--text-muted); font-size: 0.9rem; flex-shrink: 0; }
 
-    /* ===== PURCHASE ORDERS ===== */
+    /* PURCHASE ORDERS */
     .po-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; transition: all 0.2s; }
     .po-card:hover { border-color: var(--accent); box-shadow: var(--shadow-sm); }
     .po-info h3 { font-size: 0.9rem; font-weight: 700; color: var(--text-primary); }
@@ -273,26 +210,182 @@
 
     #toast { position: fixed; bottom: 80px; right: 24px; padding: 14px 20px; border-radius: 12px; font-weight: 600; font-size: 0.875rem; display: none; z-index: 9999; max-width: 300px; box-shadow: var(--shadow-lg); }
 
-    .settings-fab { position: fixed; bottom: 24px; right: 24px; width: 44px; height: 44px; border-radius: 50%; background: var(--accent); color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; box-shadow: var(--shadow-lg); z-index: 1000; transition: all 0.3s; padding: 0; }
+    .settings-fab { position: fixed; bottom: 24px; right: 24px; width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #a78bfa); color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; box-shadow: var(--shadow-lg); z-index: 1000; transition: all 0.3s; padding: 0; }
     .settings-fab:hover { transform: scale(1.1) rotate(30deg); }
 
-    .settings-panel { position: fixed; bottom: 80px; right: 24px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; width: 220px; box-shadow: 0 8px 32px rgba(0,0,0,0.15); z-index: 999; display: none; }
-    [data-theme="dark"] .settings-panel { background: #1e293b; border-color: rgba(255,255,255,0.1); }
+    .settings-panel { position: fixed; bottom: 80px; right: 24px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; width: 220px; box-shadow: var(--shadow-lg); z-index: 1001; display: none; }
     .settings-panel.open { display: block; animation: slideUp 0.2s ease; }
-    .settings-panel h3 { font-size: 0.9rem; font-weight: 600; color: #0f172a; margin-bottom: 14px; }
-    [data-theme="dark"] .settings-panel h3 { color: rgba(255,255,255,0.9); }
-
-    .theme-option { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: all 0.2s; margin-bottom: 6px; border: 1px solid transparent; font-size: 0.875rem; font-weight: 500; color: #0f172a; background: transparent; width: 100%; text-align: left; }
-    [data-theme="dark"] .theme-option { color: rgba(255,255,255,0.85); }
-    .theme-option:hover { background: #f1f5f9; transform: none; }
-    [data-theme="dark"] .theme-option:hover { background: rgba(255,255,255,0.08); }
-    .theme-option.active { background: #eef2ff; border-color: #6366f1; color: #6366f1; font-weight: 600; }
-    [data-theme="dark"] .theme-option.active { background: rgba(167,139,250,0.15); border-color: #a78bfa; color: #a78bfa; }
+    .settings-panel h3 { font-size: 0.9rem; font-weight: 600; color: var(--text-primary); margin-bottom: 14px; }
+    .theme-option { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: all 0.2s; margin-bottom: 6px; border: 1px solid transparent; font-size: 0.875rem; font-weight: 500; color: var(--text-primary); background: transparent; width: 100%; text-align: left; }
+    .theme-option:hover { background: var(--accent-light); transform: none; }
+    .theme-option.active { background: var(--accent-light); border-color: var(--accent); color: var(--accent); font-weight: 600; }
     .theme-option-icon { font-size: 1.1rem; }
 
-    @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
     .logout-btn { background: var(--danger-bg); color: var(--danger-text); border: 1px solid var(--danger); padding: 6px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 600; }
+
+    @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes modalIn { from { opacity: 0; transform: scale(0.9) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+    /* ===== PROFILE PANEL ===== */
+    .profile-overlay {
+      position: fixed; inset: 0; z-index: 2000;
+      background: rgba(0,0,0,0.4); backdrop-filter: blur(3px);
+      display: none;
+    }
+    .profile-overlay.open { display: block; }
+
+    .profile-panel {
+      position: fixed; z-index: 2001;
+      bottom: 70px; left: 16px;
+      width: 300px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      display: none; flex-direction: column;
+      overflow: hidden;
+      animation: slideUp 0.2s ease;
+    }
+    .profile-panel.open { display: flex; }
+
+    .pp-header {
+      display: flex; align-items: center; gap: 12px;
+      padding: 16px; border-bottom: 1px solid var(--border-color);
+    }
+    .pp-avatar {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: linear-gradient(135deg, #6366f1, #a78bfa);
+      color: white; display: flex; align-items: center;
+      justify-content: center; font-size: 1rem; font-weight: 700;
+      flex-shrink: 0; overflow: hidden;
+      border: 2px solid rgba(99,102,241,0.3);
+    }
+    .pp-name { font-size: 0.9rem; font-weight: 700; color: var(--text-primary); }
+    .pp-email { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 160px; }
+    .pp-close { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-muted); font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; margin-left: auto; flex-shrink: 0; transition: all 0.2s; }
+    .pp-close:hover { background: var(--danger); color: white; border-color: var(--danger); transform: none; }
+
+    .pp-plan {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 16px; background: var(--accent-light);
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.82rem; font-weight: 600; color: var(--accent);
+    }
+    .pp-upgrade {
+      margin-left: auto; padding: 4px 10px; border-radius: 6px;
+      background: linear-gradient(135deg, #6366f1, #a78bfa); color: white;
+      font-size: 0.72rem; font-weight: 700; border: none; cursor: pointer; transition: all 0.2s;
+    }
+    .pp-upgrade:hover { opacity: 0.9; transform: none; }
+
+    .pp-menu { padding: 8px; }
+    .pp-item {
+      display: flex; align-items: center; gap: 12px;
+      width: 100%; padding: 10px 12px; border-radius: 10px;
+      border: none; background: transparent; cursor: pointer;
+      transition: all 0.2s; text-align: left;
+    }
+    .pp-item:hover { background: var(--accent-light); transform: none; }
+    .pp-item-icon { font-size: 1.1rem; flex-shrink: 0; width: 24px; text-align: center; }
+    .pp-item-content { flex: 1; }
+    .pp-item-title { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); }
+    .pp-item-desc { font-size: 0.72rem; color: var(--text-muted); margin-top: 1px; }
+    .pp-item-arrow { color: var(--text-muted); font-size: 1rem; }
+
+    .pp-footer { padding: 12px 16px; border-top: 1px solid var(--border-color); }
+    .pp-logout {
+      width: 100%; padding: 10px; border-radius: 8px;
+      background: var(--danger-bg); color: var(--danger-text);
+      border: 1px solid var(--danger); font-size: 0.875rem;
+      font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: center;
+    }
+    .pp-logout:hover { background: var(--danger); color: white; transform: none; }
+
+    /* ===== MODALS ===== */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      z-index: 3000; display: none; align-items: center;
+      justify-content: center; padding: 20px; backdrop-filter: blur(6px);
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: var(--bg-secondary); border: 1px solid var(--border-color);
+      border-radius: 20px; width: 100%; max-width: 480px;
+      box-shadow: var(--shadow-lg); overflow: hidden;
+      animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      max-height: 90vh; overflow-y: auto;
+    }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid var(--border-color); position: sticky; top: 0; background: var(--bg-secondary); z-index: 1; }
+    .modal-header h2 { font-size: 1rem; font-weight: 700; color: var(--text-primary); }
+    .modal-close { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); cursor: pointer; font-size: 0.875rem; display: flex; align-items: center; justify-content: center; padding: 0; transition: all 0.2s; }
+    .modal-close:hover { background: var(--danger); color: white; border-color: var(--danger); transform: none; }
+    .modal-body { padding: 24px; }
+
+    /* AVATAR UPLOAD */
+    .avatar-upload-section { text-align: center; margin-bottom: 24px; }
+    .avatar-edit-preview {
+  width: 80px; height: 80px; border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #a78bfa);
+  color: white; display: flex; align-items: center;
+  justify-content: center; font-size: 1.5rem; font-weight: 700;
+  margin: 0 auto 16px; overflow: visible; cursor: pointer;
+  border: 3px solid var(--accent); position: relative;
+  transition: all 0.2s;
+}
+
+.avatar-edit-preview .avatar-inner {
+  width: 100%; height: 100%; border-radius: 50%;
+  overflow: hidden; display: flex; align-items: center; justify-content: center;
+}
+    .avatar-edit-preview:hover { border-color: #a78bfa; transform: scale(1.05); }
+    .avatar-camera-badge {
+  position: absolute; bottom: -2px; right: -2px;
+  width: 26px; height: 26px;
+  background: var(--accent); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; border: 3px solid var(--bg-secondary);
+  z-index: 10; pointer-events: none;
+}
+    .avatar-hint { font-size: 0.75rem; color: var(--text-muted); }
+    .avatar-remove-btn { font-size: 0.72rem; color: var(--danger-text); background: none; border: none; cursor: pointer; padding: 4px; margin-top: 2px; display: none; }
+    .avatar-remove-btn:hover { transform: none; text-decoration: underline; }
+
+    .mf-group { margin-bottom: 16px; }
+    .mf-group label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
+    .mf-group input { margin-bottom: 0; }
+
+    .modal-save-btn { width: 100%; padding: 12px; border-radius: 10px; background: linear-gradient(135deg, #6366f1, #a78bfa); color: white; font-size: 0.95rem; font-weight: 700; border: none; cursor: pointer; transition: all 0.2s; margin-top: 8px; }
+    .modal-save-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    /* SUBSCRIPTION PLANS */
+    .sub-plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    @media (max-width: 550px) { .sub-plans { grid-template-columns: 1fr; } }
+    .sub-plan { background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 14px; padding: 16px; position: relative; transition: all 0.2s; }
+    .sub-plan:hover { border-color: var(--accent); }
+    .sub-plan.featured { border-color: var(--accent); background: var(--accent-light); }
+    .sub-plan-badge { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #6366f1, #a78bfa); color: white; padding: 2px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; white-space: nowrap; }
+    .sub-plan-name { font-size: 0.82rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+    .sub-plan-price { font-size: 1.4rem; font-weight: 800; color: var(--text-primary); margin-bottom: 12px; }
+    .sub-plan-price span { font-size: 0.75rem; color: var(--text-muted); font-weight: 400; }
+    .sub-plan-features { list-style: none; margin-bottom: 14px; }
+    .sub-plan-features li { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px; }
+    .sub-plan-btn { width: 100%; padding: 8px; border-radius: 8px; background: var(--bg-tertiary); color: var(--text-secondary); border: 1px solid var(--border-color); font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .sub-plan-btn:hover { border-color: var(--accent); color: var(--accent); transform: none; }
+    .sub-plan-btn.primary { background: linear-gradient(135deg, #6366f1, #a78bfa); color: white; border: none; }
+    .sub-plan-btn.primary:hover { opacity: 0.9; }
+
+    /* HELP */
+    .help-item { display: flex; align-items: flex-start; gap: 14px; padding: 14px; border-radius: 12px; background: var(--bg-input); border: 1px solid var(--border-color); margin-bottom: 10px; cursor: pointer; transition: all 0.2s; }
+    .help-item:hover { border-color: var(--accent); transform: translateX(4px); }
+    .help-icon { font-size: 1.5rem; flex-shrink: 0; }
+    .help-title { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
+    .help-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.4; }
+
+    /* SHORTCUTS */
+    .shortcut-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border-color); font-size: 0.875rem; color: var(--text-muted); }
+    .shortcut-item:last-child { border-bottom: none; }
+    .shortcut-item span { color: var(--text-primary); }
+    kbd { background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 6px; padding: 3px 8px; font-size: 0.75rem; font-family: monospace; color: var(--text-primary); margin-right: 4px; }
   </style>
 </head>
 <body>
@@ -328,12 +421,10 @@
       <button class="sidebar-item" data-page="agents" onclick="showPage('agents', this)"><span class="sidebar-emoji">🤖</span> AI Agents</button>
       <button class="sidebar-item" data-page="shelf-scan" onclick="showPage('shelf-scan', this)"><span class="sidebar-emoji">🔍</span> Shelf Scan</button>
       <button class="sidebar-item" data-page="planogram" onclick="showPage('planogram', this)"><span class="sidebar-emoji">🗺️</span> Planogram</button>
-
       <div class="sidebar-divider"></div>
       <div class="sidebar-section-label">Network</div>
       <button class="sidebar-item" data-page="franchise" onclick="showPage('franchise', this)"><span class="sidebar-emoji">📍</span> Franchises</button>
       <button class="sidebar-item" data-page="orders" onclick="showPage('orders', this)"><span class="sidebar-emoji">📋</span> Purchase Orders</button>
-
       <div class="sidebar-divider"></div>
       <div class="sidebar-section-label">System</div>
       <button class="sidebar-item" data-page="logs" onclick="showPage('logs', this)"><span class="sidebar-emoji">📝</span> Logs</button>
@@ -341,12 +432,13 @@
     </div>
 
     <div class="sidebar-bottom">
-      <div class="sidebar-user">
-        <div class="sidebar-avatar">SA</div>
-        <div>
-          <div class="sidebar-username">Store Admin</div>
-          <div class="sidebar-role">ShelfSense AI</div>
+      <div class="sidebar-user" id="sidebarUserBtn" onclick="toggleProfilePanel()">
+        <div class="sidebar-avatar" id="sidebarAvatar">SA</div>
+        <div style="flex:1;min-width:0">
+          <div class="sidebar-username" id="sidebarUsername">Loading...</div>
+          <div class="sidebar-role" id="sidebarRole">ShelfSense AI</div>
         </div>
+        <span class="sidebar-chevron" id="sidebarChevron">▲</span>
       </div>
     </div>
   </aside>
@@ -363,21 +455,13 @@
         <div class="stat-card"><div class="number" id="statHealthy" style="color:var(--success)">-</div><div class="label">Healthy</div></div>
         <div class="stat-card"><div class="number" id="statAgents" style="color:var(--accent)">10</div><div class="label">Active Agents</div></div>
       </div>
-
       <div class="card">
         <h2>📈 Stock Overview</h2>
         <canvas id="stockChart" height="100"></canvas>
       </div>
-
       <div class="row">
-        <div class="card">
-          <h2>🚨 Recent Agent Alerts</h2>
-          <div id="overviewMonitoring">Loading...</div>
-        </div>
-        <div class="card">
-          <h2>🤖 Recent Agent Actions</h2>
-          <div id="overviewForecasting">Loading...</div>
-        </div>
+        <div class="card"><h2>🚨 Recent Agent Alerts</h2><div id="overviewMonitoring">Loading...</div></div>
+        <div class="card"><h2>🤖 Recent Agent Actions</h2><div id="overviewForecasting">Loading...</div></div>
       </div>
     </div>
 
@@ -391,22 +475,12 @@
         </div>
         <button class="btn-primary" onclick="addItem()">Add Item</button>
       </div>
-
       <div class="card">
         <h2>📦 Current Inventory</h2>
         <div style="overflow-x:auto">
           <table>
             <thead>
-              <tr>
-                <th>Item</th>
-                <th>Stock</th>
-                <th>Price</th>
-                <th>Status</th>
-                <th>Update Stock</th>
-                <th>Set Price</th>
-                <th>Sale</th>
-                <th>Delete</th>
-              </tr>
+              <tr><th>Item</th><th>Stock</th><th>Price</th><th>Status</th><th>Update Stock</th><th>Set Price</th><th>Sale</th><th>Delete</th></tr>
             </thead>
             <tbody id="inventoryTable"></tbody>
           </table>
@@ -418,13 +492,7 @@
 
     <!-- AI AGENTS PAGE -->
     <div class="page" id="page-agents">
-
-      <!-- Agent Cards Grid -->
-      <div class="agents-grid" id="agentsGrid">
-        <!-- Filled by JS -->
-      </div>
-
-      <!-- Agent Logs -->
+      <div class="agents-grid" id="agentsGrid"></div>
       <div class="card">
         <h2>📋 Agent Activity Log</h2>
         <div class="agent-filters">
@@ -451,10 +519,7 @@
         <h2>📸 Upload Shelf Image for AI Analysis</h2>
         <div class="slot-config">
           <label>Shelf ID:</label>
-          <select id="scanShelfId">
-            <option value="SHELF_001">SHELF_001</option>
-            <option value="SHELF_002">SHELF_002</option>
-          </select>
+          <select id="scanShelfId"><option value="SHELF_001">SHELF_001</option><option value="SHELF_002">SHELF_002</option></select>
           <label>Number of slots:</label>
           <input type="number" id="totalSlotsInput" value="8" min="1" max="20">
         </div>
@@ -466,13 +531,8 @@
         <input type="file" id="fileInput" accept="image/*" onchange="handleImageUpload(event)">
         <button class="btn-primary" id="scanBtn" onclick="scanShelf()" disabled>🔍 Scan Shelf with AI</button>
       </div>
-
       <div class="shelf-result" id="shelfResult">
-        <div class="card">
-          <h2>🖼️ Uploaded Image</h2>
-          <img id="scannedImage" class="scan-img" src="" alt="Scanned shelf">
-        </div>
-
+        <div class="card"><h2>🖼️ Uploaded Image</h2><img id="scannedImage" class="scan-img" src="" alt="Scanned shelf"></div>
         <div class="card">
           <h2>📊 Detection Results</h2>
           <div class="stats-row">
@@ -482,41 +542,18 @@
             <div class="stat-card"><div class="number" id="fillPct" style="color:var(--info)">-</div><div class="label">Fill %</div></div>
           </div>
           <div style="margin-top:8px">
-            <div style="display:flex;justify-content:space-between;font-size:0.8rem;color:var(--text-muted)">
-              <span>Shelf Fill Level</span><span id="fillPctLabel">-</span>
-            </div>
+            <div style="display:flex;justify-content:space-between;font-size:0.8rem;color:var(--text-muted)"><span>Shelf Fill Level</span><span id="fillPctLabel">-</span></div>
             <div class="fill-bar"><div class="fill-bar-inner" id="fillBarInner" style="width:0%"></div></div>
           </div>
         </div>
-
-        <div class="card">
-          <h2>🗺️ Shelf Slot Map</h2>
-          <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:12px">🟢 Green = Product Present &nbsp;|&nbsp; 🔴 Red = Empty Slot</p>
-          <div class="slot-grid" id="slotGrid"></div>
-        </div>
-
+        <div class="card"><h2>🗺️ Shelf Slot Map</h2><p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:12px">🟢 Green = Product Present | 🔴 Red = Empty Slot</p><div class="slot-grid" id="slotGrid"></div></div>
         <div class="row">
-          <div class="card">
-            <h2>✅ Products Present</h2>
-            <div class="product-tags" id="presentProducts"></div>
-          </div>
-          <div class="card">
-            <h2>❌ Missing Products</h2>
-            <div class="product-tags" id="missingProducts"></div>
-          </div>
+          <div class="card"><h2>✅ Products Present</h2><div class="product-tags" id="presentProducts"></div></div>
+          <div class="card"><h2>❌ Missing Products</h2><div class="product-tags" id="missingProducts"></div></div>
         </div>
-
-        <div class="card">
-          <h2>📍 Find Nearby Franchise</h2>
-          <div class="product-tags" id="missingProductBtns"></div>
-          <div id="franchiseResults" style="margin-top:16px"></div>
-        </div>
+        <div class="card"><h2>📍 Find Nearby Franchise</h2><div class="product-tags" id="missingProductBtns"></div><div id="franchiseResults" style="margin-top:16px"></div></div>
       </div>
-
-      <div class="card">
-        <h2>📜 Recent Shelf Scans</h2>
-        <div id="recentScans">Loading...</div>
-      </div>
+      <div class="card"><h2>📜 Recent Shelf Scans</h2><div id="recentScans">Loading...</div></div>
     </div>
 
     <!-- PLANOGRAM PAGE -->
@@ -526,10 +563,7 @@
         <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:16px">Define which product goes in each slot.</p>
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
           <label style="font-size:0.85rem;color:var(--text-muted);font-weight:500">Select Shelf:</label>
-          <select id="planogramShelf" onchange="loadPlanogram()" style="width:200px;margin-bottom:0">
-            <option value="SHELF_001">SHELF_001</option>
-            <option value="SHELF_002">SHELF_002</option>
-          </select>
+          <select id="planogramShelf" onchange="loadPlanogram()" style="width:200px;margin-bottom:0"><option value="SHELF_001">SHELF_001</option><option value="SHELF_002">SHELF_002</option></select>
         </div>
         <div class="planogram-grid" id="planogramGrid"></div>
         <br>
@@ -544,32 +578,23 @@
         <div class="row">
           <select id="franchiseProduct">
             <option value="">Select product...</option>
-            <option value="chocolates">Chocolates</option>
-            <option value="biscuits">Biscuits</option>
-            <option value="chips">Chips</option>
-            <option value="juice">Juice</option>
-            <option value="soft-drinks">Soft Drinks</option>
-            <option value="canned-food">Canned Food</option>
-            <option value="rice">Rice</option>
-            <option value="salt">Salt</option>
+            <option value="chocolates">Chocolates</option><option value="biscuits">Biscuits</option>
+            <option value="chips">Chips</option><option value="juice">Juice</option>
+            <option value="soft-drinks">Soft Drinks</option><option value="canned-food">Canned Food</option>
+            <option value="rice">Rice</option><option value="salt">Salt</option>
           </select>
           <button class="btn-primary" onclick="findFranchise()">📍 Find Nearby Stores</button>
         </div>
         <div id="franchiseList" style="margin-top:16px"></div>
       </div>
-      <div class="card">
-        <h2>🏪 All Franchise Locations</h2>
-        <div id="allFranchises">Loading...</div>
-      </div>
+      <div class="card"><h2>🏪 All Franchise Locations</h2><div id="allFranchises">Loading...</div></div>
     </div>
 
     <!-- PURCHASE ORDERS PAGE -->
     <div class="page" id="page-orders">
       <div class="card">
         <h2>🔄 Purchase Orders</h2>
-        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:16px">
-          Auto-generated by the Supplier Agent when stock falls below minimum levels.
-        </p>
+        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:16px">Auto-generated by the Supplier Agent when stock falls below minimum levels.</p>
         <div id="purchaseOrders">Loading...</div>
       </div>
     </div>
@@ -577,14 +602,8 @@
     <!-- LOGS PAGE -->
     <div class="page" id="page-logs">
       <div class="row">
-        <div class="card">
-          <h2>🚨 Monitoring Alerts</h2>
-          <div id="monitoringLogs">Loading...</div>
-        </div>
-        <div class="card">
-          <h2>🤖 Agent Actions</h2>
-          <div id="forecastingLogs">Loading...</div>
-        </div>
+        <div class="card"><h2>🚨 Monitoring Alerts</h2><div id="monitoringLogs">Loading...</div></div>
+        <div class="card"><h2>🤖 Agent Actions</h2><div id="forecastingLogs">Loading...</div></div>
       </div>
     </div>
 
@@ -592,46 +611,24 @@
     <div class="page" id="page-store-settings">
       <div class="card">
         <h2>⚙️ Store Settings</h2>
-        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:20px">
-          Configure your store details. The Anomaly Detection Agent uses shop hours to detect after-hours suspicious activity.
-        </p>
-
+        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:20px">Configure your store details.</p>
         <div class="settings-grid">
           <div>
-            <div class="settings-group">
-              <label>🏪 Store Name</label>
-              <input type="text" id="settingStoreName" placeholder="My Retail Store">
-            </div>
-
+            <div class="settings-group"><label>🏪 Store Name</label><input type="text" id="settingStoreName" placeholder="My Retail Store"></div>
             <div class="settings-group">
               <label>🕐 Shop Hours</label>
-              <div class="time-range">
-                <input type="time" id="settingOpeningTime">
-                <span>to</span>
-                <input type="time" id="settingClosingTime">
-              </div>
+              <div class="time-range"><input type="time" id="settingOpeningTime"><span>to</span><input type="time" id="settingClosingTime"></div>
               <p class="hint">Anomaly Agent monitors for theft outside these hours</p>
             </div>
-
-            <div class="settings-group">
-              <label>📧 Alert Email</label>
-              <input type="email" id="settingAlertEmail" placeholder="your@email.com">
-              <p class="hint">Where to send critical alerts</p>
-            </div>
+            <div class="settings-group"><label>📧 Alert Email</label><input type="email" id="settingAlertEmail" placeholder="your@email.com"><p class="hint">Where to send critical alerts</p></div>
           </div>
-
           <div>
-            <div class="settings-group">
-              <label>🌦️ Weather City</label>
-              <input type="text" id="settingWeatherCity" placeholder="Mumbai">
-              <p class="hint">Used by Weather Agent for stock recommendations</p>
-            </div>
-
+            <div class="settings-group"><label>🌦️ Weather City</label><input type="text" id="settingWeatherCity" placeholder="Mumbai"><p class="hint">Used by Weather Agent</p></div>
             <div class="card" style="background:var(--accent-light);border-color:var(--accent);margin-top:8px">
               <h2 style="font-size:0.85rem">🤖 Agent Schedule</h2>
               <div style="font-size:0.8rem;color:var(--text-secondary);line-height:1.8">
-                🔔 Monitoring Agent — every 30 seconds<br>
-                📊 Forecasting Agent — every 15 minutes<br>
+                🔔 Monitoring — every 30 seconds<br>
+                📊 Forecasting — every 15 minutes<br>
                 🛡️ Anomaly Detection — every 45 seconds<br>
                 💰 Dynamic Pricing — every hour<br>
                 🏆 Competitor Analysis — daily 9 AM<br>
@@ -644,7 +641,6 @@
             </div>
           </div>
         </div>
-
         <button class="btn-primary" onclick="saveSettings()" style="margin-top:8px">💾 Save Settings</button>
       </div>
     </div>
@@ -652,8 +648,258 @@
   </main>
 </div>
 
+<!-- PROFILE OVERLAY -->
+<div class="profile-overlay" id="profileOverlay" onclick="closeProfilePanel()"></div>
+
+<!-- PROFILE PANEL -->
+<div class="profile-panel" id="profilePanel">
+  <div class="pp-header">
+    <div class="pp-avatar" id="ppAvatar">SA</div>
+    <div style="flex:1;min-width:0">
+      <div class="pp-name" id="ppName">Loading...</div>
+      <div class="pp-email" id="ppEmail">loading...</div>
+    </div>
+    <button class="pp-close" onclick="closeProfilePanel()">✕</button>
+  </div>
+
+  <div class="pp-plan">
+    <span id="ppPlanIcon">⚡</span>
+    <span id="ppPlanName">Free Plan</span>
+    <button class="pp-upgrade" id="ppUpgradeBtn" onclick="openSubscription()">Upgrade →</button>
+  </div>
+
+  <div class="pp-menu">
+    <button class="pp-item" onclick="openEditProfile()">
+      <span class="pp-item-icon">👤</span>
+      <div class="pp-item-content"><div class="pp-item-title">Edit Profile</div><div class="pp-item-desc">Name, email, phone, photo</div></div>
+      <span class="pp-item-arrow">›</span>
+    </button>
+    <button class="pp-item" onclick="openSubscription()">
+      <span class="pp-item-icon">💳</span>
+      <div class="pp-item-content"><div class="pp-item-title">Manage Subscription</div><div class="pp-item-desc">Upgrade, downgrade or cancel</div></div>
+      <span class="pp-item-arrow">›</span>
+    </button>
+    <button class="pp-item" onclick="showPage('store-settings', null); closeProfilePanel()">
+      <span class="pp-item-icon">⚙️</span>
+      <div class="pp-item-content"><div class="pp-item-title">Store Settings</div><div class="pp-item-desc">Hours, alerts, weather city</div></div>
+      <span class="pp-item-arrow">›</span>
+    </button>
+    <button class="pp-item" onclick="openHelp()">
+      <span class="pp-item-icon">🆘</span>
+      <div class="pp-item-content"><div class="pp-item-title">Get Help</div><div class="pp-item-desc">Documentation and support</div></div>
+      <span class="pp-item-arrow">›</span>
+    </button>
+    <button class="pp-item" onclick="openShortcuts()">
+      <span class="pp-item-icon">⌨️</span>
+      <div class="pp-item-content"><div class="pp-item-title">Keyboard Shortcuts</div><div class="pp-item-desc">Quick navigation tips</div></div>
+      <span class="pp-item-arrow">›</span>
+    </button>
+  </div>
+
+  <div class="pp-footer">
+    <button class="pp-logout" onclick="logout()">🚪 Log out of ShelfSense AI</button>
+  </div>
+</div>
+
+<!-- EDIT PROFILE MODAL -->
+<div class="modal-overlay" id="editProfileModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>👤 Edit Profile</h2>
+      <button class="modal-close" onclick="closeModal('editProfileModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="avatar-upload-section">
+        <div class="avatar-edit-preview" id="avatarPreview" onclick="document.getElementById('avatarFileInput').click()">
+  <div class="avatar-inner">
+    <span id="avatarPreviewText">SA</span>
+  </div>
+  <div class="avatar-camera-badge">📷</div>
+</div>
+        <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="handleAvatarUpload(event)">
+        <p class="avatar-hint">Click to upload profile photo (optional)</p>
+        <button class="avatar-remove-btn" id="avatarRemoveBtn" onclick="removeAvatar()">Remove photo ✕</button>
+      </div>
+      <div class="mf-group"><label>Full Name</label><input type="text" id="epName" placeholder="John Doe"></div>
+      <div class="mf-group"><label>Email Address</label><input type="email" id="epEmail" placeholder="john@example.com"></div>
+      <div class="mf-group"><label>Phone Number</label><input type="tel" id="epPhone" placeholder="+91 98765 43210"></div>
+      <div class="mf-group"><label>Store Name</label><input type="text" id="epStoreName" placeholder="My Retail Store"></div>
+      <button class="modal-save-btn" onclick="saveProfile()">💾 Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- SUBSCRIPTION MODAL -->
+<div class="modal-overlay" id="subscriptionModal">
+  <div class="modal-box" style="max-width:600px">
+    <div class="modal-header">
+      <h2>💳 Manage Subscription</h2>
+      <button class="modal-close" onclick="closeModal('subscriptionModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Choose the plan that works best for your store.</p>
+      <div class="sub-plans">
+        <div class="sub-plan">
+          <div class="sub-plan-name">Free</div>
+          <div class="sub-plan-price">₹0<span>/mo</span></div>
+          <ul class="sub-plan-features">
+            <li>✅ Up to 10 products</li><li>✅ Monitoring Agent</li>
+            <li>✅ Basic email alerts</li><li>❌ Advanced AI Agents</li><li>❌ YOLOv8 Shelf Scan</li>
+          </ul>
+          <button class="sub-plan-btn" onclick="selectPlan('free')">Select Free</button>
+        </div>
+        <div class="sub-plan featured">
+          <div class="sub-plan-badge">Most Popular</div>
+          <div class="sub-plan-name">Pro</div>
+          <div class="sub-plan-price">₹999<span>/mo</span></div>
+          <ul class="sub-plan-features">
+            <li>✅ Unlimited products</li><li>✅ All 10 AI Agents</li>
+            <li>✅ YOLOv8 Shelf Scan</li><li>✅ Razorpay Payments</li><li>✅ Real-time alerts</li>
+          </ul>
+          <button class="sub-plan-btn primary" onclick="selectPlan('pro')">Upgrade to Pro</button>
+        </div>
+        <div class="sub-plan">
+          <div class="sub-plan-name">Enterprise</div>
+          <div class="sub-plan-price">₹2999<span>/mo</span></div>
+          <ul class="sub-plan-features">
+            <li>✅ Everything in Pro</li><li>✅ Multiple stores</li>
+            <li>✅ Super admin panel</li><li>✅ Priority support</li><li>✅ Custom integrations</li>
+          </ul>
+          <button class="sub-plan-btn" onclick="selectPlan('enterprise')">Go Enterprise</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HELP MODAL -->
+<div class="modal-overlay" id="helpModal">
+  <div class="modal-box">
+    <div class="modal-header"><h2>🆘 Get Help</h2><button class="modal-close" onclick="closeModal('helpModal')">✕</button></div>
+    <div class="modal-body">
+  <div class="help-item" onclick="window.open('https://mail.google.com/mail/?view=cm&to=shelfsense.alerts@gmail.com&su=ShelfSense+AI+Support&body=Hi+ShelfSense+team,+I+need+help+with...', '_blank')">
+    <span class="help-icon">📧</span>
+    <div>
+      <div class="help-title">Email Support</div>
+      <div class="help-desc">shelfsense.alerts@gmail.com — We reply within 24 hours</div>
+    </div>
+    <span style="color:var(--text-muted);font-size:0.8rem">↗</span>
+  </div>
+
+  <div class="help-item" onclick="window.open('contact.html', '_blank')">
+    <span class="help-icon">💬</span>
+    <div>
+      <div class="help-title">Contact Form</div>
+      <div class="help-desc">Send us a detailed message with your issue</div>
+    </div>
+    <span style="color:var(--text-muted);font-size:0.8rem">↗</span>
+  </div>
+
+  <div class="help-item" onclick="showAgentsGuide()">
+    <span class="help-icon">🤖</span>
+    <div>
+      <div class="help-title">AI Agents Guide</div>
+      <div class="help-desc">10 agents explained — monitoring, forecasting, anomaly detection and more</div>
+    </div>
+    <span style="color:var(--text-muted);font-size:0.8rem">›</span>
+  </div>
+
+  <div class="help-item" onclick="window.open('privacy.html', '_blank')">
+    <span class="help-icon">🔒</span>
+    <div>
+      <div class="help-title">Security & Privacy</div>
+      <div class="help-desc">9 security layers protecting your store data 24/7</div>
+    </div>
+    <span style="color:var(--text-muted);font-size:0.8rem">↗</span>
+  </div>
+
+  <div class="help-item" onclick="window.open('about.html', '_blank')">
+    <span class="help-icon">🏢</span>
+    <div>
+      <div class="help-title">About ShelfSense AI</div>
+      <div class="help-desc">Our story, team, and technology stack</div>
+    </div>
+    <span style="color:var(--text-muted);font-size:0.8rem">↗</span>
+  </div>
+</div>
+  </div>
+</div>
+
+<!-- SHORTCUTS MODAL -->
+<div class="modal-overlay" id="shortcutsModal">
+  <div class="modal-box">
+    <div class="modal-header"><h2>⌨️ Keyboard Shortcuts</h2><button class="modal-close" onclick="closeModal('shortcutsModal')">✕</button></div>
+    <div class="modal-body">
+  <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:16px">Press <kbd>G</kbd> then the letter within 0.8 seconds</p>
+  <div class="shortcut-item"><div><kbd>G</kbd> then <kbd>O</kbd></div><span>Go to Overview</span></div>
+  <div class="shortcut-item"><div><kbd>G</kbd> then <kbd>I</kbd></div><span>Go to Inventory</span></div>
+  <div class="shortcut-item"><div><kbd>G</kbd> then <kbd>A</kbd></div><span>Go to AI Agents</span></div>
+  <div class="shortcut-item"><div><kbd>G</kbd> then <kbd>S</kbd></div><span>Go to Shelf Scan</span></div>
+  <div class="shortcut-item"><div><kbd>G</kbd> then <kbd>F</kbd></div><span>Go to Franchises</span></div>
+  <div class="shortcut-item"><div><kbd>G</kbd> then <kbd>L</kbd></div><span>Go to Logs</span></div>
+  <div class="shortcut-item"><div><kbd>G</kbd> then <kbd>P</kbd></div><span>Go to Purchase Orders</span></div>
+  <div class="shortcut-item"><kbd>\</kbd><span>Toggle Sidebar</span></div>
+  <div class="shortcut-item"><kbd>Esc</kbd><span>Close any panel or modal</span></div>
+</div>
+  </div>
+</div>
+
+<!-- AGENTS GUIDE MODAL -->
+<div class="modal-overlay" id="agentsGuideModal">
+  <div class="modal-box" style="max-width:600px">
+    <div class="modal-header">
+      <h2>🤖 AI Agents Guide</h2>
+      <button class="modal-close" onclick="closeModal('agentsGuideModal')">✕</button>
+    </div>
+    <div class="modal-body" style="max-height:60vh;overflow-y:auto">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="help-item" style="cursor:default">
+          <span class="help-icon">🔔</span>
+          <div><div class="help-title">Monitoring Agent</div><div class="help-desc">Runs every 30 seconds. Alerts when stock = 0 (email sent) or stock ≤ minimum level (in-app warning).</div></div>
+        </div>
+        <div class="help-item" style="cursor:default">
+          <span class="help-icon">📊</span>
+          <div><div class="help-title">Forecasting Agent</div><div class="help-desc">Runs every 15 minutes. Uses exponential smoothing + weekend 1.3x multiplier. Auto-restocks when days until empty ≤ 3.</div></div>
+        </div>
+        <div class="help-item" style="cursor:default">
+          <span class="help-icon">🛡️</span>
+          <div><div class="help-title">Anomaly Detection Agent</div><div class="help-desc">Runs every 45 seconds. Uses Z-score analysis. Outside shop hours = theft alert email sent immediately.</div></div>
+        </div>
+        <div class="help-item" style="cursor:default">
+          <span class="help-icon">💰</span>
+          <div><div class="help-title">Dynamic Pricing Agent</div><div class="help-desc">Runs every hour. High demand + low stock = +10% price. Low demand + excess stock = -10% price.</div></div>
+        </div>
+        <div class="help-item" style="cursor:default">
+          <span class="help-icon">🏆</span>
+          <div><div class="help-title">Competitor Analysis Agent</div><div class="help-desc">Runs daily at 9 AM. Compares your prices with market averages. Alerts if 15%+ above or below market.</div></div>
+        </div>
+        <div class="help-item" style="cursor:default">
+          <span class="help-icon">🔄</span>
+          <div><div class="help-title">Supplier Agent</div><div class="help-desc">Runs every 2 hours. Creates purchase orders when stock ≤ minimum. Stock updates when you click Mark Received.</div></div>
+        </div>
+        <div class="help-item" style="cursor:default">
+          <span class="help-icon">👥</span>
+          <div><div class="help-title">Customer Behavior Agent</div><div class="help-desc">Runs daily at 1 AM. Uses co-occurrence analysis to find products bought together. Suggests bundle deals.</div></div>
+        </div>
+        <div class="help-item" style="cursor:default">
+          <span class="help-icon">🌦️</span>
+          <div><div class="help-title">Weather Agent</div><div class="help-desc">Runs daily at 8 AM. Fetches real weather from Open-Meteo API. Recommends cold drinks in heat, snacks in rain.</div></div>
+        </div>
+        <div class="help-item" style="cursor:default">
+          <span class="help-icon">📅</span>
+          <div><div class="help-title">Expiry Agent</div><div class="help-desc">Runs daily at 7 AM. Auto-applies 30% discount on items expiring within 7 days. Urgent email for expired items.</div></div>
+        </div>
+        <div class="help-item" style="cursor:default">
+          <span class="help-icon">🗺️</span>
+          <div><div class="help-title">Route Optimization Agent</div><div class="help-desc">Runs daily at 6 AM. When stock = 0, finds nearest franchise with 5+ units using Haversine distance formula.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- SETTINGS FAB -->
-<button class="settings-fab" id="settingsFab" onclick="toggleSettings()">⚙️</button>
+<button class="settings-fab" onclick="toggleSettings()">⚙️</button>
 <div class="settings-panel" id="settingsPanel">
   <h3>🎨 Appearance</h3>
   <div class="theme-option" data-theme="light" onclick="setTheme('light')"><span class="theme-option-icon">☀️</span> Light Mode</div>
@@ -668,22 +914,19 @@ const token = localStorage.getItem("token");
 const role = localStorage.getItem("role");
 if (!token || role !== "admin") window.location.href = "login.html";
 
-let chart;
-let selectedFile = null;
-let sidebarOpen = true;
-let currentPage = "overview";
+let chart, selectedFile = null, sidebarOpen = true, currentPage = "overview";
 
 const AGENT_INFO = {
-  "Monitoring Agent":        { icon: "🔔", desc: "Monitors stock levels every 30 seconds" },
-  "Forecasting Agent":       { icon: "📊", desc: "Predicts demand using exponential smoothing" },
-  "Anomaly Detection Agent": { icon: "🛡️", desc: "Detects theft and unusual stock drops" },
-  "Dynamic Pricing Agent":   { icon: "💰", desc: "Adjusts prices based on demand and stock" },
-  "Competitor Analysis Agent": { icon: "🏆", desc: "Compares prices with market averages" },
-  "Supplier Agent":          { icon: "🔄", desc: "Auto-generates purchase orders" },
-  "Customer Behavior Agent": { icon: "👥", desc: "Finds product bundle opportunities" },
-  "Weather Agent":           { icon: "🌦️", desc: "Adjusts recommendations based on weather" },
-  "Expiry Agent":            { icon: "📅", desc: "Tracks expiry dates and auto-discounts" },
-  "Route Optimization Agent":{ icon: "🗺️", desc: "Finds optimal stock transfer routes" }
+  "Monitoring Agent":         { icon: "🔔", desc: "Monitors stock levels every 30 seconds" },
+  "Forecasting Agent":        { icon: "📊", desc: "Predicts demand using exponential smoothing" },
+  "Anomaly Detection Agent":  { icon: "🛡️", desc: "Detects theft and unusual stock drops" },
+  "Dynamic Pricing Agent":    { icon: "💰", desc: "Adjusts prices based on demand and stock" },
+  "Competitor Analysis Agent":{ icon: "🏆", desc: "Compares prices with market averages" },
+  "Supplier Agent":           { icon: "🔄", desc: "Auto-generates purchase orders" },
+  "Customer Behavior Agent":  { icon: "👥", desc: "Finds product bundle opportunities" },
+  "Weather Agent":            { icon: "🌦️", desc: "Adjusts recommendations based on weather" },
+  "Expiry Agent":             { icon: "📅", desc: "Tracks expiry dates and auto-discounts" },
+  "Route Optimization Agent": { icon: "🗺️", desc: "Finds optimal stock transfer routes" }
 };
 
 /* ===== SIDEBAR ===== */
@@ -691,13 +934,8 @@ function toggleSidebar() {
   sidebarOpen = !sidebarOpen;
   const sidebar = document.getElementById("sidebar");
   const topbarNav = document.getElementById("topbarNav");
-  if (sidebarOpen) {
-    sidebar.classList.remove("collapsed");
-    topbarNav.classList.remove("visible");
-  } else {
-    sidebar.classList.add("collapsed");
-    topbarNav.classList.add("visible");
-  }
+  if (sidebarOpen) { sidebar.classList.remove("collapsed"); topbarNav.classList.remove("visible"); }
+  else { sidebar.classList.add("collapsed"); topbarNav.classList.add("visible"); }
   localStorage.setItem("sidebarOpen", sidebarOpen);
 }
 
@@ -711,7 +949,7 @@ function showPage(page, clickedBtn) {
   document.getElementById("page-" + page).classList.add("active");
   document.querySelectorAll(".sidebar-item").forEach(item => item.classList.toggle("active", item.dataset.page === page));
   document.querySelectorAll(".topbar-nav-item").forEach(item => item.classList.toggle("active", item.dataset.page === page));
-  if (page === "overview" || page === "inventory" || page === "logs") loadAdmin();
+  if (["overview","inventory","logs"].includes(page)) loadAdmin();
   if (page === "franchise") loadAllFranchises();
   if (page === "shelf-scan") loadRecentScans();
   if (page === "planogram") loadPlanogram();
@@ -723,24 +961,188 @@ function showPage(page, clickedBtn) {
 /* ===== TOAST ===== */
 function showToast(msg, type = "success") {
   const t = document.getElementById("toast");
-  t.innerText = msg;
-  t.style.display = "block";
+  t.innerText = msg; t.style.display = "block";
   t.style.background = type === "error" ? "var(--danger-bg)" : type === "warning" ? "var(--warning-bg)" : "var(--success-bg)";
   t.style.color = type === "error" ? "var(--danger-text)" : type === "warning" ? "var(--warning-text)" : "var(--success-text)";
   t.style.border = `1px solid var(--${type === "success" ? "success" : type === "warning" ? "warning" : "danger"})`;
   setTimeout(() => t.style.display = "none", 4000);
 }
 
+/* ===== SIDEBAR USER ===== */
+function loadSidebarUser() {
+  try {
+    const decoded = JSON.parse(atob(token.split('.')[1]));
+    const name = decoded.fname || decoded.email || "Store Admin";
+    const storeName = decoded.storeName || "ShelfSense AI";
+    document.getElementById("sidebarUsername").innerText = name;
+    document.getElementById("sidebarRole").innerText = storeName;
+    refreshAvatarDisplay();
+  } catch(e) {
+    document.getElementById("sidebarUsername").innerText = "Store Admin";
+  }
+}
+
+function getInitials(name) {
+  return (name || "SA").split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+}
+
+function refreshAvatarDisplay() {
+  const savedAvatar = localStorage.getItem("userAvatar");
+  const sidebarEl = document.getElementById("sidebarAvatar");
+  const ppEl = document.getElementById("ppAvatar");
+  const previewEl = document.getElementById("avatarPreview");
+  const previewText = document.getElementById("avatarPreviewText");
+  const removeBtn = document.getElementById("avatarRemoveBtn");
+
+  let name = "Store Admin";
+  try { const d = JSON.parse(atob(token.split('.')[1])); name = d.fname || d.email || "SA"; } catch(e) {}
+  const initials = getInitials(name);
+
+  if (savedAvatar) {
+    const imgHtml = `<img src="${savedAvatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+    if (sidebarEl) sidebarEl.innerHTML = imgHtml;
+    if (ppEl) ppEl.innerHTML = imgHtml;
+    if (previewEl) {
+      const inner = previewEl.querySelector(".avatar-inner") || previewEl;
+      previewText.style.display = "none";
+      const existing = inner.querySelector("img.avatar-img");
+      if (!existing) {
+        const img = document.createElement("img");
+        img.src = savedAvatar; img.className = "avatar-img";
+        img.style.cssText = "width:100%;height:100%;object-fit:cover;border-radius:50%";
+        inner.appendChild(img);
+      }
+    }
+    if (removeBtn) removeBtn.style.display = "block";
+  } else {
+    if (sidebarEl) sidebarEl.innerText = initials;
+    if (ppEl) ppEl.innerText = initials;
+    if (previewText) { previewText.innerText = initials; previewText.style.display = ""; }
+    if (previewEl) { const inner = previewEl.querySelector(".avatar-inner") || previewEl; const img = inner.querySelector("img.avatar-img"); if (img) img.remove(); }
+    if (removeBtn) removeBtn.style.display = "none";
+  }
+}
+
+function handleAvatarUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) { showToast("Photo must be under 2MB", "error"); return; }
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    localStorage.setItem("userAvatar", e.target.result);
+    refreshAvatarDisplay();
+    showToast("✅ Photo uploaded!");
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeAvatar() {
+  localStorage.removeItem("userAvatar");
+  refreshAvatarDisplay();
+  showToast("Photo removed");
+}
+
+/* ===== PROFILE PANEL ===== */
+function toggleProfilePanel() {
+  const panel = document.getElementById("profilePanel");
+  const overlay = document.getElementById("profileOverlay");
+  const btn = document.getElementById("sidebarUserBtn");
+
+  if (panel.classList.contains("open")) {
+    closeProfilePanel();
+    return;
+  }
+
+  // Position panel above the sidebar user button
+  const sidebarEl = document.getElementById("sidebar");
+  const sidebarWidth = sidebarOpen ? sidebarEl.offsetWidth : 0;
+  panel.style.left = Math.max(8, sidebarWidth - 300 + 8) + "px";
+
+  // Populate data
+  try {
+    const decoded = JSON.parse(atob(token.split('.')[1]));
+    const name = decoded.fname || decoded.email || "Store Admin";
+    const email = decoded.email || "";
+    const storeName = decoded.storeName || "ShelfSense AI";
+    const plan = decoded.plan || "free";
+
+    document.getElementById("ppName").innerText = name;
+    document.getElementById("ppEmail").innerText = email;
+
+    const planIcons = { free: "⚡", pro: "🚀", enterprise: "👑" };
+    const planNames = { free: "Free Plan", pro: "Pro Plan", enterprise: "Enterprise Plan" };
+    document.getElementById("ppPlanIcon").innerText = planIcons[plan] || "⚡";
+    document.getElementById("ppPlanName").innerText = planNames[plan] || "Free Plan";
+    document.getElementById("ppUpgradeBtn").style.display = plan === "enterprise" ? "none" : "inline-block";
+
+    // Pre-fill edit form
+    document.getElementById("epName").value = name;
+    document.getElementById("epEmail").value = email;
+    document.getElementById("epStoreName").value = storeName;
+
+    refreshAvatarDisplay();
+  } catch(e) {}
+
+  panel.classList.add("open");
+  overlay.classList.add("open");
+  btn.classList.add("open");
+}
+
+function closeProfilePanel() {
+  document.getElementById("profilePanel").classList.remove("open");
+  document.getElementById("profileOverlay").classList.remove("open");
+  document.getElementById("sidebarUserBtn").classList.remove("open");
+}
+
+function openEditProfile() { closeProfilePanel(); document.getElementById("editProfileModal").classList.add("open"); }
+function openSubscription() { closeProfilePanel(); document.getElementById("subscriptionModal").classList.add("open"); }
+function openHelp() { closeProfilePanel(); document.getElementById("helpModal").classList.add("open"); }
+function openShortcuts() { closeProfilePanel(); document.getElementById("shortcutsModal").classList.add("open"); }
+function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+
+async function saveProfile() {
+  try {
+    const res = await fetch("/admin/settings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: token },
+      body: JSON.stringify({
+        storeName: document.getElementById("epStoreName").value,
+        phone: document.getElementById("epPhone").value,
+        alertEmail: document.getElementById("epEmail").value,
+        openingTime: "09:00", closingTime: "22:00", weatherCity: "Mumbai"
+      })
+    });
+    const data = await res.json();
+    showToast(data.message || "Profile updated! ✅");
+    closeModal("editProfileModal");
+    loadSidebarUser();
+  } catch(err) { showToast("Failed to save", "error"); }
+}
+
+function showAgentsGuide() {
+  closeModal("helpModal");
+  document.getElementById("agentsGuideModal").classList.add("open");
+}
+
+function selectPlan(plan) {
+  const names = { free: "⚡ Free", pro: "🚀 Pro", enterprise: "👑 Enterprise" };
+  showToast(`${names[plan]} plan selected! Contact us to activate.`, "success");
+  closeModal("subscriptionModal");
+}
+
 /* ===== LOAD ADMIN DATA ===== */
 async function loadAdmin() {
-  const res = await fetch("/admin-data", { headers: { Authorization: token } });
-  const data = await res.json();
-  updateStats(data.inventory);
-  renderInventoryTable(data.inventory);
-  renderChart(data.inventory);
-  renderOverviewLogs(data.monitoring, data.forecasting);
-  renderLogs(data.monitoring, "monitoringLogs", "monitoring");
-  renderLogs(data.forecasting, "forecastingLogs", "forecasting");
+  try {
+    const res = await fetch("/admin-data", { headers: { Authorization: token } });
+    if (res.status === 401) { window.location.href = "login.html"; return; }
+    const data = await res.json();
+    updateStats(data.inventory);
+    renderInventoryTable(data.inventory);
+    renderChart(data.inventory);
+    renderOverviewLogs(data.monitoring, data.forecasting);
+    renderLogs(data.monitoring, "monitoringLogs", "monitoring");
+    renderLogs(data.forecasting, "forecastingLogs", "forecasting");
+  } catch(err) { console.error("loadAdmin error:", err); }
 }
 
 function updateStats(inventory) {
@@ -754,40 +1156,21 @@ function renderInventoryTable(items) {
   const table = document.getElementById("inventoryTable");
   if (!table) return;
   table.innerHTML = items.map(item => {
-    let status = item.stock === 0
-      ? `<span class="badge badge-red">Out of Stock</span>`
-      : item.stock <= 3
-      ? `<span class="badge badge-yellow">Low Stock</span>`
+    let status = item.stock === 0 ? `<span class="badge badge-red">Out of Stock</span>`
+      : item.stock <= 3 ? `<span class="badge badge-yellow">Low Stock</span>`
       : `<span class="badge badge-green">Healthy</span>`;
     let saleTag = item.onSale ? `<span class="badge badge-purple" style="margin-left:6px">🔥 ${item.salePercent}% OFF</span>` : "";
     return `<tr>
       <td><strong>${item.name}</strong>${saleTag}</td>
       <td>${item.stock}</td>
-      <td>
-        ${item.onSale
-          ? `<span style="text-decoration:line-through;color:var(--text-muted);font-size:0.8rem">₹${item.price}</span>
-             <strong style="color:var(--danger);margin-left:4px">₹${item.salePrice}</strong>`
-          : `<strong>₹${item.price || 99}</strong>`}
-      </td>
+      <td>${item.onSale ? `<span style="text-decoration:line-through;color:var(--text-muted);font-size:0.8rem">₹${item.price}</span><strong style="color:var(--danger);margin-left:4px">₹${item.salePrice}</strong>` : `<strong>₹${item.price || 99}</strong>`}</td>
       <td>${status}</td>
-      <td>
-        <div class="stock-edit">
-          <input type="number" id="edit_${item.key}" value="${item.stock}" min="0" style="width:70px">
-          <button class="btn-primary btn-sm" onclick="updateStock('${item.key}')">Update</button>
-        </div>
-      </td>
-      <td>
-        <div class="stock-edit">
-          <input type="number" id="price_${item.key}" value="${item.price || 99}" min="0" step="1" style="width:80px">
-          <button class="btn-success btn-sm" onclick="updatePrice('${item.key}')">Set</button>
-        </div>
-      </td>
+      <td><div class="stock-edit"><input type="number" id="edit_${item.key}" value="${item.stock}" min="0" style="width:70px"><button class="btn-primary btn-sm" onclick="updateStock('${item.key}')">Update</button></div></td>
+      <td><div class="stock-edit"><input type="number" id="price_${item.key}" value="${item.price || 99}" min="0" step="1" style="width:80px"><button class="btn-success btn-sm" onclick="updatePrice('${item.key}')">Set</button></div></td>
       <td>
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
           <input type="number" id="sale_${item.key}" value="${item.salePercent || 0}" min="0" max="90" style="width:60px" placeholder="%">
-          <button class="btn-warning btn-sm" onclick="toggleSale('${item.key}', ${!item.onSale})">
-            ${item.onSale ? '🔥 On Sale' : 'Set Sale'}
-          </button>
+          <button class="btn-warning btn-sm" onclick="toggleSale('${item.key}', ${!item.onSale})">${item.onSale ? '🔥 On Sale' : 'Set Sale'}</button>
           ${item.onSale ? `<button class="btn-danger btn-sm" onclick="toggleSale('${item.key}', false)">Remove</button>` : ''}
         </div>
       </td>
@@ -799,26 +1182,13 @@ function renderInventoryTable(items) {
 function renderChart(items) {
   const el = document.getElementById("stockChart");
   if (!el) return;
-  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+  const isDark = !document.documentElement.getAttribute("data-theme") || document.documentElement.getAttribute("data-theme") === "dark";
   const colors = items.map(i => i.stock === 0 ? "#ef4444" : i.stock <= 3 ? "#f59e0b" : isDark ? "#a78bfa" : "#6366f1");
-  if (chart) {
-    chart.data.labels = items.map(i => i.name);
-    chart.data.datasets[0].data = items.map(i => i.stock);
-    chart.data.datasets[0].backgroundColor = colors;
-    chart.update();
-    return;
-  }
+  if (chart) { chart.data.labels = items.map(i => i.name); chart.data.datasets[0].data = items.map(i => i.stock); chart.data.datasets[0].backgroundColor = colors; chart.update(); return; }
   chart = new Chart(el.getContext("2d"), {
     type: "bar",
     data: { labels: items.map(i => i.name), datasets: [{ label: "Stock", data: items.map(i => i.stock), backgroundColor: colors, borderRadius: 8 }] },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: {
-        y: { beginAtZero: true, ticks: { color: "#94a3b8", stepSize: 1 }, grid: { color: "rgba(0,0,0,0.05)" } },
-        x: { ticks: { color: "#94a3b8" }, grid: { display: false } }
-      }
-    }
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { color: "#94a3b8", stepSize: 1 }, grid: { color: "rgba(255,255,255,0.05)" } }, x: { ticks: { color: "#94a3b8" }, grid: { display: false } } } }
   });
 }
 
@@ -827,46 +1197,25 @@ function renderOverviewLogs(monitoring, forecasting) {
   const fEl = document.getElementById("overviewForecasting");
   if (!mEl || !fEl) return;
   const criticalLogs = monitoring.filter(l => l.severity === "critical" || l.severity === "warning").slice(0, 5);
-  mEl.innerHTML = criticalLogs.length === 0
-    ? "<p style='color:var(--text-muted)'>No alerts</p>"
-    : criticalLogs.map(l => `
-        <div class="log-item ${l.severity === 'critical' ? 'monitoring' : ''}">
-          ${l.message || l.item}
-          <div class="log-time">${l.agent || ''} • ${l.time}</div>
-        </div>`).join("");
-
-  const recentActions = monitoring.slice(0, 5);
-  fEl.innerHTML = recentActions.length === 0
-    ? "<p style='color:var(--text-muted)'>No actions yet</p>"
-    : recentActions.map(l => `
-        <div class="log-item forecasting">
-          ${l.message || l.item}
-          <div class="log-time">${l.agent || ''} • ${l.time}</div>
-        </div>`).join("");
+  mEl.innerHTML = criticalLogs.length === 0 ? "<p style='color:var(--text-muted)'>No alerts</p>"
+    : criticalLogs.map(l => `<div class="log-item ${l.severity === 'critical' ? 'monitoring' : ''}">${l.message || l.item}<div class="log-time">${l.agent || ''} • ${l.time}</div></div>`).join("");
+  fEl.innerHTML = monitoring.slice(0, 5).length === 0 ? "<p style='color:var(--text-muted)'>No actions yet</p>"
+    : monitoring.slice(0, 5).map(l => `<div class="log-item forecasting">${l.message || l.item}<div class="log-time">${l.agent || ''} • ${l.time}</div></div>`).join("");
 }
 
 function renderLogs(logs, id, type) {
   const el = document.getElementById(id);
   if (!el) return;
-  el.innerHTML = logs.length === 0
-    ? "<p style='color:var(--text-muted)'>No logs yet</p>"
-    : logs.map(l => `
-        <div class="log-item ${type}">
-          ${l.message || l.item}
-          <div class="log-time">${l.agent || ''} • ${l.time}</div>
-        </div>`).join("");
+  el.innerHTML = logs.length === 0 ? "<p style='color:var(--text-muted)'>No logs yet</p>"
+    : logs.map(l => `<div class="log-item ${type}">${l.message || l.item}<div class="log-time">${l.agent || ''} • ${l.time}</div></div>`).join("");
 }
 
 /* ===== AGENT DASHBOARD ===== */
-async function loadAgentDashboard() {
-  await loadAgentCards();
-  await loadAgentLogs("all");
-}
+async function loadAgentDashboard() { await loadAgentCards(); await loadAgentLogs("all"); }
 
 async function loadAgentCards() {
   const res = await fetch("/admin/agent-logs", { headers: { Authorization: token } });
   const logs = await res.json();
-
   const grid = document.getElementById("agentsGrid");
   grid.innerHTML = Object.entries(AGENT_INFO).map(([name, info]) => {
     const agentLogs = logs.filter(l => l.agent === name);
@@ -874,35 +1223,19 @@ async function loadAgentCards() {
     const hasCritical = agentLogs.some(l => l.severity === "critical");
     const hasWarning = agentLogs.some(l => l.severity === "warning");
     const cardClass = hasCritical ? "critical" : hasWarning ? "warning" : "active";
-
-    return `
-      <div class="agent-card ${cardClass}">
-        <div class="agent-header">
-          <span class="agent-icon">${info.icon}</span>
-          <div>
-            <div class="agent-name">${name}</div>
-          </div>
-          <div class="agent-status">
-            <span class="agent-pulse"></span>
-          </div>
-        </div>
-        <div class="agent-last-action">
-          ${lastLog ? lastLog.action : info.desc}
-        </div>
-        <div class="agent-time">
-          ${lastLog ? new Date(lastLog.createdAt).toLocaleString() : 'Waiting for first run...'}
-        </div>
+    return `<div class="agent-card ${cardClass}">
+      <div class="agent-header">
+        <span class="agent-icon">${info.icon}</span>
+        <div><div class="agent-name">${name}</div></div>
+        <div class="agent-status"><span class="agent-pulse"></span></div>
       </div>
-    `;
+      <div class="agent-last-action">${lastLog ? lastLog.action : info.desc}</div>
+      <div class="agent-time">${lastLog ? new Date(lastLog.createdAt).toLocaleString() : 'Waiting for first run...'}</div>
+    </div>`;
   }).join("");
 }
 
-let currentAgentFilter = "all";
-let currentSeverityFilter = "all";
-
 async function filterAgentLogs(agent, btn, severity = "all") {
-  currentAgentFilter = agent;
-  currentSeverityFilter = severity;
   document.querySelectorAll(".agent-filter").forEach(b => b.classList.remove("active"));
   btn.classList.add("active");
   await loadAgentLogs(agent, severity);
@@ -911,21 +1244,13 @@ async function filterAgentLogs(agent, btn, severity = "all") {
 async function loadAgentLogs(agent = "all", severity = "all") {
   const el = document.getElementById("agentLogs");
   el.innerHTML = "<p style='color:var(--text-muted)'>Loading...</p>";
-
   let url = "/admin/agent-logs?";
   if (agent !== "all") url += `agent=${encodeURIComponent(agent)}&`;
   if (severity !== "all") url += `severity=${severity}`;
-
   const res = await fetch(url, { headers: { Authorization: token } });
   const logs = await res.json();
-
-  if (!logs.length) {
-    el.innerHTML = "<p style='color:var(--text-muted)'>No agent logs yet. Agents run on schedule.</p>";
-    return;
-  }
-
+  if (!logs.length) { el.innerHTML = "<p style='color:var(--text-muted)'>No agent logs yet. Agents run on schedule.</p>"; return; }
   const severityIcon = { critical: "🚨", warning: "⚠️", info: "ℹ️" };
-
   el.innerHTML = logs.map(log => `
     <div class="agent-log-item severity-${log.severity}">
       <div class="agent-log-icon">${AGENT_INFO[log.agent]?.icon || "🤖"}</div>
@@ -934,8 +1259,7 @@ async function loadAgentLogs(agent = "all", severity = "all") {
         <div class="agent-log-message">${log.action}</div>
         <div class="agent-log-time">${new Date(log.createdAt).toLocaleString()}</div>
       </div>
-    </div>
-  `).join("");
+    </div>`).join("");
 }
 
 /* ===== PURCHASE ORDERS ===== */
@@ -943,53 +1267,41 @@ async function loadPurchaseOrders() {
   const res = await fetch("/admin/purchase-orders", { headers: { Authorization: token } });
   const orders = await res.json();
   const el = document.getElementById("purchaseOrders");
-
-  if (!orders.length) {
-    el.innerHTML = "<p style='color:var(--text-muted)'>No purchase orders yet. The Supplier Agent will auto-create them when stock falls below minimum.</p>";
-    return;
-  }
-
+  if (!orders.length) { el.innerHTML = "<p style='color:var(--text-muted)'>No purchase orders yet.</p>"; return; }
   el.innerHTML = orders.map(order => `
     <div class="po-card">
       <div class="po-info">
-        <h3>${AGENT_INFO["Supplier Agent"]?.icon || "🔄"} ${order.itemName}</h3>
+        <h3>🔄 ${order.itemName}</h3>
         <p>Qty: <strong>${order.quantity} units</strong> • Supplier: ${order.supplier}</p>
         <p style="margin-top:4px;font-size:0.75rem;color:var(--text-muted)">${new Date(order.createdAt).toLocaleString()}</p>
       </div>
       <div style="display:flex;align-items:center;gap:10px">
-        <span class="badge ${order.status === 'pending' ? 'badge-yellow' : order.status === 'sent' ? 'badge-blue' : 'badge-green'}">
-          ${order.status}
-        </span>
+        <span class="badge ${order.status === 'pending' ? 'badge-yellow' : order.status === 'sent' ? 'badge-blue' : 'badge-green'}">${order.status}</span>
         <div class="po-actions">
           ${order.status === 'pending' ? `<button class="btn-primary btn-sm" onclick="updatePOStatus('${order._id}', 'sent')">Mark Sent</button>` : ''}
           ${order.status === 'sent' ? `<button class="btn-success btn-sm" onclick="updatePOStatus('${order._id}', 'received')">Mark Received</button>` : ''}
         </div>
       </div>
-    </div>
-  `).join("");
+    </div>`).join("");
 }
 
 async function updatePOStatus(id, status) {
-  const res = await fetch(`/admin/purchase-orders/${id}/status`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: token },
-    body: JSON.stringify({ status })
-  });
+  const res = await fetch(`/admin/purchase-orders/${id}/status`, { method: "POST", headers: { "Content-Type": "application/json", Authorization: token }, body: JSON.stringify({ status }) });
   const data = await res.json();
   showToast(data.message);
-  if (status === "received") showToast("✅ Stock updated automatically!", "success");
+  if (status === "received") showToast("✅ Stock updated!", "success");
   loadPurchaseOrders();
 }
 
-/* ===== STORE SETTINGS ===== */
+/* ===== SETTINGS ===== */
 async function loadSettings() {
   const res = await fetch("/admin/settings", { headers: { Authorization: token } });
-  const settings = await res.json();
-  document.getElementById("settingStoreName").value = settings.storeName || "";
-  document.getElementById("settingOpeningTime").value = settings.openingTime || "09:00";
-  document.getElementById("settingClosingTime").value = settings.closingTime || "22:00";
-  document.getElementById("settingAlertEmail").value = settings.alertEmail || "";
-  document.getElementById("settingWeatherCity").value = settings.weatherCity || "Mumbai";
+  const s = await res.json();
+  document.getElementById("settingStoreName").value = s.name || s.storeName || "";
+  document.getElementById("settingOpeningTime").value = s.openingTime || "09:00";
+  document.getElementById("settingClosingTime").value = s.closingTime || "22:00";
+  document.getElementById("settingAlertEmail").value = s.alertEmail || "";
+  document.getElementById("settingWeatherCity").value = s.weatherCity || "Mumbai";
 }
 
 async function saveSettings() {
@@ -1010,73 +1322,46 @@ async function saveSettings() {
 
 /* ===== INVENTORY ACTIONS ===== */
 async function updateStock(key) {
-  const input = document.getElementById("edit_" + key);
-  const newStock = parseInt(input.value);
+  const newStock = parseInt(document.getElementById("edit_" + key).value);
   if (isNaN(newStock) || newStock < 0) return showToast("Invalid stock value", "error");
-  const res = await fetch("/admin/update-stock", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: token },
-    body: JSON.stringify({ key, stock: newStock })
-  });
-  const data = await res.json();
-  showToast(data.message || "Stock updated!");
-  loadAdmin();
+  const res = await fetch("/admin/update-stock", { method: "POST", headers: { "Content-Type": "application/json", Authorization: token }, body: JSON.stringify({ key, stock: newStock }) });
+  showToast((await res.json()).message || "Stock updated!"); loadAdmin();
 }
 
 async function updatePrice(key) {
   const price = parseFloat(document.getElementById("price_" + key).value);
   if (isNaN(price) || price < 0) return showToast("Invalid price", "error");
-  const res = await fetch("/admin/update-price", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: token },
-    body: JSON.stringify({ key, price })
-  });
-  const data = await res.json();
-  showToast(data.message);
-  loadAdmin();
+  const res = await fetch("/admin/update-price", { method: "POST", headers: { "Content-Type": "application/json", Authorization: token }, body: JSON.stringify({ key, price }) });
+  showToast((await res.json()).message); loadAdmin();
 }
 
 async function toggleSale(key, onSale) {
   const salePercent = parseFloat(document.getElementById("sale_" + key).value) || 0;
   if (onSale && (salePercent <= 0 || salePercent >= 100)) return showToast("Enter a valid sale % (1-99)", "warning");
-  const res = await fetch("/admin/update-sale", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: token },
-    body: JSON.stringify({ key, onSale, salePercent })
-  });
-  const data = await res.json();
-  showToast(data.message);
-  loadAdmin();
+  const res = await fetch("/admin/update-sale", { method: "POST", headers: { "Content-Type": "application/json", Authorization: token }, body: JSON.stringify({ key, onSale, salePercent }) });
+  showToast((await res.json()).message); loadAdmin();
 }
 
 async function addItem() {
   const name = document.getElementById("itemName").value.trim();
   const stock = Number(document.getElementById("itemStock").value);
   if (!name || stock < 0) return showToast("Invalid input", "error");
-  const res = await fetch("/admin/add-item", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: token },
-    body: JSON.stringify({ name, stock })
-  });
-  const data = await res.json();
-  showToast(data.message);
-  document.getElementById("itemName").value = "";
-  document.getElementById("itemStock").value = "";
+  const res = await fetch("/admin/add-item", { method: "POST", headers: { "Content-Type": "application/json", Authorization: token }, body: JSON.stringify({ name, stock }) });
+  showToast((await res.json()).message);
+  document.getElementById("itemName").value = ""; document.getElementById("itemStock").value = "";
   loadAdmin();
 }
 
 async function deleteItem(key) {
   if (!confirm("Delete this item?")) return;
   await fetch(`/admin/delete-item/${key}`, { method: "DELETE", headers: { Authorization: token } });
-  showToast("Item deleted");
-  loadAdmin();
+  showToast("Item deleted"); loadAdmin();
 }
 
 async function resetLogs() {
   if (!confirm("Reset all logs and stocks?")) return;
   await fetch("/admin/reset-logs", { method: "POST", headers: { "Content-Type": "application/json", Authorization: token } });
-  showToast("Reset successful");
-  loadAdmin();
+  showToast("Reset successful"); loadAdmin();
 }
 
 /* ===== SHELF SCAN ===== */
@@ -1084,10 +1369,7 @@ function handleImageUpload(event) {
   selectedFile = event.target.files[0];
   if (!selectedFile) return;
   const reader = new FileReader();
-  reader.onload = (e) => {
-    document.getElementById("scannedImage").src = e.target.result;
-    document.getElementById("shelfResult").style.display = "block";
-  };
+  reader.onload = (e) => { document.getElementById("scannedImage").src = e.target.result; document.getElementById("shelfResult").style.display = "block"; };
   reader.readAsDataURL(selectedFile);
   document.getElementById("scanBtn").disabled = false;
   showToast("Image selected! Click Scan to analyze.");
@@ -1095,26 +1377,19 @@ function handleImageUpload(event) {
 
 async function scanShelf() {
   if (!selectedFile) return showToast("Please upload an image first", "error");
-  const totalSlots = parseInt(document.getElementById("totalSlotsInput").value) || 8;
-  const shelfId = document.getElementById("scanShelfId").value;
   const btn = document.getElementById("scanBtn");
-  btn.innerText = "⏳ Scanning...";
-  btn.disabled = true;
+  btn.innerText = "⏳ Scanning..."; btn.disabled = true;
   const formData = new FormData();
   formData.append("image", selectedFile);
-  formData.append("total_slots", totalSlots);
-  formData.append("shelf_id", shelfId);
+  formData.append("total_slots", parseInt(document.getElementById("totalSlotsInput").value) || 8);
+  formData.append("shelf_id", document.getElementById("scanShelfId").value);
   try {
     const res = await fetch("/admin/scan-shelf", { method: "POST", headers: { Authorization: token }, body: formData });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
-    renderScanResult(data);
-    showToast("✅ Shelf scanned successfully!");
-  } catch (err) {
-    showToast("Scan failed: " + err.message, "error");
-  }
-  btn.innerText = "🔍 Scan Shelf with AI";
-  btn.disabled = false;
+    renderScanResult(data); showToast("✅ Shelf scanned successfully!");
+  } catch (err) { showToast("Scan failed: " + err.message, "error"); }
+  btn.innerText = "🔍 Scan Shelf with AI"; btn.disabled = false;
 }
 
 function renderScanResult(data) {
@@ -1127,9 +1402,7 @@ function renderScanResult(data) {
   const bar = document.getElementById("fillBarInner");
   bar.style.width = pct + "%";
   bar.style.background = pct > 60 ? "var(--success)" : pct > 30 ? "var(--warning)" : "var(--danger)";
-
-  const grid = document.getElementById("slotGrid");
-  grid.innerHTML = "";
+  const grid = document.getElementById("slotGrid"); grid.innerHTML = "";
   for (let i = 1; i <= data.total_slots; i++) {
     const isOccupied = data.occupied_slot_numbers.includes(i);
     const detail = data.detection_details?.find(d => d.slot === i);
@@ -1138,44 +1411,27 @@ function renderScanResult(data) {
     div.innerHTML = `<div class="slot-number">Slot ${i}</div><div style="font-size:1.2rem">${isOccupied ? "✅" : "❌"}</div><div style="font-size:0.65rem;margin-top:2px">${isOccupied ? (detail?.product || "") : "Empty"}</div>`;
     grid.appendChild(div);
   }
-
-  document.getElementById("presentProducts").innerHTML = data.present_products.length === 0
-    ? "<p style='color:var(--text-muted)'>None detected</p>"
+  document.getElementById("presentProducts").innerHTML = data.present_products.length === 0 ? "<p style='color:var(--text-muted)'>None detected</p>"
     : data.present_products.map(p => `<span class="product-tag" style="background:var(--success-bg);color:var(--success-text)">✅ ${p}</span>`).join("");
-
-  document.getElementById("missingProducts").innerHTML = data.missing_products.length === 0
-    ? "<p style='color:var(--text-muted)'>None missing ✅</p>"
+  document.getElementById("missingProducts").innerHTML = data.missing_products.length === 0 ? "<p style='color:var(--text-muted)'>None missing ✅</p>"
     : data.missing_products.map(p => `<span class="product-tag" style="background:var(--danger-bg);color:var(--danger-text)">❌ ${p}</span>`).join("");
-
-  document.getElementById("missingProductBtns").innerHTML = data.missing_products.length === 0
-    ? "<p style='color:var(--text-muted)'>No missing products 🎉</p>"
+  document.getElementById("missingProductBtns").innerHTML = data.missing_products.length === 0 ? "<p style='color:var(--text-muted)'>No missing products 🎉</p>"
     : data.missing_products.map(p => `<button class="btn-warning" style="font-size:0.8rem" onclick="findFranchiseForProduct('${p}')">📍 Find ${p} nearby</button>`).join("");
 }
 
 async function loadRecentScans() {
   const res = await fetch("/admin/shelf-scans", { headers: { Authorization: token } });
   const scans = await res.json();
-  const el = document.getElementById("recentScans");
-  el.innerHTML = scans.length === 0
-    ? "<p style='color:var(--text-muted)'>No scans yet</p>"
-    : scans.map(s => `
-        <div style="padding:12px;border:1px solid var(--border-color);border-radius:10px;margin-bottom:8px">
-          <strong>${s.shelf_id}</strong> — ${s.occupied_slots}/${s.total_slots} slots occupied
-          <span class="badge ${s.empty_slots > 5 ? 'badge-red' : 'badge-green'}" style="margin-left:8px">${s.empty_slots} empty</span>
-          <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px">${s.detectedAt}</div>
-        </div>`).join("");
+  document.getElementById("recentScans").innerHTML = scans.length === 0 ? "<p style='color:var(--text-muted)'>No scans yet</p>"
+    : scans.map(s => `<div style="padding:12px;border:1px solid var(--border-color);border-radius:10px;margin-bottom:8px"><strong>${s.shelf_id}</strong> — ${s.occupied_slots}/${s.total_slots} slots occupied<span class="badge ${s.empty_slots > 5 ? 'badge-red' : 'badge-green'}" style="margin-left:8px">${s.empty_slots} empty</span><div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px">${s.detectedAt}</div></div>`).join("");
 }
 
 /* ===== PLANOGRAM ===== */
 const PRODUCTS = [
-  { key: "chocolates", name: "Chocolates" },
-  { key: "biscuits", name: "Biscuits" },
-  { key: "chips", name: "Chips" },
-  { key: "juice", name: "Juice" },
-  { key: "soft-drinks", name: "Soft Drinks" },
-  { key: "canned-food", name: "Canned Food" },
-  { key: "rice", name: "Rice" },
-  { key: "salt", name: "Salt" }
+  { key: "chocolates", name: "Chocolates" }, { key: "biscuits", name: "Biscuits" },
+  { key: "chips", name: "Chips" }, { key: "juice", name: "Juice" },
+  { key: "soft-drinks", name: "Soft Drinks" }, { key: "canned-food", name: "Canned Food" },
+  { key: "rice", name: "Rice" }, { key: "salt", name: "Salt" }
 ];
 
 async function loadPlanogram() {
@@ -1196,13 +1452,8 @@ async function savePlanogram() {
   const shelfId = document.getElementById("planogramShelf").value;
   const slotMapping = {};
   for (let i = 1; i <= 10; i++) slotMapping[i] = document.getElementById(`slot_${i}`).value;
-  const res = await fetch("/admin/planogram", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: token },
-    body: JSON.stringify({ shelfId, slotMapping })
-  });
-  const data = await res.json();
-  showToast(data.message || "Planogram saved!");
+  const res = await fetch("/admin/planogram", { method: "POST", headers: { "Content-Type": "application/json", Authorization: token }, body: JSON.stringify({ shelfId, slotMapping }) });
+  showToast((await res.json()).message || "Planogram saved!");
 }
 
 /* ===== FRANCHISE ===== */
@@ -1210,10 +1461,7 @@ async function loadAllFranchises() {
   const res = await fetch("/admin/franchises", { headers: { Authorization: token } });
   const franchises = await res.json();
   document.getElementById("allFranchises").innerHTML = franchises.map(f => `
-    <div class="franchise-card">
-      <div><h3>🏪 ${f.name}</h3><p>📍 ${f.address}</p></div>
-      <span class="badge badge-blue">Active</span>
-    </div>`).join("");
+    <div class="franchise-card"><div><h3>🏪 ${f.name}</h3><p>📍 ${f.address}</p></div><span class="badge badge-blue">Active</span></div>`).join("");
 }
 
 async function findFranchise() {
@@ -1223,29 +1471,64 @@ async function findFranchise() {
 }
 
 async function findFranchiseForProduct(product, targetEl) {
-  const lat = 19.0760, lng = 72.8777;
-  const res = await fetch(`/nearby-franchises?product=${product}&lat=${lat}&lng=${lng}`, { headers: { Authorization: token } });
+  const res = await fetch(`/nearby-franchises?product=${product}&lat=19.0760&lng=72.8777`, { headers: { Authorization: token } });
   const results = await res.json();
   const el = targetEl || document.getElementById("franchiseResults");
-  el.innerHTML = results.length === 0
-    ? `<p style='color:var(--text-muted)'>No nearby stores have ${product} in stock</p>`
-    : `<h3 style="margin-bottom:12px;color:var(--text-accent);font-size:0.9rem">Stores with <strong>${product}</strong>:</h3>
-      ${results.map(f => `
-        <div class="franchise-card">
-          <div><h3>🏪 ${f.name}</h3><p>📍 ${f.address}</p><p style="color:var(--success);margin-top:4px">📦 ${f.stock} units</p></div>
-          <div class="distance-badge">📏 ${f.distance} km</div>
-        </div>`).join("")}`;
+  el.innerHTML = results.length === 0 ? `<p style='color:var(--text-muted)'>No nearby stores have ${product} in stock</p>`
+    : results.map(f => `<div class="franchise-card"><div><h3>🏪 ${f.name}</h3><p>📍 ${f.address}</p><p style="color:var(--success);margin-top:4px">📦 ${f.stock} units</p></div><div class="distance-badge">📏 ${f.distance} km</div></div>`).join("");
 }
 
 /* ===== LOGOUT ===== */
 async function logout() {
   await fetch("/logout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token }) });
-  localStorage.clear();
-  window.location.href = "login.html";
+  localStorage.clear(); window.location.href = "login.html";
 }
+
+/* ===== KEYBOARD SHORTCUTS ===== */
+let keySeq = [], keyTimer = null;
+
+document.addEventListener("keydown", (e) => {
+  // Never fire when typing in inputs
+  if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") return;
+
+  // Escape closes everything
+  if (e.key === "Escape") {
+    closeProfilePanel();
+    document.querySelectorAll(".modal-overlay").forEach(m => m.classList.remove("open"));
+    document.getElementById("settingsPanel").classList.remove("open");
+    return;
+  }
+
+  // Backslash toggles sidebar
+  if (e.key === "\\" || e.key === "|") {
+    toggleSidebar();
+    return;
+  }
+
+  // G+key shortcuts
+  keySeq.push(e.key.toLowerCase());
+  if (keyTimer) clearTimeout(keyTimer);
+  keyTimer = setTimeout(() => { keySeq = []; }, 800);
+
+  if (keySeq.length >= 2) {
+    const combo = keySeq.slice(-2).join("");
+    if (combo === "go") { showPage("overview", null); keySeq = []; }
+    else if (combo === "gi") { showPage("inventory", null); keySeq = []; }
+    else if (combo === "ga") { showPage("agents", null); keySeq = []; }
+    else if (combo === "gs") { showPage("shelf-scan", null); keySeq = []; }
+    else if (combo === "gf") { showPage("franchise", null); keySeq = []; }
+    else if (combo === "gl") { showPage("logs", null); keySeq = []; }
+    else if (combo === "gp") { showPage("orders", null); keySeq = []; }
+  }
+});
+
+document.querySelectorAll(".modal-overlay").forEach(overlay => {
+  overlay.addEventListener("click", function(e) { if (e.target === this) this.classList.remove("open"); });
+});
 
 /* ===== INIT ===== */
 loadAdmin();
+loadSidebarUser();
 setInterval(loadAdmin, 15000);
 setInterval(() => { if (currentPage === "agents") loadAgentDashboard(); }, 30000);
 </script>
