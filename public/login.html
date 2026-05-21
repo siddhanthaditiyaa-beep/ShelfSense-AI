@@ -23,8 +23,6 @@
       display: flex;
       flex-direction: column;
     }
-
-    /* NAVBAR */
     .navbar {
       height: 60px;
       background: rgba(15,15,35,0.95);
@@ -46,14 +44,11 @@
     }
     .nav-right { font-size: 0.875rem; color: var(--text-muted); }
     .nav-right a { color: var(--secondary); text-decoration: none; font-weight: 600; }
-
-    /* PAGE */
     .page-wrapper {
       flex: 1; display: flex; align-items: center; justify-content: center;
       padding: 40px 20px;
     }
     .login-container { width: 100%; max-width: 440px; }
-
     .login-header { text-align: center; margin-bottom: 32px; }
     .login-header h1 {
       font-size: 2rem; font-weight: 800; margin-bottom: 8px;
@@ -61,15 +56,12 @@
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }
     .login-header p { color: var(--text-muted); font-size: 0.95rem; }
-
     .login-card {
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 20px; padding: 36px;
       backdrop-filter: blur(10px);
     }
-
-    /* TABS */
     .login-tabs {
       display: flex; background: rgba(255,255,255,0.05);
       border-radius: 10px; padding: 4px; margin-bottom: 24px;
@@ -81,8 +73,6 @@
       transition: all 0.2s; border: none; background: transparent;
     }
     .login-tab.active { background: var(--primary); color: white; }
-
-    /* GOOGLE BUTTON */
     .google-btn {
       width: 100%; padding: 13px; border-radius: 10px;
       background: white; color: #1a1a1a;
@@ -92,14 +82,9 @@
       margin-bottom: 20px;
     }
     .google-btn:hover { background: #f1f5f9; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-
-    .divider {
-      display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
-    }
+    .divider { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
     .divider-line { flex: 1; height: 1px; background: var(--border); }
     .divider-text { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; }
-
-    /* FORM */
     .form-group { margin-bottom: 16px; }
     .form-group label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
     .form-group input {
@@ -111,16 +96,17 @@
     }
     .form-group input:focus { outline: none; border-color: rgba(99,102,241,0.6); box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
     .form-group input::placeholder { color: rgba(255,255,255,0.3); }
-
-    .forgot-link {
-      text-align: right; margin-top: 6px;
+    .pw-wrapper { position: relative; }
+    .pw-wrapper input { padding-right: 44px; }
+    .pw-toggle {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer; font-size: 1.1rem;
+      padding: 4px; color: rgba(255,255,255,0.5); transition: color 0.2s; line-height: 1;
     }
-    .forgot-link a {
-      font-size: 0.78rem; color: var(--secondary);
-      text-decoration: none; font-weight: 500;
-    }
+    .pw-toggle:hover { color: rgba(255,255,255,0.9); transform: translateY(-50%) scale(1.1); }
+    .forgot-link { text-align: right; margin-top: 6px; }
+    .forgot-link a { font-size: 0.78rem; color: var(--secondary); text-decoration: none; font-weight: 500; }
     .forgot-link a:hover { text-decoration: underline; }
-
     .submit-btn {
       width: 100%; padding: 14px; border-radius: 10px;
       background: var(--gradient); color: white;
@@ -129,34 +115,30 @@
     }
     .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(99,102,241,0.4); }
     .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-
-    /* MESSAGES */
     .error-msg {
       background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
       border-radius: 8px; padding: 12px; color: #ef4444;
       font-size: 0.85rem; margin-bottom: 16px; display: none; text-align: center;
     }
-
-    /* DEMO BOX */
     .demo-box {
       background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2);
       border-radius: 10px; padding: 14px; margin-top: 16px; font-size: 0.8rem;
     }
     .demo-box-title { font-weight: 700; color: var(--secondary); margin-bottom: 8px; }
-    .demo-row { display: flex; justify-content: space-between; color: var(--text-muted); margin-bottom: 4px; cursor: pointer; }
-    .demo-row:hover { color: var(--text); }
+    .demo-row {
+      display: flex; justify-content: space-between;
+      color: var(--text-muted); margin-bottom: 4px;
+      cursor: pointer; padding: 4px 6px; border-radius: 6px; transition: background 0.2s;
+    }
+    .demo-row:hover { background: rgba(99,102,241,0.15); color: var(--text); }
     .demo-row span:last-child { color: var(--text); font-family: monospace; }
-
-    /* LINKS */
     .register-link {
       text-align: center; margin-top: 20px;
       font-size: 0.875rem; color: var(--text-muted);
     }
     .register-link a { color: var(--secondary); text-decoration: none; font-weight: 600; }
     .register-link a:hover { text-decoration: underline; }
-
-    /* LOADING SPINNER */
-    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 8px; }
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 8px; vertical-align: middle; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     /* FORGOT PASSWORD MODAL */
@@ -200,13 +182,11 @@
       cursor: pointer; transition: all 0.2s;
     }
     .modal-btn-cancel:hover { border-color: rgba(255,255,255,0.3); color: white; transform: none; }
-
     @media (max-width: 480px) { .login-card { padding: 24px 20px; } .navbar { padding: 0 20px; } }
   </style>
 </head>
 <body>
 
-<!-- NAVBAR -->
 <nav class="navbar">
   <a href="landing.html" class="nav-logo">
     <div class="nav-logo-icon">🧠</div>
@@ -217,7 +197,6 @@
   </div>
 </nav>
 
-<!-- PAGE -->
 <div class="page-wrapper">
   <div class="login-container">
 
@@ -228,18 +207,15 @@
 
     <div class="login-card">
 
-      <!-- TABS -->
       <div class="login-tabs">
         <button class="login-tab active" id="tabStore" onclick="switchTab('store')">🏪 Store Owner</button>
         <button class="login-tab" id="tabCustomer" onclick="switchTab('customer')">👤 Customer</button>
       </div>
 
-      <!-- ERROR -->
       <div class="error-msg" id="errorMsg"></div>
 
       <!-- STORE OWNER LOGIN -->
       <div id="storeForm">
-        <!-- Google OAuth -->
         <button class="google-btn" onclick="loginWithGoogle()">
           <svg width="20" height="20" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -260,11 +236,17 @@
           <label>Email Address</label>
           <input type="email" id="storeEmail" placeholder="your@email.com">
         </div>
+
         <div class="form-group">
           <label>Password</label>
-          <input type="password" id="storePassword" placeholder="Your password">
+          <div class="pw-wrapper">
+            <input type="password" id="storePassword" placeholder="Your password">
+            <button type="button" class="pw-toggle" onclick="togglePassword('storePassword','storeEye')">
+              <span id="storeEye">👁️</span>
+            </button>
+          </div>
           <div class="forgot-link">
-            <a href="#" onclick="openForgotPassword()">Forgot password?</a>
+            <a href="#" onclick="openForgotPassword(); return false;">Forgot password?</a>
           </div>
         </div>
 
@@ -272,7 +254,6 @@
           Login to Dashboard
         </button>
 
-        <!-- DEMO CREDENTIALS -->
         <div class="demo-box">
           <div class="demo-box-title">🔑 Demo Credentials</div>
           <div class="demo-row" onclick="fillDemo('superadmin@shelfsense.ai','superadmin123')">
@@ -281,7 +262,7 @@
           <div class="demo-row" onclick="fillDemo('test@test.com','test123')">
             <span>Test Store:</span><span>test@test.com / test123</span>
           </div>
-          <div style="font-size:0.72rem;color:var(--text-muted);margin-top:6px">👆 Click to auto-fill</div>
+          <div style="font-size:0.72rem;color:var(--text-muted);margin-top:6px">👆 Click a row to auto-fill</div>
         </div>
       </div>
 
@@ -293,7 +274,12 @@
         </div>
         <div class="form-group">
           <label>Password</label>
-          <input type="password" id="customerPassword" placeholder="Your password">
+          <div class="pw-wrapper">
+            <input type="password" id="customerPassword" placeholder="Your password">
+            <button type="button" class="pw-toggle" onclick="togglePassword('customerPassword','customerEye')">
+              <span id="customerEye">👁️</span>
+            </button>
+          </div>
         </div>
         <button class="submit-btn" id="customerLoginBtn" onclick="loginCustomer()">
           Login to Shop
@@ -315,7 +301,7 @@
 <div class="modal-overlay" id="forgotModal">
   <div class="modal-box">
     <div class="modal-title">🔐 Reset Password</div>
-    <div class="modal-subtitle">Enter your store email address and we'll send you a password reset link.</div>
+    <div class="modal-subtitle">Enter your store email and we'll send you a reset link.</div>
     <div class="modal-error" id="forgotError"></div>
     <div class="modal-success" id="forgotSuccess"></div>
     <input type="email" class="modal-input" id="forgotEmail" placeholder="your@email.com">
@@ -325,14 +311,14 @@
 </div>
 
 <script>
-  // Redirect if already logged in
+  /* ===== REDIRECT IF ALREADY LOGGED IN ===== */
   const existingToken = localStorage.getItem("token");
   const existingRole = localStorage.getItem("role");
   if (existingToken && existingRole === "admin") window.location.href = "admin.html";
   if (existingToken && existingRole === "superadmin") window.location.href = "superadmin.html";
   if (existingToken && existingRole === "customer") window.location.href = "customer.html";
 
-  // Check for error in URL (from Google OAuth failure)
+  /* ===== URL ERROR ===== */
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get("error")) {
     const errorEl = document.getElementById("errorMsg");
@@ -342,6 +328,20 @@
 
   let currentTab = "store";
 
+  /* ===== SHOW / HIDE PASSWORD ===== */
+  function togglePassword(inputId, eyeId) {
+    const input = document.getElementById(inputId);
+    const eye = document.getElementById(eyeId);
+    if (input.type === "password") {
+      input.type = "text";
+      eye.innerText = "🙈";
+    } else {
+      input.type = "password";
+      eye.innerText = "👁️";
+    }
+  }
+
+  /* ===== TABS ===== */
   function switchTab(tab) {
     currentTab = tab;
     document.getElementById("tabStore").classList.toggle("active", tab === "store");
@@ -351,15 +351,21 @@
     document.getElementById("errorMsg").style.display = "none";
   }
 
+  /* ===== GOOGLE ===== */
   function loginWithGoogle() {
     window.location.href = "/auth/google";
   }
 
+  /* ===== DEMO AUTOFILL ===== */
   function fillDemo(email, password) {
     document.getElementById("storeEmail").value = email;
     document.getElementById("storePassword").value = password;
+    // Reset eye icon to closed since we filled the password
+    document.getElementById("storeEye").innerText = "👁️";
+    document.getElementById("storePassword").type = "password";
   }
 
+  /* ===== STORE LOGIN ===== */
   async function loginStore() {
     const email = document.getElementById("storeEmail").value.trim();
     const password = document.getElementById("storePassword").value;
@@ -377,21 +383,7 @@
     btn.innerHTML = '<span class="spinner"></span>Logging in...';
 
     try {
-      // Try super admin first
-      const res2 = await fetch("/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: email, password })
-      });
-      const data2 = await res2.json();
-      if (res2.ok && data2.role === "superadmin") {
-        localStorage.setItem("token", data2.token);
-        localStorage.setItem("role", "superadmin");
-        window.location.href = "superadmin.html";
-        return;
-      }
-
-      // Try store owner login
+      // 1. Try store owner login first
       const res = await fetch("/login-store", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -407,11 +399,27 @@
         return;
       }
 
-      errorEl.innerText = data.message || "Invalid credentials";
+      // 2. Try super admin login
+      const res2 = await fetch("/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: email, password })
+      });
+      const data2 = await res2.json();
+
+      if (res2.ok && data2.role === "superadmin") {
+        localStorage.setItem("token", data2.token);
+        localStorage.setItem("role", "superadmin");
+        window.location.href = "superadmin.html";
+        return;
+      }
+
+      // Both failed
+      errorEl.innerText = data.message || "Invalid credentials. Please check your email and password.";
       errorEl.style.display = "block";
 
     } catch (err) {
-      errorEl.innerText = "Server error. Is the server running?";
+      errorEl.innerText = "Server error. Make sure the server is running at localhost:3000";
       errorEl.style.display = "block";
     }
 
@@ -419,6 +427,7 @@
     btn.innerHTML = "Login to Dashboard";
   }
 
+  /* ===== CUSTOMER LOGIN ===== */
   async function loginCustomer() {
     const username = document.getElementById("customerUsername").value.trim();
     const password = document.getElementById("customerPassword").value;
@@ -427,7 +436,7 @@
     errorEl.style.display = "none";
 
     if (!username || !password) {
-      errorEl.innerText = "Please enter username and password";
+      errorEl.innerText = "Please enter email and password";
       errorEl.style.display = "block";
       return;
     }
@@ -444,7 +453,7 @@
       const data = await res.json();
 
       if (!res.ok) {
-        errorEl.innerText = data.message;
+        errorEl.innerText = data.message || "Invalid credentials";
         errorEl.style.display = "block";
         btn.disabled = false;
         btn.innerHTML = "Login to Shop";
@@ -463,7 +472,7 @@
     }
   }
 
-  // FORGOT PASSWORD
+  /* ===== FORGOT PASSWORD ===== */
   function openForgotPassword() {
     const email = document.getElementById("storeEmail").value;
     if (email) document.getElementById("forgotEmail").value = email;
@@ -489,18 +498,17 @@
       return;
     }
 
-    // Show success (backend endpoint can be added later)
-    successEl.innerText = "✅ If this email is registered, a reset link has been sent. Check your inbox within a few minutes!";
+    successEl.innerText = "✅ If this email is registered, a reset link has been sent. Check your inbox!";
     successEl.style.display = "block";
     document.getElementById("forgotEmail").value = "";
   }
 
-  // Close modal on overlay click
+  /* ===== MODAL CLOSE ON OVERLAY CLICK ===== */
   document.getElementById("forgotModal").addEventListener("click", function(e) {
     if (e.target === this) closeForgotPassword();
   });
 
-  // Enter key support
+  /* ===== ENTER KEY ===== */
   document.addEventListener("keypress", (e) => {
     if (e.key === "Enter") {
       if (currentTab === "store") loginStore();
