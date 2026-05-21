@@ -111,8 +111,12 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(express.static("public"));
-app.use("/uploads", express.static("uploads"));
+/* ========================= 
+   ROOT REDIRECT
+========================= */
+app.get("/", (req, res) => {
+  res.redirect("/landing.html");
+});
 
 /* =========================
    IMAGE UPLOAD
