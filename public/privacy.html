@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy | ShelfSense AI</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --primary: #6366f1; --secondary: #a78bfa; --dark: #0f0f23; --dark2: #1a1a3e; --text: #ffffff; --text-muted: rgba(255,255,255,0.6); --border: rgba(255,255,255,0.1); --card-bg: rgba(255,255,255,0.05); }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--dark); color: var(--text); }
+    .navbar { position: fixed; top: 0; left: 0; right: 0; height: 64px; background: rgba(15,15,35,0.95); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 40px; z-index: 1000; }
+    .nav-logo { display: flex; align-items: center; gap: 10px; font-size: 1.2rem; font-weight: 700; color: var(--text); text-decoration: none; }
+    .nav-logo-icon { width: 34px; height: 34px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+    .btn { padding: 9px 20px; border-radius: 8px; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: all 0.2s; border: none; text-decoration: none; }
+    .btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; }
+
+    .page-hero { padding: 140px 40px 60px; text-align: center; background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99,102,241,0.3), transparent); }
+    .page-hero h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; margin-bottom: 12px; }
+    .page-hero p { color: var(--text-muted); font-size: 0.95rem; }
+
+    .doc-container { max-width: 800px; margin: 0 auto; padding: 60px 40px; }
+    .doc-section { margin-bottom: 40px; }
+    .doc-section h2 { font-size: 1.2rem; font-weight: 700; margin-bottom: 14px; color: var(--secondary); display: flex; align-items: center; gap: 8px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+    .doc-section p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.8; margin-bottom: 12px; }
+    .doc-section ul { margin: 12px 0 12px 20px; }
+    .doc-section ul li { font-size: 0.9rem; color: var(--text-muted); line-height: 1.8; margin-bottom: 6px; }
+    .doc-section strong { color: var(--text); }
+
+    .highlight-box { background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); border-radius: 12px; padding: 20px; margin: 16px 0; }
+    .highlight-box p { margin: 0; color: var(--text); }
+
+    footer { background: var(--dark); border-top: 1px solid var(--border); padding: 40px; text-align: center; }
+    footer p { font-size: 0.82rem; color: var(--text-muted); }
+    footer a { color: var(--secondary); text-decoration: none; }
+
+    @media (max-width: 768px) { .navbar { padding: 0 20px; } .doc-container { padding: 40px 20px; } }
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <a href="landing.html" class="nav-logo"><div class="nav-logo-icon">🧠</div>ShelfSense AI</a>
+  <a href="signup.html" class="btn btn-primary">Get Started</a>
+</nav>
+
+<div class="page-hero">
+  <h1>🔒 Privacy Policy</h1>
+  <p>Last updated: May 2026 · Effective immediately</p>
+</div>
+
+<div class="doc-container">
+
+  <div class="highlight-box">
+    <p>🛡️ <strong>ShelfSense AI is built by cybersecurity students.</strong> We take your privacy extremely seriously. This policy explains exactly what data we collect, why we collect it, and how we protect it.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>1. 📋 Information We Collect</h2>
+    <p>We collect the following types of information when you use ShelfSense AI:</p>
+    <ul>
+      <li><strong>Account Information:</strong> Your name, email address, and encrypted password when you create an account.</li>
+      <li><strong>Store Information:</strong> Store name, location, opening/closing hours, and inventory data you add to the platform.</li>
+      <li><strong>Order Data:</strong> Purchase history, cart items, and payment transaction IDs (we never store full card details).</li>
+      <li><strong>Usage Data:</strong> Pages visited, features used, and interactions with the dashboard for improving our service.</li>
+      <li><strong>Device Information:</strong> IP address, browser type, and device type for security monitoring purposes.</li>
+    </ul>
+  </div>
+
+  <div class="doc-section">
+    <h2>2. 🎯 How We Use Your Information</h2>
+    <p>Your information is used exclusively for the following purposes:</p>
+    <ul>
+      <li>Providing and improving the ShelfSense AI platform and its 10 AI agents</li>
+      <li>Sending critical security alerts and stock notifications to your registered email</li>
+      <li>Processing payments securely through our Razorpay integration</li>
+      <li>Detecting and preventing fraudulent or unauthorized access to your account</li>
+      <li>Analyzing aggregate usage patterns to improve platform performance</li>
+      <li>Responding to your support requests and inquiries</li>
+    </ul>
+  </div>
+
+  <div class="doc-section">
+    <h2>3. 🔐 How We Protect Your Data</h2>
+    <p>As a cybersecurity-focused platform, we implement multiple layers of protection:</p>
+    <ul>
+      <li><strong>Password Encryption:</strong> All passwords are hashed using bcrypt with a cost factor of 12 — industry-leading strength.</li>
+      <li><strong>JWT Authentication:</strong> Secure token-based authentication with 24-hour expiry.</li>
+      <li><strong>Rate Limiting:</strong> Brute force attack prevention with automatic account lockout after 5 failed attempts.</li>
+      <li><strong>MongoDB Sanitization:</strong> All database queries are sanitized to prevent injection attacks.</li>
+      <li><strong>HTTPS Encryption:</strong> All data transmitted between your browser and our servers is encrypted.</li>
+      <li><strong>Security Headers:</strong> Helmet.js security headers protect against clickjacking, XSS, and sniffing attacks.</li>
+    </ul>
+  </div>
+
+  <div class="doc-section">
+    <h2>4. 💳 Payment Information</h2>
+    <p>All payments are processed by <strong>Razorpay</strong>, a PCI DSS compliant payment gateway. ShelfSense AI never stores, processes, or transmits your full card number, CVV, or banking credentials. We only store the Razorpay payment ID for order reference purposes.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>5. 📧 Email Communications</h2>
+    <p>We send emails only for the following reasons:</p>
+    <ul>
+      <li>Critical stock alerts (out of stock, low stock) from our Monitoring Agent</li>
+      <li>Security alerts (suspicious activity, theft detection) from our Anomaly Detection Agent</li>
+      <li>Purchase order notifications from our Supplier Agent</li>
+      <li>Product expiry warnings from our Expiry Agent</li>
+      <li>Account-related communications (password reset, account verification)</li>
+    </ul>
+    <p>We do <strong>not</strong> send marketing emails without your explicit consent.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>6. 🤝 Data Sharing</h2>
+    <p>We do not sell, trade, or rent your personal information to third parties. We may share data only with:</p>
+    <ul>
+      <li><strong>Razorpay:</strong> For payment processing (subject to their privacy policy)</li>
+      <li><strong>Open-Meteo API:</strong> Only your store's city name for weather data (no personal data shared)</li>
+      <li><strong>Legal authorities:</strong> Only when required by law or to protect the safety of our users</li>
+    </ul>
+  </div>
+
+  <div class="doc-section">
+    <h2>7. 🍪 Cookies</h2>
+    <p>ShelfSense AI uses minimal cookies and local storage for:</p>
+    <ul>
+      <li>Storing your authentication token (JWT) for session management</li>
+      <li>Remembering your theme preference (light/dark/system)</li>
+      <li>Saving your wishlist items locally on your device</li>
+    </ul>
+    <p>We do not use advertising cookies or third-party tracking cookies.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>8. 👤 Your Rights</h2>
+    <p>You have the following rights regarding your data:</p>
+    <ul>
+      <li><strong>Access:</strong> Request a copy of all data we hold about you</li>
+      <li><strong>Correction:</strong> Update or correct your personal information at any time</li>
+      <li><strong>Deletion:</strong> Request complete deletion of your account and all associated data</li>
+      <li><strong>Portability:</strong> Export your store data in a readable format</li>
+    </ul>
+    <p>To exercise any of these rights, email us at <strong style="color:var(--secondary)">shelfsense.alerts@gmail.com</strong></p>
+  </div>
+
+  <div class="doc-section">
+    <h2>9. 📅 Data Retention</h2>
+    <p>We retain your data for as long as your account is active. If you delete your account, all your personal data is permanently removed within 30 days. Order history may be retained for legal compliance purposes for up to 7 years.</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>10. 📞 Contact Us</h2>
+    <p>If you have any questions about this Privacy Policy, please contact us:</p>
+    <ul>
+      <li><strong>Email:</strong> shelfsense.alerts@gmail.com</li>
+      <li><strong>Institution:</strong> Pillai College of Engineering, New Panvel, Navi Mumbai</li>
+      <li><strong>Response Time:</strong> Within 24 hours on weekdays</li>
+    </ul>
+  </div>
+
+</div>
+
+<footer>
+  <p>© 2026 ShelfSense AI · <a href="about.html">About</a> · <a href="contact.html">Contact</a> · <a href="terms.html">Terms of Service</a></p>
+</footer>
+</body>
+</html>
