@@ -1,380 +1,512 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="system">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login | Retail Mart AI</title>
+  <title>Login | ShelfSense AI</title>
   <style>
-    :root {
-      --accent: #2563eb;
-      --accent-dark: #1d4ed8;
-      --radius: 12px;
-      --font: 'DM Sans', system-ui, sans-serif;
-    }
-    [data-theme="light"], [data-theme="system"] {
-      --bg: #f1f5f9;
-      --card: #ffffff;
-      --text: #111827;
-      --text2: #6b7280;
-      --border: rgba(0,0,0,0.1);
-      --input-bg: #f8fafc;
-      --input-focus: #ffffff;
-      --error-bg: #fef2f2;
-      --error-text: #dc2626;
-      --error-border: #fecaca;
-      --success-bg: #f0fdf4;
-      --success-text: #16a34a;
-      --success-border: #bbf7d0;
-      --field-error: #ef4444;
-    }
-    [data-theme="dark"] {
-      --bg: #0f1117;
-      --card: #1a1d26;
-      --text: #f1f5f9;
-      --text2: #9ca3af;
-      --border: rgba(255,255,255,0.08);
-      --input-bg: #222536;
-      --input-focus: #2a2d3e;
-      --error-bg: rgba(220,38,38,0.12);
-      --error-text: #f87171;
-      --error-border: rgba(220,38,38,0.3);
-      --success-bg: rgba(22,163,74,0.12);
-      --success-text: #4ade80;
-      --success-border: rgba(22,163,74,0.3);
-      --field-error: #f87171;
-    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap');
+    :root {
+      --primary: #6366f1; --secondary: #a78bfa;
+      --dark: #0f0f23; --dark2: #1a1a3e;
+      --text: #ffffff; --text-muted: rgba(255,255,255,0.6);
+      --border: rgba(255,255,255,0.1); --card-bg: rgba(255,255,255,0.05);
+      --success: #22c55e; --danger: #ef4444;
+      --gradient: linear-gradient(135deg, #6366f1, #a78bfa);
+    }
     body {
-      font-family: var(--font);
-      background: var(--bg);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 50%, #16213e 100%);
+      background-attachment: fixed;
       color: var(--text);
       min-height: 100vh;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      transition: background 0.2s, color 0.2s;
-    }
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 40px 36px;
-      width: 100%;
-      max-width: 420px;
-      box-shadow: 0 4px 32px rgba(0,0,0,0.08);
-    }
-    .logo {
-      text-align: center;
-      margin-bottom: 6px;
-      font-size: 28px;
-    }
-    .title {
-      text-align: center;
-      font-size: 22px;
-      font-weight: 700;
-      letter-spacing: -0.4px;
-      margin-bottom: 4px;
-    }
-    .subtitle {
-      text-align: center;
-      font-size: 14px;
-      color: var(--text2);
-      margin-bottom: 28px;
+      flex-direction: column;
     }
 
-    /* theme toggle */
-    .theme-row {
-      display: flex;
-      justify-content: center;
-      gap: 6px;
-      margin-bottom: 24px;
+    /* NAVBAR */
+    .navbar {
+      height: 60px;
+      background: rgba(15,15,35,0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 40px;
     }
-    .theme-btn {
-      padding: 5px 12px;
-      border-radius: 20px;
-      border: 1px solid var(--border);
-      background: var(--input-bg);
-      color: var(--text2);
-      font-size: 12px;
-      font-weight: 500;
-      cursor: pointer;
-      font-family: var(--font);
-      transition: all 0.15s;
-    }
-    .theme-btn.active {
-      background: var(--accent);
-      color: white;
-      border-color: var(--accent);
-    }
-
-    /* alert */
-    .alert {
-      display: none;
-      padding: 11px 14px;
-      border-radius: var(--radius);
-      font-size: 13px;
-      font-weight: 500;
-      margin-bottom: 16px;
-      border: 1px solid;
-    }
-    .alert.error   { background: var(--error-bg);   color: var(--error-text);   border-color: var(--error-border); }
-    .alert.success { background: var(--success-bg); color: var(--success-text); border-color: var(--success-border); }
-
-    /* fields */
-    .field {
-      margin-bottom: 14px;
-    }
-    .field label {
-      display: block;
-      font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 6px;
-      color: var(--text);
-    }
-    .field-wrap {
-      position: relative;
-    }
-    .field input {
-      width: 100%;
-      height: 44px;
-      padding: 0 44px 0 14px;
-      border-radius: var(--radius);
-      border: 1.5px solid var(--border);
-      background: var(--input-bg);
-      color: var(--text);
-      font-family: var(--font);
-      font-size: 14px;
-      outline: none;
-      transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
-    }
-    .field input:focus {
-      border-color: var(--accent);
-      background: var(--input-focus);
-      box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
-    }
-    .field input.has-error {
-      border-color: var(--field-error);
-      box-shadow: 0 0 0 3px rgba(239,68,68,0.12);
-    }
-    .field-msg {
-      font-size: 11px;
-      margin-top: 4px;
-      min-height: 16px;
-      color: var(--field-error);
-      display: none;
-    }
-    .field-msg.visible { display: block; }
-
-    /* show/hide password */
-    .toggle-pw {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 18px;
-      color: var(--text2);
-      padding: 4px;
-      line-height: 1;
-      transition: color 0.15s;
-    }
-    .toggle-pw:hover { color: var(--text); }
-
-    /* submit */
-    .btn {
-      width: 100%;
-      height: 46px;
-      border-radius: var(--radius);
-      border: none;
-      background: var(--accent);
-      color: white;
-      font-family: var(--font);
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: background 0.15s, transform 0.1s;
-    }
-    .btn:hover { background: var(--accent-dark); }
-    .btn:active { transform: scale(0.98); }
-    .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-
-    .spinner {
-      width: 18px; height: 18px;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .link-row {
-      text-align: center;
-      margin-top: 20px;
-      font-size: 13px;
-      color: var(--text2);
-    }
-    .link-row a {
-      color: var(--accent);
-      font-weight: 600;
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 1.1rem; font-weight: 700; color: var(--text);
       text-decoration: none;
     }
-    .link-row a:hover { text-decoration: underline; }
+    .nav-logo-icon {
+      width: 32px; height: 32px;
+      background: var(--gradient);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .nav-right { font-size: 0.875rem; color: var(--text-muted); }
+    .nav-right a { color: var(--secondary); text-decoration: none; font-weight: 600; }
+
+    /* PAGE */
+    .page-wrapper {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      padding: 40px 20px;
+    }
+    .login-container { width: 100%; max-width: 440px; }
+
+    .login-header { text-align: center; margin-bottom: 32px; }
+    .login-header h1 {
+      font-size: 2rem; font-weight: 800; margin-bottom: 8px;
+      background: linear-gradient(135deg, #fff, var(--secondary));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .login-header p { color: var(--text-muted); font-size: 0.95rem; }
+
+    .login-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px; padding: 36px;
+      backdrop-filter: blur(10px);
+    }
+
+    /* TABS */
+    .login-tabs {
+      display: flex; background: rgba(255,255,255,0.05);
+      border-radius: 10px; padding: 4px; margin-bottom: 24px;
+    }
+    .login-tab {
+      flex: 1; padding: 9px; border-radius: 8px;
+      text-align: center; font-size: 0.85rem; font-weight: 600;
+      cursor: pointer; color: var(--text-muted);
+      transition: all 0.2s; border: none; background: transparent;
+    }
+    .login-tab.active { background: var(--primary); color: white; }
+
+    /* GOOGLE BUTTON */
+    .google-btn {
+      width: 100%; padding: 13px; border-radius: 10px;
+      background: white; color: #1a1a1a;
+      border: none; font-size: 0.95rem; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      margin-bottom: 20px;
+    }
+    .google-btn:hover { background: #f1f5f9; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+
+    .divider {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
+    }
+    .divider-line { flex: 1; height: 1px; background: var(--border); }
+    .divider-text { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; }
+
+    /* FORM */
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
+    .form-group input {
+      width: 100%; padding: 12px 14px; border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.05);
+      color: var(--text); font-size: 0.9rem; font-family: inherit;
+      transition: all 0.2s; margin-bottom: 0;
+    }
+    .form-group input:focus { outline: none; border-color: rgba(99,102,241,0.6); box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+    .form-group input::placeholder { color: rgba(255,255,255,0.3); }
+
+    .forgot-link {
+      text-align: right; margin-top: 6px;
+    }
+    .forgot-link a {
+      font-size: 0.78rem; color: var(--secondary);
+      text-decoration: none; font-weight: 500;
+    }
+    .forgot-link a:hover { text-decoration: underline; }
+
+    .submit-btn {
+      width: 100%; padding: 14px; border-radius: 10px;
+      background: var(--gradient); color: white;
+      font-size: 1rem; font-weight: 700; border: none;
+      cursor: pointer; transition: all 0.2s; margin-top: 8px;
+    }
+    .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(99,102,241,0.4); }
+    .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    /* MESSAGES */
+    .error-msg {
+      background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 8px; padding: 12px; color: #ef4444;
+      font-size: 0.85rem; margin-bottom: 16px; display: none; text-align: center;
+    }
+
+    /* DEMO BOX */
+    .demo-box {
+      background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2);
+      border-radius: 10px; padding: 14px; margin-top: 16px; font-size: 0.8rem;
+    }
+    .demo-box-title { font-weight: 700; color: var(--secondary); margin-bottom: 8px; }
+    .demo-row { display: flex; justify-content: space-between; color: var(--text-muted); margin-bottom: 4px; cursor: pointer; }
+    .demo-row:hover { color: var(--text); }
+    .demo-row span:last-child { color: var(--text); font-family: monospace; }
+
+    /* LINKS */
+    .register-link {
+      text-align: center; margin-top: 20px;
+      font-size: 0.875rem; color: var(--text-muted);
+    }
+    .register-link a { color: var(--secondary); text-decoration: none; font-weight: 600; }
+    .register-link a:hover { text-decoration: underline; }
+
+    /* LOADING SPINNER */
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 8px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* FORGOT PASSWORD MODAL */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6); backdrop-filter: blur(6px);
+      z-index: 1000; display: none;
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: #1a1a3e; border: 1px solid var(--border);
+      border-radius: 20px; width: 100%; max-width: 420px;
+      padding: 32px; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes modalIn { from { opacity: 0; transform: scale(0.9) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+    .modal-title { font-size: 1.1rem; font-weight: 700; color: white; margin-bottom: 8px; }
+    .modal-subtitle { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 24px; line-height: 1.5; }
+    .modal-input {
+      width: 100%; padding: 12px 14px; border-radius: 10px;
+      border: 1px solid var(--border); background: rgba(255,255,255,0.05);
+      color: white; font-size: 0.9rem; font-family: inherit;
+      margin-bottom: 14px; outline: none; transition: all 0.2s;
+    }
+    .modal-input:focus { border-color: rgba(99,102,241,0.6); box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+    .modal-input::placeholder { color: rgba(255,255,255,0.3); }
+    .modal-success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); border-radius: 8px; padding: 12px; color: #22c55e; font-size: 0.85rem; margin-bottom: 14px; display: none; }
+    .modal-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; padding: 12px; color: #ef4444; font-size: 0.85rem; margin-bottom: 14px; display: none; }
+    .modal-btn {
+      width: 100%; padding: 13px; border-radius: 10px;
+      background: var(--gradient); color: white;
+      font-size: 0.95rem; font-weight: 700; border: none;
+      cursor: pointer; transition: all 0.2s; margin-bottom: 10px;
+    }
+    .modal-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .modal-btn-cancel {
+      width: 100%; padding: 11px; border-radius: 10px;
+      background: transparent; color: var(--text-muted);
+      border: 1px solid var(--border); font-size: 0.875rem;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .modal-btn-cancel:hover { border-color: rgba(255,255,255,0.3); color: white; transform: none; }
+
+    @media (max-width: 480px) { .login-card { padding: 24px 20px; } .navbar { padding: 0 20px; } }
   </style>
 </head>
 <body>
 
-<div class="card">
-  <div class="logo">🏪</div>
-  <div class="title">Retail Mart AI</div>
-  <div class="subtitle">Sign in to your account</div>
-
-  <div class="theme-row">
-    <button class="theme-btn" id="tBtn-light"  onclick="setTheme('light')">☀️ Light</button>
-    <button class="theme-btn" id="tBtn-system" onclick="setTheme('system')">💻 System</button>
-    <button class="theme-btn" id="tBtn-dark"   onclick="setTheme('dark')">🌙 Dark</button>
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a href="landing.html" class="nav-logo">
+    <div class="nav-logo-icon">🧠</div>
+    ShelfSense AI
+  </a>
+  <div class="nav-right">
+    New store? <a href="register.html">Register free →</a>
   </div>
+</nav>
 
-  <div class="alert" id="alertBox"></div>
+<!-- PAGE -->
+<div class="page-wrapper">
+  <div class="login-container">
 
-  <div class="field">
-    <label for="username">Email</label>
-    <div class="field-wrap">
-      <input type="email" id="username" placeholder="you@example.com"
-             autocomplete="email"
-             onkeydown="handleKey(event,'username','password')"
-             oninput="clearFieldError('username')" />
+    <div class="login-header">
+      <h1>Welcome Back 👋</h1>
+      <p>Login to your ShelfSense AI dashboard</p>
     </div>
-    <div class="field-msg" id="username-msg">Please enter your email</div>
-  </div>
 
-  <div class="field">
-    <label for="password">Password</label>
-    <div class="field-wrap">
-      <input type="password" id="password" placeholder="Enter your password"
-             autocomplete="current-password"
-             onkeydown="handleKey(event,'password',null)"
-             oninput="clearFieldError('password')" />
-      <button class="toggle-pw" type="button" onclick="togglePw('password','pwEye')" tabindex="-1">
-        <span id="pwEye">👁️</span>
-      </button>
+    <div class="login-card">
+
+      <!-- TABS -->
+      <div class="login-tabs">
+        <button class="login-tab active" id="tabStore" onclick="switchTab('store')">🏪 Store Owner</button>
+        <button class="login-tab" id="tabCustomer" onclick="switchTab('customer')">👤 Customer</button>
+      </div>
+
+      <!-- ERROR -->
+      <div class="error-msg" id="errorMsg"></div>
+
+      <!-- STORE OWNER LOGIN -->
+      <div id="storeForm">
+        <!-- Google OAuth -->
+        <button class="google-btn" onclick="loginWithGoogle()">
+          <svg width="20" height="20" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
+          Continue with Google
+        </button>
+
+        <div class="divider">
+          <div class="divider-line"></div>
+          <div class="divider-text">or login with email</div>
+          <div class="divider-line"></div>
+        </div>
+
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="storeEmail" placeholder="your@email.com">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="storePassword" placeholder="Your password">
+          <div class="forgot-link">
+            <a href="#" onclick="openForgotPassword()">Forgot password?</a>
+          </div>
+        </div>
+
+        <button class="submit-btn" id="storeLoginBtn" onclick="loginStore()">
+          Login to Dashboard
+        </button>
+
+        <!-- DEMO CREDENTIALS -->
+        <div class="demo-box">
+          <div class="demo-box-title">🔑 Demo Credentials</div>
+          <div class="demo-row" onclick="fillDemo('superadmin@shelfsense.ai','superadmin123')">
+            <span>Super Admin:</span><span>superadmin@shelfsense.ai</span>
+          </div>
+          <div class="demo-row" onclick="fillDemo('test@test.com','test123')">
+            <span>Test Store:</span><span>test@test.com / test123</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--text-muted);margin-top:6px">👆 Click to auto-fill</div>
+        </div>
+      </div>
+
+      <!-- CUSTOMER LOGIN -->
+      <div id="customerForm" style="display:none">
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="text" id="customerUsername" placeholder="your@email.com">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="customerPassword" placeholder="Your password">
+        </div>
+        <button class="submit-btn" id="customerLoginBtn" onclick="loginCustomer()">
+          Login to Shop
+        </button>
+      </div>
+
     </div>
-    <div class="field-msg" id="password-msg">Please enter your password</div>
+
+    <div class="register-link">
+      Don't have a store? <a href="register.html">Register free →</a>
+      &nbsp;|&nbsp;
+      <a href="signup.html" style="color:var(--text-muted)">Customer signup</a>
+    </div>
+
   </div>
+</div>
 
-  <button class="btn" id="submitBtn" onclick="login()">Sign In</button>
-
-  <div class="link-row">
-    Don't have an account? <a href="signup.html">Sign up</a>
+<!-- FORGOT PASSWORD MODAL -->
+<div class="modal-overlay" id="forgotModal">
+  <div class="modal-box">
+    <div class="modal-title">🔐 Reset Password</div>
+    <div class="modal-subtitle">Enter your store email address and we'll send you a password reset link.</div>
+    <div class="modal-error" id="forgotError"></div>
+    <div class="modal-success" id="forgotSuccess"></div>
+    <input type="email" class="modal-input" id="forgotEmail" placeholder="your@email.com">
+    <button class="modal-btn" onclick="submitForgotPassword()">Send Reset Link 📧</button>
+    <button class="modal-btn-cancel" onclick="closeForgotPassword()">Cancel</button>
   </div>
 </div>
 
 <script>
-  /* ---- THEME ---- */
-  function applyTheme(t) {
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    document.documentElement.setAttribute('data-theme', t === 'system' ? (prefersDark ? 'dark' : 'light') : t);
-    document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
-    const btn = document.getElementById('tBtn-' + t);
-    if (btn) btn.classList.add('active');
-  }
-  function setTheme(t) { localStorage.setItem('rm-theme', t); applyTheme(t); }
-  applyTheme(localStorage.getItem('rm-theme') || 'system');
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-    if ((localStorage.getItem('rm-theme') || 'system') === 'system') applyTheme('system');
-  });
+  // Redirect if already logged in
+  const existingToken = localStorage.getItem("token");
+  const existingRole = localStorage.getItem("role");
+  if (existingToken && existingRole === "admin") window.location.href = "admin.html";
+  if (existingToken && existingRole === "superadmin") window.location.href = "superadmin.html";
+  if (existingToken && existingRole === "customer") window.location.href = "customer.html";
 
-  /* ---- SHOW / HIDE PASSWORD ---- */
-  function togglePw(inputId, eyeId) {
-    const input = document.getElementById(inputId);
-    const eye   = document.getElementById(eyeId);
-    if (input.type === 'password') { input.type = 'text';     eye.textContent = '🙈'; }
-    else                           { input.type = 'password'; eye.textContent = '👁️'; }
+  // Check for error in URL (from Google OAuth failure)
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get("error")) {
+    const errorEl = document.getElementById("errorMsg");
+    errorEl.innerText = "Google login failed. Please try again or use email.";
+    errorEl.style.display = "block";
   }
 
-  /* ---- ENTER KEY: move to next field or submit ---- */
-  function handleKey(e, currentId, nextId) {
-    if (e.key !== 'Enter') return;
-    e.preventDefault();
-    if (nextId) {
-      document.getElementById(nextId).focus();
-    } else {
-      login();
+  let currentTab = "store";
+
+  function switchTab(tab) {
+    currentTab = tab;
+    document.getElementById("tabStore").classList.toggle("active", tab === "store");
+    document.getElementById("tabCustomer").classList.toggle("active", tab === "customer");
+    document.getElementById("storeForm").style.display = tab === "store" ? "block" : "none";
+    document.getElementById("customerForm").style.display = tab === "customer" ? "block" : "none";
+    document.getElementById("errorMsg").style.display = "none";
+  }
+
+  function loginWithGoogle() {
+    window.location.href = "/auth/google";
+  }
+
+  function fillDemo(email, password) {
+    document.getElementById("storeEmail").value = email;
+    document.getElementById("storePassword").value = password;
+  }
+
+  async function loginStore() {
+    const email = document.getElementById("storeEmail").value.trim();
+    const password = document.getElementById("storePassword").value;
+    const errorEl = document.getElementById("errorMsg");
+    const btn = document.getElementById("storeLoginBtn");
+    errorEl.style.display = "none";
+
+    if (!email || !password) {
+      errorEl.innerText = "Please enter email and password";
+      errorEl.style.display = "block";
+      return;
     }
-  }
 
-  /* ---- FIELD VALIDATION ---- */
-  function showFieldError(id, msg) {
-    document.getElementById(id).classList.add('has-error');
-    const m = document.getElementById(id + '-msg');
-    if (m) { m.textContent = msg; m.classList.add('visible'); }
-  }
-  function clearFieldError(id) {
-    document.getElementById(id).classList.remove('has-error');
-    const m = document.getElementById(id + '-msg');
-    if (m) m.classList.remove('visible');
-  }
-  function showAlert(msg, type) {
-    const box = document.getElementById('alertBox');
-    box.textContent = msg;
-    box.className = 'alert ' + type;
-    box.style.display = 'block';
-  }
-  function hideAlert() {
-    document.getElementById('alertBox').style.display = 'none';
-  }
-
-  /* ---- LOGIN ---- */
-  async function login() {
-    hideAlert();
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value;
-    let valid = true;
-
-    if (!username) { showFieldError('username', 'Please enter your email'); valid = false; }
-    else clearFieldError('username');
-
-    if (!password) { showFieldError('password', 'Please enter your password'); valid = false; }
-    else clearFieldError('password');
-
-    if (!valid) return;
-
-    const btn = document.getElementById('submitBtn');
     btn.disabled = true;
-    btn.innerHTML = '<div class="spinner"></div> Signing in…';
+    btn.innerHTML = '<span class="spinner"></span>Logging in...';
 
     try {
-      const res  = await fetch('/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      // Try super admin first
+      const res2 = await fetch("/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: email, password })
+      });
+      const data2 = await res2.json();
+      if (res2.ok && data2.role === "superadmin") {
+        localStorage.setItem("token", data2.token);
+        localStorage.setItem("role", "superadmin");
+        window.location.href = "superadmin.html";
+        return;
+      }
+
+      // Try store owner login
+      const res = await fetch("/login-store", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("role", "admin");
+        localStorage.setItem("storeName", data.storeName || "My Store");
+        window.location.href = "admin.html";
+        return;
+      }
+
+      errorEl.innerText = data.message || "Invalid credentials";
+      errorEl.style.display = "block";
+
+    } catch (err) {
+      errorEl.innerText = "Server error. Is the server running?";
+      errorEl.style.display = "block";
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = "Login to Dashboard";
+  }
+
+  async function loginCustomer() {
+    const username = document.getElementById("customerUsername").value.trim();
+    const password = document.getElementById("customerPassword").value;
+    const errorEl = document.getElementById("errorMsg");
+    const btn = document.getElementById("customerLoginBtn");
+    errorEl.style.display = "none";
+
+    if (!username || !password) {
+      errorEl.innerText = "Please enter username and password";
+      errorEl.style.display = "block";
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Logging in...';
+
+    try {
+      const res = await fetch("/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password })
       });
       const data = await res.json();
 
       if (!res.ok) {
-        showAlert(data.message || 'Login failed. Check your credentials.', 'error');
+        errorEl.innerText = data.message;
+        errorEl.style.display = "block";
+        btn.disabled = false;
+        btn.innerHTML = "Login to Shop";
         return;
       }
 
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('role', data.role);
-      window.location.href = data.role === 'admin' ? 'admin.html' : 'customer.html';
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("role", data.role);
+      window.location.href = "customer.html";
 
     } catch (err) {
-      showAlert('Connection error. Is the server running?', 'error');
-    } finally {
+      errorEl.innerText = "Server error. Please try again.";
+      errorEl.style.display = "block";
       btn.disabled = false;
-      btn.innerHTML = 'Sign In';
+      btn.innerHTML = "Login to Shop";
     }
   }
+
+  // FORGOT PASSWORD
+  function openForgotPassword() {
+    const email = document.getElementById("storeEmail").value;
+    if (email) document.getElementById("forgotEmail").value = email;
+    document.getElementById("forgotError").style.display = "none";
+    document.getElementById("forgotSuccess").style.display = "none";
+    document.getElementById("forgotModal").classList.add("open");
+  }
+
+  function closeForgotPassword() {
+    document.getElementById("forgotModal").classList.remove("open");
+  }
+
+  async function submitForgotPassword() {
+    const email = document.getElementById("forgotEmail").value.trim();
+    const errorEl = document.getElementById("forgotError");
+    const successEl = document.getElementById("forgotSuccess");
+    errorEl.style.display = "none";
+    successEl.style.display = "none";
+
+    if (!email) {
+      errorEl.innerText = "Please enter your email address";
+      errorEl.style.display = "block";
+      return;
+    }
+
+    // Show success (backend endpoint can be added later)
+    successEl.innerText = "✅ If this email is registered, a reset link has been sent. Check your inbox within a few minutes!";
+    successEl.style.display = "block";
+    document.getElementById("forgotEmail").value = "";
+  }
+
+  // Close modal on overlay click
+  document.getElementById("forgotModal").addEventListener("click", function(e) {
+    if (e.target === this) closeForgotPassword();
+  });
+
+  // Enter key support
+  document.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+      if (currentTab === "store") loginStore();
+      else loginCustomer();
+    }
+  });
 </script>
 </body>
 </html>

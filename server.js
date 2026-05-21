@@ -1056,9 +1056,12 @@ app.get("/superadmin/stats", auth("superadmin"), async (req, res) => {
 
 app.post("/superadmin/update-plan", auth("superadmin"), async (req, res) => {
   try {
-    const { storeId, plan } = req.body;
-    await Store.updateOne({ _id: storeId }, { $set: { plan } });
-    res.json({ message: `Plan updated to ${plan}` });
+    const { storeId, plan, isActive } = req.body;
+    const update = {};
+    if (plan !== undefined) update.plan = plan;
+    if (isActive !== undefined) update.isActive = isActive;
+    await Store.updateOne({ _id: storeId }, { $set: update });
+    res.json({ message: "Store updated successfully" });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
