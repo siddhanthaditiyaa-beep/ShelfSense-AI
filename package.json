@@ -18,6 +18,7 @@
     "express": "^4.21.2",
     "express-mongo-sanitize": "^2.2.0",
     "express-rate-limit": "^8.5.2",
+    "express-session": "^1.19.0",
     "express-slow-down": "^3.1.0",
     "helmet": "^8.1.0",
     "hpp": "^0.2.3",
@@ -26,6 +27,8 @@
     "node-cron": "^4.2.1",
     "node-fetch": "^2.7.0",
     "nodemailer": "^8.0.7",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
     "razorpay": "^2.9.6",
     "xss-clean": "^0.1.4"
   }
