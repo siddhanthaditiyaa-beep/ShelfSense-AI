@@ -111,11 +111,17 @@ app.use((req, res, next) => {
   next();
 });
 
+/* =========================
+   STATIC FILES
+========================= */
+app.use(express.static(path.join(__dirname, "public")));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 /* ========================= 
    ROOT REDIRECT
 ========================= */
 app.get("/", (req, res) => {
-  res.redirect("/landing.html");
+  res.sendFile(path.join(__dirname, "public", "landing.html"));
 });
 
 /* =========================
