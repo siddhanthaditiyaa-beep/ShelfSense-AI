@@ -25,6 +25,7 @@ const axios = require("axios");
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const session = require("express-session");
+const MongoStore = require("connect-mongo");
 
 const { mapSlotsToProducts, updatePlanogram, getPlanogram } = require("./slotProductMapper");
 
@@ -82,13 +83,28 @@ app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 }
+  // FIX: Use MongoDB to store sessions instead of RAM (fixes MemoryStore warning)
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI,
+    ttl: 24 * 60 * 60 // sessions expire after 24 hours
+  }),
+  cookie: {
+    secure: process.env.NODE_ENV === "production", // true on Render (HTTPS), false locally
+    httpOnly: true,  // prevents JavaScript from reading the cookie (XSS protection)
+    maxAge: 24 * 60 * 60 * 1000
+  }
 }));
 
 app.use(passport.initialize());
 app.use(passport.session());
 
-const allowedOrigins = ["http://localhost:3000", "http://127.0.0.1:3000", process.env.FRONTEND_URL].filter(Boolean);
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+  "https://shelfsense-ai-lptz.onrender.com",
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
 app.use(cors({
   origin: function(origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) callback(null, true);
@@ -117,7 +133,7 @@ app.use((req, res, next) => {
 app.use(express.static(path.join(__dirname, "public")));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-/* ========================= 
+/* =========================
    ROOT REDIRECT
 ========================= */
 app.get("/", (req, res) => {
@@ -167,6 +183,9 @@ const StoreSchema = new mongoose.Schema({
   phone: String,
   loginAttempts: { type: Number, default: 0 },
   lockUntil: Date,
+  // FIX: Added reset token fields for forgot password feature
+  resetToken: { type: String },
+  resetTokenExpiry: { type: Date },
   createdAt: { type: Date, default: Date.now }
 });
 
@@ -181,6 +200,9 @@ const UserSchema = new mongoose.Schema({
   avatar: String,
   loginAttempts: { type: Number, default: 0 },
   lockUntil: Date,
+  // FIX: Added reset token fields for forgot password feature
+  resetToken: { type: String },
+  resetTokenExpiry: { type: Date },
   createdAt: { type: Date, default: Date.now }
 });
 
@@ -334,18 +356,14 @@ passport.use(new GoogleStrategy({
   callbackURL: "/auth/google/callback"
 }, async (accessToken, refreshToken, profile, done) => {
   try {
-    // Check if store already exists with this Google ID
     let store = await Store.findOne({ googleId: profile.id });
-
     if (!store) {
-      // Check if store exists with same email
       store = await Store.findOne({ ownerEmail: profile.emails[0].value });
       if (store) {
         store.googleId = profile.id;
         store.avatar = profile.photos[0]?.value;
         await store.save();
       } else {
-        // Create new store
         store = await Store.create({
           name: `${profile.displayName}'s Store`,
           ownerName: profile.displayName,
@@ -354,12 +372,9 @@ passport.use(new GoogleStrategy({
           avatar: profile.photos[0]?.value,
           plan: "free"
         });
-
-        // Seed default inventory for new store
         await seedStoreInventory(store._id);
       }
     }
-
     return done(null, store);
   } catch (err) {
     return done(err, null);
@@ -393,7 +408,6 @@ async function seedStoreInventory(storeId) {
    INIT — Super Admin + Franchises
 ========================= */
 async function init() {
-  // Create super admin
   if (!(await User.findOne({ role: "superadmin" }))) {
     const hashedPassword = await bcrypt.hash("superadmin123", 12);
     await User.create({
@@ -405,7 +419,6 @@ async function init() {
     console.log("✅ Super admin created — email: superadmin@shelfsense.ai, password: superadmin123");
   }
 
-  // Seed franchises
   if ((await Franchise.countDocuments()) === 0) {
     await Franchise.insertMany([
       { name: "ShelfSense - Andheri West", address: "Andheri West, Mumbai", lat: 19.1360, lng: 72.8296, inventory: { chocolates: 10, biscuits: 5, chips: 8, juice: 3, "soft-drinks": 12 } },
@@ -452,11 +465,7 @@ app.get("/auth/google/callback",
   async (req, res) => {
     try {
       const store = req.user;
-
-      // Check if store needs onboarding
       const needsOnboarding = !store.address || store.name.includes("'s Store");
-
-      // Generate JWT
       const token = jwt.sign(
         {
           id: store._id,
@@ -470,8 +479,6 @@ app.get("/auth/google/callback",
         process.env.JWT_SECRET,
         { expiresIn: "24h" }
       );
-
-      // Redirect with token
       if (needsOnboarding) {
         res.redirect(`/onboarding.html?token=${token}&new=true`);
       } else {
@@ -493,11 +500,9 @@ app.post("/register-store", signupLimiter, async (req, res) => {
     if (!storeName || !ownerName || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
-
     if (password.length < 6) {
       return res.status(400).json({ message: "Password must be at least 6 characters" });
     }
-
     if (await Store.findOne({ ownerEmail: email.toLowerCase() })) {
       return res.status(400).json({ message: "An account with this email already exists" });
     }
@@ -512,16 +517,16 @@ app.post("/register-store", signupLimiter, async (req, res) => {
       alertEmail: email.toLowerCase()
     });
 
-    // Seed default inventory
     await seedStoreInventory(store._id);
 
-    // Send welcome email
+    // FIX: Use BASE_URL env variable instead of hardcoded localhost
+    const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
     await sendAlert(
       "Welcome to ShelfSense AI! 🎉",
       `Hi ${ownerName}!<br><br>
       Your store <strong>${storeName}</strong> has been successfully created on ShelfSense AI.<br><br>
       Your 10 AI agents are now active and monitoring your store 24/7.<br><br>
-      <strong>Login:</strong> <a href="http://localhost:3000/login.html">http://localhost:3000/login.html</a><br><br>
+      <strong>Login:</strong> <a href="${baseUrl}/login.html">${baseUrl}/login.html</a><br><br>
       Welcome aboard!`,
       false,
       email
@@ -600,7 +605,7 @@ app.post("/login-store", loginLimiter, async (req, res) => {
 });
 
 /* =========================
-   CUSTOMER AUTH (unchanged)
+   CUSTOMER AUTH
 ========================= */
 app.post("/signup", signupLimiter, async (req, res) => {
   try {
@@ -646,6 +651,94 @@ app.post("/logout", (req, res) => {
 });
 
 /* =========================
+   FORGOT PASSWORD
+========================= */
+app.post("/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email || !email.includes("@")) {
+      return res.status(400).json({ error: "Please enter a valid email address" });
+    }
+
+    const store = await Store.findOne({ ownerEmail: email.toLowerCase() });
+    const customer = await User.findOne({ email: email.toLowerCase() });
+
+    // Always respond same message — prevents email enumeration attacks
+    if (!store && !customer) {
+      return res.json({ message: "If that email is registered, a reset link has been sent." });
+    }
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    if (store) {
+      store.resetToken = resetToken;
+      store.resetTokenExpiry = resetExpiry;
+      await store.save();
+    } else {
+      customer.resetToken = resetToken;
+      customer.resetTokenExpiry = resetExpiry;
+      await customer.save();
+    }
+
+    const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
+    const resetLink = `${baseUrl}/reset-password.html?token=${resetToken}`;
+
+    await emailTransporter.sendMail({
+      from: `"ShelfSense AI" <${process.env.ALERT_EMAIL}>`,
+      to: email,
+      subject: "Reset Your ShelfSense Password",
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto">
+          <div style="background:#7c3aed;padding:20px;border-radius:10px 10px 0 0">
+            <h1 style="color:white;margin:0;font-size:1.3rem">🔐 ShelfSense AI — Password Reset</h1>
+          </div>
+          <div style="background:#f8fafc;padding:24px;border-radius:0 0 10px 10px;border:1px solid #e2e8f0">
+            <p>You requested a password reset. Click below to set a new password.</p>
+            <p>This link expires in <strong>1 hour</strong>.</p>
+            <a href="${resetLink}"
+               style="display:inline-block;background:#7c3aed;color:white;
+                      padding:12px 24px;border-radius:8px;text-decoration:none;
+                      font-weight:bold;margin:16px 0">
+              Reset My Password
+            </a>
+            <p style="color:#666;font-size:13px">If you did not request this, ignore this email.</p>
+          </div>
+        </div>`
+    });
+
+    res.json({ message: "If that email is registered, a reset link has been sent." });
+  } catch (err) {
+    console.error("Forgot password error:", err);
+    res.status(500).json({ error: "Something went wrong. Please try again." });
+  }
+});
+
+app.post("/reset-password", async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+    if (!token || !newPassword) return res.status(400).json({ error: "Token and password required" });
+    if (newPassword.length < 8) return res.status(400).json({ error: "Password must be at least 8 characters" });
+
+    const now = new Date();
+    let account = await Store.findOne({ resetToken: token, resetTokenExpiry: { $gt: now } });
+    if (!account) account = await User.findOne({ resetToken: token, resetTokenExpiry: { $gt: now } });
+
+    if (!account) return res.status(400).json({ error: "Reset link is invalid or has expired." });
+
+    account.password = await bcrypt.hash(newPassword, 12);
+    account.resetToken = undefined;
+    account.resetTokenExpiry = undefined;
+    await account.save();
+
+    res.json({ message: "Password reset successfully! You can now log in." });
+  } catch (err) {
+    console.error("Reset password error:", err);
+    res.status(500).json({ error: "Something went wrong. Please try again." });
+  }
+});
+
+/* =========================
    ONBOARDING
 ========================= */
 app.post("/complete-onboarding", auth("admin"), async (req, res) => {
@@ -660,11 +753,10 @@ app.post("/complete-onboarding", auth("admin"), async (req, res) => {
 });
 
 /* =========================
-   SHOP ITEMS (store-specific)
+   SHOP ITEMS
 ========================= */
 app.get("/shop-items", auth("customer"), async (req, res) => {
   try {
-    // Get storeId from query or use first store
     const storeId = req.query.storeId;
     const query = storeId ? { storeId } : {};
     const items = await Item.find(query);
@@ -814,7 +906,7 @@ app.get("/my-ratings", auth("customer"), async (req, res) => {
 });
 
 /* =========================
-   ADMIN ROUTES (store-specific)
+   ADMIN ROUTES
 ========================= */
 app.get("/admin-data", auth("admin"), async (req, res) => {
   try {
@@ -1076,7 +1168,7 @@ app.post("/superadmin/update-plan", auth("superadmin"), async (req, res) => {
 });
 
 /* =========================================
-   10 AI AGENTS (store-aware)
+   10 AI AGENTS
 ========================================= */
 
 /* AGENT 1 — MONITORING */
