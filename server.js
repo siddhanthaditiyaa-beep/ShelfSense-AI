@@ -1411,7 +1411,7 @@ app.use((req, res) => {
    START SERVER
 ========================= */
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 ShelfSense AI running at http://localhost:${PORT}`);
   console.log(`🔒 Security layer active`);
   console.log(`🤖 All 10 AI Agents initialized`);
