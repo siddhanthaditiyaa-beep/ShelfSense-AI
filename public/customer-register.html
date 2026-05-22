@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Signup | ShelfSense AI</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #6366f1; --secondary: #a78bfa;
+      --dark: #0f0f23; --dark2: #1a1a3e;
+      --text: #ffffff; --text-muted: rgba(255,255,255,0.6);
+      --border: rgba(255,255,255,0.1); --card-bg: rgba(255,255,255,0.05);
+      --gradient: linear-gradient(135deg, #6366f1, #a78bfa);
+    }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 50%, #16213e 100%);
+      background-attachment: fixed;
+      color: var(--text); min-height: 100vh;
+      display: flex; flex-direction: column;
+    }
+    .navbar {
+      height: 60px; background: rgba(15,15,35,0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 40px;
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 1.1rem; font-weight: 700; color: var(--text);
+      text-decoration: none;
+    }
+    .nav-logo-icon {
+      width: 32px; height: 32px; background: var(--gradient);
+      border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    }
+    .nav-right { font-size: 0.875rem; color: var(--text-muted); }
+    .nav-right a { color: var(--secondary); text-decoration: none; font-weight: 600; }
+    .page-wrapper {
+      flex: 1; display: flex; align-items: center;
+      justify-content: center; padding: 40px 20px;
+    }
+    .container { width: 100%; max-width: 440px; }
+    .header { text-align: center; margin-bottom: 32px; }
+    .header h1 {
+      font-size: 2rem; font-weight: 800; margin-bottom: 8px;
+      background: linear-gradient(135deg, #fff, var(--secondary));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .header p { color: var(--text-muted); font-size: 0.95rem; }
+    .card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 20px; padding: 36px; backdrop-filter: blur(10px);
+    }
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block; font-size: 0.82rem; font-weight: 600;
+      color: var(--text-muted); margin-bottom: 6px;
+    }
+    .form-group input {
+      width: 100%; padding: 12px 14px; border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.05);
+      color: var(--text); font-size: 0.9rem; font-family: inherit;
+      transition: all 0.2s;
+    }
+    .form-group input:focus {
+      outline: none; border-color: rgba(99,102,241,0.6);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+    }
+    .form-group input::placeholder { color: rgba(255,255,255,0.3); }
+    .pw-wrapper { position: relative; }
+    .pw-wrapper input { padding-right: 44px; }
+    .pw-toggle {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer; font-size: 1.1rem;
+      padding: 4px; color: rgba(255,255,255,0.5); transition: color 0.2s; line-height: 1;
+    }
+    .pw-toggle:hover { color: rgba(255,255,255,0.9); }
+    .name-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .submit-btn {
+      width: 100%; padding: 14px; border-radius: 10px;
+      background: var(--gradient); color: white;
+      font-size: 1rem; font-weight: 700; border: none;
+      cursor: pointer; transition: all 0.2s; margin-top: 8px;
+    }
+    .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(99,102,241,0.4); }
+    .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .error-msg {
+      background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 8px; padding: 12px; color: #ef4444;
+      font-size: 0.85rem; margin-bottom: 16px; display: none; text-align: center;
+    }
+    .success-msg {
+      background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);
+      border-radius: 8px; padding: 12px; color: #22c55e;
+      font-size: 0.85rem; margin-bottom: 16px; display: none; text-align: center;
+    }
+    .login-link {
+      text-align: center; margin-top: 20px;
+      font-size: 0.875rem; color: var(--text-muted);
+    }
+    .login-link a { color: var(--secondary); text-decoration: none; font-weight: 600; }
+    .login-link a:hover { text-decoration: underline; }
+    .spinner {
+      display: inline-block; width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.3); border-top-color: white;
+      border-radius: 50%; animation: spin 0.8s linear infinite;
+      margin-right: 8px; vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (max-width: 480px) {
+      .card { padding: 24px 20px; }
+      .navbar { padding: 0 20px; }
+      .name-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="landing.html" class="nav-logo">
+    <div class="nav-logo-icon">🧠</div>
+    ShelfSense AI
+  </a>
+  <div class="nav-right">
+    Already have an account? <a href="login.html">Login →</a>
+  </div>
+</nav>
+
+<div class="page-wrapper">
+  <div class="container">
+
+    <div class="header">
+      <h1>Create Account 🛍️</h1>
+      <p>Sign up to start shopping at ShelfSense stores</p>
+    </div>
+
+    <div class="card">
+      <div class="error-msg" id="errorMsg"></div>
+      <div class="success-msg" id="successMsg"></div>
+
+      <div class="name-row">
+        <div class="form-group">
+          <label>First Name</label>
+          <input type="text" id="fname" placeholder="John">
+        </div>
+        <div class="form-group">
+          <label>Last Name</label>
+          <input type="text" id="lname" placeholder="Doe">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="email" placeholder="john@example.com">
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <div class="pw-wrapper">
+          <input type="password" id="password" placeholder="At least 6 characters">
+          <button type="button" class="pw-toggle" onclick="togglePassword('password','eye1')">
+            <span id="eye1">👁️</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Confirm Password</label>
+        <div class="pw-wrapper">
+          <input type="password" id="confirmPassword" placeholder="Repeat your password">
+          <button type="button" class="pw-toggle" onclick="togglePassword('confirmPassword','eye2')">
+            <span id="eye2">👁️</span>
+          </button>
+        </div>
+      </div>
+
+      <button class="submit-btn" id="signupBtn" onclick="signup()">
+        Create Account
+      </button>
+    </div>
+
+    <div class="login-link">
+      Already have an account? <a href="login.html">Login here</a>
+      &nbsp;|&nbsp;
+      <a href="register.html" style="color:var(--text-muted)">Register a store instead →</a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function togglePassword(inputId, eyeId) {
+    const input = document.getElementById(inputId);
+    const eye = document.getElementById(eyeId);
+    if (input.type === "password") {
+      input.type = "text"; eye.innerText = "🙈";
+    } else {
+      input.type = "password"; eye.innerText = "👁️";
+    }
+  }
+
+  async function signup() {
+    const fname = document.getElementById("fname").value.trim();
+    const lname = document.getElementById("lname").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+    const confirmPassword = document.getElementById("confirmPassword").value;
+    const errorEl = document.getElementById("errorMsg");
+    const successEl = document.getElementById("successMsg");
+    const btn = document.getElementById("signupBtn");
+
+    errorEl.style.display = "none";
+    successEl.style.display = "none";
+
+    // Validation
+    if (!fname || !lname || !email || !password || !confirmPassword) {
+      errorEl.innerText = "Please fill in all fields";
+      errorEl.style.display = "block"; return;
+    }
+    if (!email.includes("@")) {
+      errorEl.innerText = "Please enter a valid email address";
+      errorEl.style.display = "block"; return;
+    }
+    if (password.length < 6) {
+      errorEl.innerText = "Password must be at least 6 characters";
+      errorEl.style.display = "block"; return;
+    }
+    if (password !== confirmPassword) {
+      errorEl.innerText = "Passwords do not match";
+      errorEl.style.display = "block"; return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Creating account...';
+
+    try {
+      const res = await fetch("/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fname, lname, email, password })
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        successEl.innerText = "✅ Account created successfully! Redirecting to login...";
+        successEl.style.display = "block";
+        setTimeout(() => {
+          window.location.href = "login.html";
+        }, 2000);
+      } else {
+        errorEl.innerText = data.message || "Signup failed. Please try again.";
+        errorEl.style.display = "block";
+        btn.disabled = false;
+        btn.innerHTML = "Create Account";
+      }
+    } catch (err) {
+      errorEl.innerText = "Server error. Please try again.";
+      errorEl.style.display = "block";
+      btn.disabled = false;
+      btn.innerHTML = "Create Account";
+    }
+  }
+
+  // Enter key support
+  document.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") signup();
+  });
+</script>
+</body>
+</html>
