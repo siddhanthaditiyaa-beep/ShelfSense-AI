@@ -1075,10 +1075,71 @@ app.post("/admin/scan-shelf", auth("admin"), upload.single("image"), async (req,
     const shelfId = req.body.shelf_id || "SHELF_001";
     const storeId = req.user.storeId;
 
-    const mlResponse = await fetch("http://127.0.0.1:5001/process-shelf-image", {
+    const ML_SERVICE_URL = process.env.ML_SERVICE_URL || "http://127.0.0.1:5001";
+const mlResponse = await fetch(`${ML_SERVICE_URL}/process-shelf-image`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ imagePath, total_slots: totalSlots, shelf_id: shelfId })
+      app.post("/admin/scan-shelf", auth("admin"), upload.single("image"), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: "No image uploaded" });
+
+    const imagePath = `/uploads/${req.file.filename}`;
+    const totalSlots = parseInt(req.body.total_slots) || 8;
+    const shelfId = req.body.shelf_id || "SHELF_001";
+    const storeId = req.user.storeId;
+
+    // Convert image to base64 to send to Colab ML service
+    const imageBuffer = fs.readFileSync(req.file.path);
+    const imageBase64 = imageBuffer.toString("base64");
+
+    const ML_SERVICE_URL = process.env.ML_SERVICE_URL || "http://127.0.0.1:5001";
+
+    const mlResponse = await fetch(`${ML_SERVICE_URL}/process-shelf-image`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        imageBase64,
+        total_slots: totalSlots,
+        shelf_id: shelfId
+      })
+    });
+
+    if (!mlResponse.ok) throw new Error("ML service error");
+    const mlData = await mlResponse.json();
+
+    let presentProducts = mlData.present_products || [];
+    let missingProducts = mlData.missing_products || [];
+
+    try {
+      const mapped = mapSlotsToProducts(shelfId, mlData.occupied_slot_numbers, mlData.empty_slot_numbers);
+      presentProducts = mapped.present_products;
+      missingProducts = mapped.missing_products;
+    } catch (mapErr) { console.log("Planogram note:", mapErr.message); }
+
+    await ShelfScan.create({
+      storeId, shelf_id: shelfId, imagePath,
+      total_slots: mlData.total_slots, occupied_slots: mlData.occupied_slots,
+      empty_slots: mlData.empty_slots, occupied_slot_numbers: mlData.occupied_slot_numbers,
+      empty_slot_numbers: mlData.empty_slot_numbers, present_products: presentProducts,
+      missing_products: missingProducts, detection_details: mlData.detection_details || [],
+      stock_counts: mlData.stock_counts || {}, fill_percentage: mlData.fill_percentage || 0,
+      detectedAt: new Date().toLocaleString()
+    });
+
+    res.json({
+      message: "Shelf scanned!", imagePath, shelf_id: shelfId,
+      total_slots: mlData.total_slots, occupied_slots: mlData.occupied_slots,
+      empty_slots: mlData.empty_slots, occupied_slot_numbers: mlData.occupied_slot_numbers,
+      empty_slot_numbers: mlData.empty_slot_numbers, present_products: presentProducts,
+      missing_products: missingProducts, detection_details: mlData.detection_details,
+      stock_counts: mlData.stock_counts, fill_percentage: mlData.fill_percentage,
+      low_stock_alert: mlData.low_stock_alert, total_detections: mlData.total_detections
+    });
+  } catch (err) {
+    console.error("Scan error:", err.message);
+    res.status(500).json({ message: err.message });
+  }
+});
     });
 
     if (!mlResponse.ok) throw new Error("ML service error");
