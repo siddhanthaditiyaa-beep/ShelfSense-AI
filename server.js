@@ -25,7 +25,7 @@ const axios = require("axios");
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const session = require("express-session");
-const MongoStore = require("connect-mongo");
+const MongoStore = require("connect-mongo")(session);
 
 const { mapSlotsToProducts, updatePlanogram, getPlanogram } = require("./slotProductMapper");
 
@@ -84,10 +84,10 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   // FIX: Use MongoDB to store sessions instead of RAM (fixes MemoryStore warning)
-  store: MongoStore.create({
-    mongoUrl: process.env.MONGODB_URI,
-    ttl: 24 * 60 * 60 // sessions expire after 24 hours
-  }),
+  store: new MongoStore({
+  mongooseConnection: mongoose.connection,
+  ttl: 24 * 60 * 60
+}),
   cookie: {
     secure: process.env.NODE_ENV === "production", // true on Render (HTTPS), false locally
     httpOnly: true,  // prevents JavaScript from reading the cookie (XSS protection)
