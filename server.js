@@ -85,14 +85,13 @@ app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  // FIX: Use MongoDB to store sessions instead of RAM (fixes MemoryStore warning)
   store: new MongoStore({
-  mongooseConnection: mongoose.connection,
-  ttl: 24 * 60 * 60
-}),
+    mongooseConnection: mongoose.connection,
+    ttl: 24 * 60 * 60
+  }),
   cookie: {
-    secure: process.env.NODE_ENV === "production", // true on Render (HTTPS), false locally
-    httpOnly: true,  // prevents JavaScript from reading the cookie (XSS protection)
+    secure: process.env.NODE_ENV === "production",
+    httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000
   }
 }));
@@ -187,7 +186,6 @@ const StoreSchema = new mongoose.Schema({
   phone: String,
   loginAttempts: { type: Number, default: 0 },
   lockUntil: Date,
-  // FIX: Added reset token fields for forgot password feature
   resetToken: { type: String },
   resetTokenExpiry: { type: Date },
   createdAt: { type: Date, default: Date.now }
@@ -204,7 +202,6 @@ const UserSchema = new mongoose.Schema({
   avatar: String,
   loginAttempts: { type: Number, default: 0 },
   lockUntil: Date,
-  // FIX: Added reset token fields for forgot password feature
   resetToken: { type: String },
   resetTokenExpiry: { type: Date },
   createdAt: { type: Date, default: Date.now }
@@ -420,9 +417,8 @@ async function init() {
       email: "superadmin@shelfsense.ai",
       password: hashedPassword
     });
-    console.log("✅ Super admin created — email: superadmin@shelfsense.ai, password: superadmin123");
+    console.log("✅ Super admin created");
   }
-
   if ((await Franchise.countDocuments()) === 0) {
     await Franchise.insertMany([
       { name: "ShelfSense - Andheri West", address: "Andheri West, Mumbai", lat: 19.1360, lng: 72.8296, inventory: { chocolates: 10, biscuits: 5, chips: 8, juice: 3, "soft-drinks": 12 } },
@@ -460,9 +456,7 @@ function auth(role) {
 /* =========================
    GOOGLE OAUTH ROUTES
 ========================= */
-app.get("/auth/google",
-  passport.authenticate("google", { scope: ["profile", "email"] })
-);
+app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 
 app.get("/auth/google/callback",
   passport.authenticate("google", { failureRedirect: "/login.html?error=google_failed" }),
@@ -471,26 +465,12 @@ app.get("/auth/google/callback",
       const store = req.user;
       const needsOnboarding = !store.address || store.name.includes("'s Store");
       const token = jwt.sign(
-        {
-          id: store._id,
-          role: "admin",
-          email: store.ownerEmail,
-          fname: store.ownerName,
-          storeId: store._id,
-          storeName: store.name,
-          plan: store.plan
-        },
-        process.env.JWT_SECRET,
-        { expiresIn: "24h" }
+        { id: store._id, role: "admin", email: store.ownerEmail, fname: store.ownerName, storeId: store._id, storeName: store.name, plan: store.plan },
+        process.env.JWT_SECRET, { expiresIn: "24h" }
       );
-      if (needsOnboarding) {
-        res.redirect(`/onboarding.html?token=${token}&new=true`);
-      } else {
-        res.redirect(`/admin.html?token=${token}`);
-      }
-    } catch (err) {
-      res.redirect("/login.html?error=server_error");
-    }
+      if (needsOnboarding) res.redirect(`/onboarding.html?token=${token}&new=true`);
+      else res.redirect(`/admin.html?token=${token}`);
+    } catch (err) { res.redirect("/login.html?error=server_error"); }
   }
 );
 
@@ -500,61 +480,17 @@ app.get("/auth/google/callback",
 app.post("/register-store", signupLimiter, async (req, res) => {
   try {
     const { storeName, ownerName, email, password, plan } = req.body;
-
-    if (!storeName || !ownerName || !email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
-    if (password.length < 6) {
-      return res.status(400).json({ message: "Password must be at least 6 characters" });
-    }
-    if (await Store.findOne({ ownerEmail: email.toLowerCase() })) {
-      return res.status(400).json({ message: "An account with this email already exists" });
-    }
-
+    if (!storeName || !ownerName || !email || !password) return res.status(400).json({ message: "All fields are required" });
+    if (password.length < 6) return res.status(400).json({ message: "Password must be at least 6 characters" });
+    if (await Store.findOne({ ownerEmail: email.toLowerCase() })) return res.status(400).json({ message: "An account with this email already exists" });
     const hashedPassword = await bcrypt.hash(password, 12);
-    const store = await Store.create({
-      name: storeName,
-      ownerName,
-      ownerEmail: email.toLowerCase(),
-      password: hashedPassword,
-      plan: plan || "free",
-      alertEmail: email.toLowerCase()
-    });
-
+    const store = await Store.create({ name: storeName, ownerName, ownerEmail: email.toLowerCase(), password: hashedPassword, plan: plan || "free", alertEmail: email.toLowerCase() });
     await seedStoreInventory(store._id);
-
-    // FIX: Use BASE_URL env variable instead of hardcoded localhost
     const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
-    await sendAlert(
-      "Welcome to ShelfSense AI! 🎉",
-      `Hi ${ownerName}!<br><br>
-      Your store <strong>${storeName}</strong> has been successfully created on ShelfSense AI.<br><br>
-      Your 10 AI agents are now active and monitoring your store 24/7.<br><br>
-      <strong>Login:</strong> <a href="${baseUrl}/login.html">${baseUrl}/login.html</a><br><br>
-      Welcome aboard!`,
-      false,
-      email
-    );
-
-    const token = jwt.sign(
-      {
-        id: store._id,
-        role: "admin",
-        email: store.ownerEmail,
-        fname: ownerName,
-        storeId: store._id,
-        storeName: store.name,
-        plan: store.plan
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: "24h" }
-    );
-
+    await sendAlert("Welcome to ShelfSense AI! 🎉", `Hi ${ownerName}!<br><br>Your store <strong>${storeName}</strong> has been created.<br><br><strong>Login:</strong> <a href="${baseUrl}/login.html">${baseUrl}/login.html</a><br><br>Welcome aboard!`, false, email);
+    const token = jwt.sign({ id: store._id, role: "admin", email: store.ownerEmail, fname: ownerName, storeId: store._id, storeName: store.name, plan: store.plan }, process.env.JWT_SECRET, { expiresIn: "24h" });
     res.json({ message: "Store created successfully!", token, storeId: store._id });
-  } catch (err) {
-    console.error("Register error:", err.message);
-    res.status(500).json({ message: "Server error" });
-  }
+  } catch (err) { console.error("Register error:", err.message); res.status(500).json({ message: "Server error" }); }
 });
 
 /* =========================
@@ -564,48 +500,23 @@ app.post("/login-store", loginLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ message: "Email and password required" });
-
     const store = await Store.findOne({ ownerEmail: email.toLowerCase() });
     if (!store) return res.status(401).json({ message: "Invalid credentials" });
-
     if (store.lockUntil && store.lockUntil > Date.now()) {
       const minutesLeft = Math.ceil((store.lockUntil - Date.now()) / 60000);
       return res.status(423).json({ message: `Account locked. Try again in ${minutesLeft} minutes` });
     }
-
     const passwordMatch = await bcrypt.compare(password, store.password);
     if (!passwordMatch) {
       store.loginAttempts += 1;
-      if (store.loginAttempts >= 5) {
-        store.lockUntil = new Date(Date.now() + 30 * 60 * 1000);
-        store.loginAttempts = 0;
-      }
+      if (store.loginAttempts >= 5) { store.lockUntil = new Date(Date.now() + 30 * 60 * 1000); store.loginAttempts = 0; }
       await store.save();
       return res.status(401).json({ message: "Invalid credentials" });
     }
-
-    store.loginAttempts = 0;
-    store.lockUntil = null;
-    await store.save();
-
-    const token = jwt.sign(
-      {
-        id: store._id,
-        role: "admin",
-        email: store.ownerEmail,
-        fname: store.ownerName,
-        storeId: store._id,
-        storeName: store.name,
-        plan: store.plan
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: "24h" }
-    );
-
+    store.loginAttempts = 0; store.lockUntil = null; await store.save();
+    const token = jwt.sign({ id: store._id, role: "admin", email: store.ownerEmail, fname: store.ownerName, storeId: store._id, storeName: store.name, plan: store.plan }, process.env.JWT_SECRET, { expiresIn: "24h" });
     res.json({ token, role: "admin", fname: store.ownerName, storeName: store.name, plan: store.plan });
-  } catch (err) {
-    res.status(500).json({ message: "Server error" });
-  }
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
 /* =========================
@@ -641,10 +552,7 @@ app.post("/login", loginLimiter, async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
     user.loginAttempts = 0; user.lockUntil = null; await user.save();
-    const token = jwt.sign(
-      { id: user._id, role: user.role, email: user.email, fname: user.fname },
-      process.env.JWT_SECRET, { expiresIn: "24h" }
-    );
+    const token = jwt.sign({ id: user._id, role: user.role, email: user.email, fname: user.fname }, process.env.JWT_SECRET, { expiresIn: "24h" });
     res.json({ token, role: user.role, fname: user.fname });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
@@ -660,62 +568,24 @@ app.post("/logout", (req, res) => {
 app.post("/forgot-password", async (req, res) => {
   try {
     const { email } = req.body;
-    if (!email || !email.includes("@")) {
-      return res.status(400).json({ error: "Please enter a valid email address" });
-    }
-
+    if (!email || !email.includes("@")) return res.status(400).json({ error: "Please enter a valid email address" });
     const store = await Store.findOne({ ownerEmail: email.toLowerCase() });
     const customer = await User.findOne({ email: email.toLowerCase() });
-
-    // Always respond same message — prevents email enumeration attacks
-    if (!store && !customer) {
-      return res.json({ message: "If that email is registered, a reset link has been sent." });
-    }
-
+    if (!store && !customer) return res.json({ message: "If that email is registered, a reset link has been sent." });
     const resetToken = crypto.randomBytes(32).toString("hex");
-    const resetExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
-
-    if (store) {
-      store.resetToken = resetToken;
-      store.resetTokenExpiry = resetExpiry;
-      await store.save();
-    } else {
-      customer.resetToken = resetToken;
-      customer.resetTokenExpiry = resetExpiry;
-      await customer.save();
-    }
-
+    const resetExpiry = new Date(Date.now() + 60 * 60 * 1000);
+    if (store) { store.resetToken = resetToken; store.resetTokenExpiry = resetExpiry; await store.save(); }
+    else { customer.resetToken = resetToken; customer.resetTokenExpiry = resetExpiry; await customer.save(); }
     const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
     const resetLink = `${baseUrl}/reset-password.html?token=${resetToken}`;
-
     await emailTransporter.sendMail({
       from: `"ShelfSense AI" <${process.env.ALERT_EMAIL}>`,
       to: email,
       subject: "Reset Your ShelfSense Password",
-      html: `
-        <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto">
-          <div style="background:#7c3aed;padding:20px;border-radius:10px 10px 0 0">
-            <h1 style="color:white;margin:0;font-size:1.3rem">🔐 ShelfSense AI — Password Reset</h1>
-          </div>
-          <div style="background:#f8fafc;padding:24px;border-radius:0 0 10px 10px;border:1px solid #e2e8f0">
-            <p>You requested a password reset. Click below to set a new password.</p>
-            <p>This link expires in <strong>1 hour</strong>.</p>
-            <a href="${resetLink}"
-               style="display:inline-block;background:#7c3aed;color:white;
-                      padding:12px 24px;border-radius:8px;text-decoration:none;
-                      font-weight:bold;margin:16px 0">
-              Reset My Password
-            </a>
-            <p style="color:#666;font-size:13px">If you did not request this, ignore this email.</p>
-          </div>
-        </div>`
+      html: `<div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto"><div style="background:#7c3aed;padding:20px;border-radius:10px 10px 0 0"><h1 style="color:white;margin:0;font-size:1.3rem">🔐 ShelfSense AI — Password Reset</h1></div><div style="background:#f8fafc;padding:24px;border-radius:0 0 10px 10px;border:1px solid #e2e8f0"><p>Click below to reset your password. Expires in 1 hour.</p><a href="${resetLink}" style="display:inline-block;background:#7c3aed;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;margin:16px 0">Reset My Password</a><p style="color:#666;font-size:13px">If you did not request this, ignore this email.</p></div></div>`
     });
-
     res.json({ message: "If that email is registered, a reset link has been sent." });
-  } catch (err) {
-    console.error("Forgot password error:", err);
-    res.status(500).json({ error: "Something went wrong. Please try again." });
-  }
+  } catch (err) { console.error("Forgot password error:", err); res.status(500).json({ error: "Something went wrong. Please try again." }); }
 });
 
 app.post("/reset-password", async (req, res) => {
@@ -723,23 +593,16 @@ app.post("/reset-password", async (req, res) => {
     const { token, newPassword } = req.body;
     if (!token || !newPassword) return res.status(400).json({ error: "Token and password required" });
     if (newPassword.length < 8) return res.status(400).json({ error: "Password must be at least 8 characters" });
-
     const now = new Date();
     let account = await Store.findOne({ resetToken: token, resetTokenExpiry: { $gt: now } });
     if (!account) account = await User.findOne({ resetToken: token, resetTokenExpiry: { $gt: now } });
-
     if (!account) return res.status(400).json({ error: "Reset link is invalid or has expired." });
-
     account.password = await bcrypt.hash(newPassword, 12);
     account.resetToken = undefined;
     account.resetTokenExpiry = undefined;
     await account.save();
-
     res.json({ message: "Password reset successfully! You can now log in." });
-  } catch (err) {
-    console.error("Reset password error:", err);
-    res.status(500).json({ error: "Something went wrong. Please try again." });
-  }
+  } catch (err) { console.error("Reset password error:", err); res.status(500).json({ error: "Something went wrong. Please try again." }); }
 });
 
 /* =========================
@@ -748,10 +611,7 @@ app.post("/reset-password", async (req, res) => {
 app.post("/complete-onboarding", auth("admin"), async (req, res) => {
   try {
     const { storeName, address, phone, openingTime, closingTime, weatherCity } = req.body;
-    await Store.updateOne(
-      { _id: req.user.storeId },
-      { $set: { name: storeName, address, phone, openingTime, closingTime, weatherCity } }
-    );
+    await Store.updateOne({ _id: req.user.storeId }, { $set: { name: storeName, address, phone, openingTime, closingTime, weatherCity } });
     res.json({ message: "Store setup complete!" });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
@@ -766,13 +626,7 @@ app.get("/shop-items", auth("customer"), async (req, res) => {
     const items = await Item.find(query);
     const view = {};
     items.forEach(i => {
-      view[i.key] = {
-        name: i.name, stock: i.stock, price: i.price || 99,
-        onSale: i.onSale || false, salePercent: i.salePercent || 0,
-        salePrice: i.salePrice || i.price || 99,
-        canBuy: i.stock > 0, warning: i.stock <= 3 ? i.stock : null,
-        avgRating: i.avgRating || 0, totalRatings: i.totalRatings || 0
-      };
+      view[i.key] = { name: i.name, stock: i.stock, price: i.price || 99, onSale: i.onSale || false, salePercent: i.salePercent || 0, salePrice: i.salePrice || i.price || 99, canBuy: i.stock > 0, warning: i.stock <= 3 ? i.stock : null, avgRating: i.avgRating || 0, totalRatings: i.totalRatings || 0 };
     });
     res.json(view);
   } catch (err) { res.status(500).json({ message: "Server error" }); }
@@ -797,16 +651,9 @@ app.post("/checkout", auth("customer"), async (req, res) => {
       totalItems += allowed;
       totalAmount += (item.onSale ? item.salePrice : item.price || 99) * allowed;
       if (qty > item.stock) notices.push(`${item.name}: only ${item.stock} available`);
-      await Item.updateOne({ key, storeId: item.storeId }, {
-        $inc: { stock: -allowed },
-        $push: { salesHistory: { $each: [allowed], $slice: -30 } }
-      });
+      await Item.updateOne({ key, storeId: item.storeId }, { $inc: { stock: -allowed }, $push: { salesHistory: { $each: [allowed], $slice: -30 } } });
     }
-    await Order.create({
-      storeId, userId: req.user.id, userEmail: req.user.email,
-      cart: adjusted, itemNames, totalItems, totalAmount,
-      paymentStatus: "paid", time: new Date().toLocaleString()
-    });
+    await Order.create({ storeId, userId: req.user.id, userEmail: req.user.email, cart: adjusted, itemNames, totalItems, totalAmount, paymentStatus: "paid", time: new Date().toLocaleString() });
     res.json({ message: "Order placed successfully", notices });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
@@ -824,16 +671,9 @@ app.post("/create-payment-order", auth("customer"), async (req, res) => {
       if (item && cart[key] > 0) totalAmount += (item.onSale ? item.salePrice : item.price || 99) * cart[key];
     }
     if (totalAmount === 0) return res.status(400).json({ message: "Cart is empty" });
-    const order = await razorpay.orders.create({
-      amount: totalAmount * 100, currency: "INR",
-      receipt: `order_${Date.now()}`,
-      notes: { userId: req.user.id, userEmail: req.user.email }
-    });
+    const order = await razorpay.orders.create({ amount: totalAmount * 100, currency: "INR", receipt: `order_${Date.now()}`, notes: { userId: req.user.id, userEmail: req.user.email } });
     res.json({ orderId: order.id, amount: order.amount, currency: order.currency, keyId: process.env.RAZORPAY_KEY_ID });
-  } catch (err) {
-    console.error("Payment error:", err.message);
-    res.status(500).json({ message: "Failed to create payment order" });
-  }
+  } catch (err) { console.error("Payment error:", err.message); res.status(500).json({ message: "Failed to create payment order" }); }
 });
 
 app.post("/verify-payment", auth("customer"), async (req, res) => {
@@ -854,17 +694,9 @@ app.post("/verify-payment", auth("customer"), async (req, res) => {
       totalItems += allowed;
       totalAmount += (item.onSale ? item.salePrice : item.price || 99) * allowed;
       if (qty > item.stock) notices.push(`${item.name}: only ${item.stock} available`);
-      await Item.updateOne({ key, storeId: item.storeId }, {
-        $inc: { stock: -allowed },
-        $push: { salesHistory: { $each: [allowed], $slice: -30 } }
-      });
+      await Item.updateOne({ key, storeId: item.storeId }, { $inc: { stock: -allowed }, $push: { salesHistory: { $each: [allowed], $slice: -30 } } });
     }
-    await Order.create({
-      storeId, userId: req.user.id, userEmail: req.user.email,
-      cart: adjusted, itemNames, totalItems, totalAmount,
-      paymentId: razorpay_payment_id, paymentStatus: "paid",
-      time: new Date().toLocaleString()
-    });
+    await Order.create({ storeId, userId: req.user.id, userEmail: req.user.email, cart: adjusted, itemNames, totalItems, totalAmount, paymentId: razorpay_payment_id, paymentStatus: "paid", time: new Date().toLocaleString() });
     res.json({ message: "Payment successful!", paymentId: razorpay_payment_id, notices });
   } catch (err) { res.status(500).json({ message: "Payment verification error" }); }
 });
@@ -893,9 +725,7 @@ app.post("/rate-product", auth("customer"), async (req, res) => {
     else await Rating.create({ storeId: item.storeId, userId: req.user.id, itemKey, rating });
     const allRatings = await Rating.find({ itemKey, storeId: item.storeId });
     const avg = allRatings.reduce((a, b) => a + b.rating, 0) / allRatings.length;
-    await Item.updateOne({ key: itemKey, storeId: item.storeId }, {
-      $set: { avgRating: Math.round(avg * 10) / 10, totalRatings: allRatings.length }
-    });
+    await Item.updateOne({ key: itemKey, storeId: item.storeId }, { $set: { avgRating: Math.round(avg * 10) / 10, totalRatings: allRatings.length } });
     res.json({ message: "Rating saved!", avgRating: Math.round(avg * 10) / 10, totalRatings: allRatings.length });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
@@ -984,9 +814,7 @@ app.post("/admin/reset-logs", auth("admin"), async (req, res) => {
     await Log.deleteMany({ storeId });
     await AgentLog.deleteMany({ storeId });
     const defaults = { chocolates: 15, biscuits: 20, chips: 18, juice: 12, "soft-drinks": 25, "canned-food": 10, rice: 15, salt: 20 };
-    for (const key in defaults) {
-      await Item.updateOne({ key, storeId }, { $set: { stock: defaults[key], salesHistory: [] } });
-    }
+    for (const key in defaults) { await Item.updateOne({ key, storeId }, { $set: { stock: defaults[key], salesHistory: [] } }); }
     res.json({ message: "Reset successful" });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
@@ -1032,9 +860,7 @@ app.get("/admin/settings", auth("admin"), async (req, res) => {
 app.post("/admin/settings", auth("admin"), async (req, res) => {
   try {
     const { openingTime, closingTime, storeName, alertEmail, weatherCity, address, phone } = req.body;
-    await Store.updateOne({ _id: req.user.storeId }, {
-      $set: { openingTime, closingTime, name: storeName, alertEmail, weatherCity, address, phone }
-    });
+    await Store.updateOne({ _id: req.user.storeId }, { $set: { openingTime, closingTime, name: storeName, alertEmail, weatherCity, address, phone } });
     res.json({ message: "Settings saved!" });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
@@ -1074,48 +900,23 @@ app.post("/admin/scan-shelf", auth("admin"), upload.single("image"), async (req,
     const totalSlots = parseInt(req.body.total_slots) || 8;
     const shelfId = req.body.shelf_id || "SHELF_001";
     const storeId = req.user.storeId;
-
-    const ML_SERVICE_URL = process.env.ML_SERVICE_URL || "http://127.0.0.1:5001";
-const mlResponse = await fetch(`${ML_SERVICE_URL}/process-shelf-image`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      app.post("/admin/scan-shelf", auth("admin"), upload.single("image"), async (req, res) => {
-  try {
-    if (!req.file) return res.status(400).json({ message: "No image uploaded" });
-
-    const imagePath = `/uploads/${req.file.filename}`;
-    const totalSlots = parseInt(req.body.total_slots) || 8;
-    const shelfId = req.body.shelf_id || "SHELF_001";
-    const storeId = req.user.storeId;
-
-    // Convert image to base64 to send to Colab ML service
     const imageBuffer = fs.readFileSync(req.file.path);
     const imageBase64 = imageBuffer.toString("base64");
-
     const ML_SERVICE_URL = process.env.ML_SERVICE_URL || "http://127.0.0.1:5001";
-
     const mlResponse = await fetch(`${ML_SERVICE_URL}/process-shelf-image`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        imageBase64,
-        total_slots: totalSlots,
-        shelf_id: shelfId
-      })
+      body: JSON.stringify({ imageBase64, total_slots: totalSlots, shelf_id: shelfId })
     });
-
     if (!mlResponse.ok) throw new Error("ML service error");
     const mlData = await mlResponse.json();
-
     let presentProducts = mlData.present_products || [];
     let missingProducts = mlData.missing_products || [];
-
     try {
       const mapped = mapSlotsToProducts(shelfId, mlData.occupied_slot_numbers, mlData.empty_slot_numbers);
       presentProducts = mapped.present_products;
       missingProducts = mapped.missing_products;
     } catch (mapErr) { console.log("Planogram note:", mapErr.message); }
-
     await ShelfScan.create({
       storeId, shelf_id: shelfId, imagePath,
       total_slots: mlData.total_slots, occupied_slots: mlData.occupied_slots,
@@ -1125,45 +926,6 @@ const mlResponse = await fetch(`${ML_SERVICE_URL}/process-shelf-image`, {
       stock_counts: mlData.stock_counts || {}, fill_percentage: mlData.fill_percentage || 0,
       detectedAt: new Date().toLocaleString()
     });
-
-    res.json({
-      message: "Shelf scanned!", imagePath, shelf_id: shelfId,
-      total_slots: mlData.total_slots, occupied_slots: mlData.occupied_slots,
-      empty_slots: mlData.empty_slots, occupied_slot_numbers: mlData.occupied_slot_numbers,
-      empty_slot_numbers: mlData.empty_slot_numbers, present_products: presentProducts,
-      missing_products: missingProducts, detection_details: mlData.detection_details,
-      stock_counts: mlData.stock_counts, fill_percentage: mlData.fill_percentage,
-      low_stock_alert: mlData.low_stock_alert, total_detections: mlData.total_detections
-    });
-  } catch (err) {
-    console.error("Scan error:", err.message);
-    res.status(500).json({ message: err.message });
-  }
-});
-    });
-
-    if (!mlResponse.ok) throw new Error("ML service error");
-    const mlData = await mlResponse.json();
-
-    let presentProducts = mlData.present_products || [];
-    let missingProducts = mlData.missing_products || [];
-
-    try {
-      const mapped = mapSlotsToProducts(shelfId, mlData.occupied_slot_numbers, mlData.empty_slot_numbers);
-      presentProducts = mapped.present_products;
-      missingProducts = mapped.missing_products;
-    } catch (mapErr) { console.log("Planogram note:", mapErr.message); }
-
-    await ShelfScan.create({
-      storeId, shelf_id: shelfId, imagePath,
-      total_slots: mlData.total_slots, occupied_slots: mlData.occupied_slots,
-      empty_slots: mlData.empty_slots, occupied_slot_numbers: mlData.occupied_slot_numbers,
-      empty_slot_numbers: mlData.empty_slot_numbers, present_products: presentProducts,
-      missing_products: missingProducts, detection_details: mlData.detection_details || [],
-      stock_counts: mlData.stock_counts || {}, fill_percentage: mlData.fill_percentage || 0,
-      detectedAt: new Date().toLocaleString()
-    });
-
     res.json({
       message: "Shelf scanned!", imagePath, shelf_id: shelfId,
       total_slots: mlData.total_slots, occupied_slots: mlData.occupied_slots,
@@ -1189,11 +951,7 @@ app.get("/nearby-franchises", auth("customer"), async (req, res) => {
     const franchises = await Franchise.find();
     const results = franchises
       .filter(f => f.inventory[product] && f.inventory[product] > 0)
-      .map(f => ({
-        name: f.name, address: f.address, stock: f.inventory[product],
-        distance: calculateDistance(parseFloat(lat), parseFloat(lng), f.lat, f.lng).toFixed(2),
-        lat: f.lat, lng: f.lng
-      }))
+      .map(f => ({ name: f.name, address: f.address, stock: f.inventory[product], distance: calculateDistance(parseFloat(lat), parseFloat(lng), f.lat, f.lng).toFixed(2), lat: f.lat, lng: f.lng }))
       .sort((a, b) => a.distance - b.distance);
     res.json(results);
   } catch (err) { res.status(500).json({ message: "Server error" }); }
@@ -1214,9 +972,7 @@ app.get("/superadmin/stats", auth("superadmin"), async (req, res) => {
     const totalStores = await Store.countDocuments();
     const totalOrders = await Order.countDocuments();
     const totalItems = await Item.countDocuments();
-    const planCounts = await Store.aggregate([
-      { $group: { _id: "$plan", count: { $sum: 1 } } }
-    ]);
+    const planCounts = await Store.aggregate([{ $group: { _id: "$plan", count: { $sum: 1 } } }]);
     res.json({ totalStores, totalOrders, totalItems, planCounts });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
@@ -1296,8 +1052,8 @@ cron.schedule("*/45 * * * * *", async () => {
         const zScore = std > 0 ? (recentDrop - mean) / std : 0;
         if (zScore > 2.5) {
           if (!withinHours) {
-            await logAgent(store._id, "Anomaly Detection Agent", `🚨 POSSIBLE THEFT: ${item.name} — Unusual stock drop outside shop hours (${store.openingTime}-${store.closingTime})`, { item: item.name, stock: recentDrop, zScore: zScore.toFixed(2) }, "critical");
-            await sendAlert(`POSSIBLE THEFT: ${item.name}`, `🚨 Unusual stock drop of <strong>${recentDrop} units</strong> of <strong>${item.name}</strong> detected outside shop hours at <strong>${store.name}</strong>!<br><br>Check security cameras immediately!`, true, store.alertEmail);
+            await logAgent(store._id, "Anomaly Detection Agent", `🚨 POSSIBLE THEFT: ${item.name} — Unusual stock drop outside shop hours`, { item: item.name, stock: recentDrop, zScore: zScore.toFixed(2) }, "critical");
+            await sendAlert(`POSSIBLE THEFT: ${item.name}`, `🚨 Unusual stock drop detected outside shop hours at <strong>${store.name}</strong>!`, true, store.alertEmail);
           } else {
             await logAgent(store._id, "Anomaly Detection Agent", `⚠️ Unusual sales spike: ${item.name} (z-score: ${zScore.toFixed(2)})`, { item: item.name, stock: recentDrop, zScore: zScore.toFixed(2) }, "warning");
           }
