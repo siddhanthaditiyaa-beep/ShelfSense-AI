@@ -16,6 +16,8 @@ const jwt = require("jsonwebtoken");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const mongoSanitize = require("express-mongo-sanitize");
+const xss = require("xss-clean");
+const hpp = require("hpp");
 const cors = require("cors");
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
@@ -121,6 +123,8 @@ const signupLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 10, message: { 
 app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 app.use(mongoSanitize());
+app.use(xss());
+app.use(hpp());
 
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
