@@ -523,6 +523,18 @@
           <label>Number of slots:</label>
           <input type="number" id="totalSlotsInput" value="8" min="1" max="20">
         </div>
+        <!-- ML Service URL Updater -->
+<div style="background:var(--accent-light);border:1px solid var(--accent);border-radius:12px;padding:16px;margin-bottom:16px;">
+  <h3 style="color:var(--accent);margin:0 0 10px 0;font-size:0.9rem;">🤖 ML Service URL — Update when Colab reconnects</h3>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <input type="text" id="mlServiceUrl" placeholder="https://your-ngrok-url.ngrok-free.dev"
+      style="flex:1;margin-bottom:0;" />
+    <button onclick="updateMLUrl()" class="btn-primary" style="white-space:nowrap;">
+      Update URL
+    </button>
+  </div>
+  <p id="mlUrlStatus" style="margin:8px 0 0 0;font-size:0.8rem;color:var(--text-muted);"></p>
+</div>
         <div class="upload-area" onclick="document.getElementById('fileInput').click()">
           <div style="font-size:3rem">📷</div>
           <p>Click to upload a shelf image</p>
@@ -1531,6 +1543,44 @@ loadAdmin();
 loadSidebarUser();
 setInterval(loadAdmin, 15000);
 setInterval(() => { if (currentPage === "agents") loadAgentDashboard(); }, 30000);
+/* ===== ML SERVICE URL ===== */
+async function loadMLUrl() {
+  try {
+    const res = await fetch("/admin/ml-url", { headers: { Authorization: token } });
+    const data = await res.json();
+    const el = document.getElementById("mlServiceUrl");
+    if (el) el.value = data.url || "";
+  } catch (err) { console.log("Could not load ML URL"); }
+}
+
+async function updateMLUrl() {
+  const url = document.getElementById("mlServiceUrl").value.trim();
+  const statusEl = document.getElementById("mlUrlStatus");
+  if (!url || !url.startsWith("http")) {
+    statusEl.textContent = "❌ Please enter a valid URL starting with http";
+    statusEl.style.color = "#ef4444"; return;
+  }
+  try {
+    const res = await fetch("/admin/ml-url", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: token },
+      body: JSON.stringify({ url })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      statusEl.textContent = "✅ " + data.message;
+      statusEl.style.color = "#10b981";
+      showToast("✅ ML Service URL updated!");
+    } else {
+      statusEl.textContent = "❌ " + data.message;
+      statusEl.style.color = "#ef4444";
+    }
+  } catch (err) {
+    statusEl.textContent = "❌ Network error";
+    statusEl.style.color = "#ef4444";
+  }
+}
+loadMLUrl();
 </script>
 
 </body>

@@ -287,6 +287,11 @@ const PurchaseOrderSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
+const SystemSettingsSchema = new mongoose.Schema({
+  key: { type: String, unique: true },
+  value: { type: String }
+});
+
 const AgentLogSchema = new mongoose.Schema({
   storeId: { type: mongoose.Schema.Types.ObjectId, ref: "Store" },
   agent: String, action: String, details: Object,
@@ -308,6 +313,7 @@ const SecurityLog = mongoose.model("SecurityLog", SecurityLogSchema);
 const Rating = mongoose.model("Rating", RatingSchema);
 const PurchaseOrder = mongoose.model("PurchaseOrder", PurchaseOrderSchema);
 const AgentLog = mongoose.model("AgentLog", AgentLogSchema);
+const SystemSettings = mongoose.model("SystemSettings", SystemSettingsSchema);
 
 /* =========================
    HELPERS
@@ -902,7 +908,8 @@ app.post("/admin/scan-shelf", auth("admin"), upload.single("image"), async (req,
     const storeId = req.user.storeId;
     const imageBuffer = fs.readFileSync(req.file.path);
     const imageBase64 = imageBuffer.toString("base64");
-    const ML_SERVICE_URL = process.env.ML_SERVICE_URL || "http://127.0.0.1:5001";
+    const urlSetting = await SystemSettings.findOne({ key: "ML_SERVICE_URL" });
+const ML_SERVICE_URL = (urlSetting && urlSetting.value) || process.env.ML_SERVICE_URL || "http://127.0.0.1:5001";
     const mlResponse = await fetch(`${ML_SERVICE_URL}/process-shelf-image`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -939,6 +946,32 @@ app.post("/admin/scan-shelf", auth("admin"), upload.single("image"), async (req,
     console.error("Scan error:", err.message);
     res.status(500).json({ message: err.message });
   }
+});
+
+/* =========================
+   SYSTEM SETTINGS (ML URL)
+========================= */
+app.get("/admin/ml-url", auth("admin"), async (req, res) => {
+  try {
+    const setting = await SystemSettings.findOne({ key: "ML_SERVICE_URL" });
+    const url = setting ? setting.value : (process.env.ML_SERVICE_URL || "http://127.0.0.1:5001");
+    res.json({ url });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+app.post("/admin/ml-url", auth("admin"), async (req, res) => {
+  try {
+    const { url } = req.body;
+    if (!url || !url.startsWith("http")) {
+      return res.status(400).json({ message: "Invalid URL" });
+    }
+    await SystemSettings.findOneAndUpdate(
+      { key: "ML_SERVICE_URL" },
+      { key: "ML_SERVICE_URL", value: url },
+      { upsert: true, new: true }
+    );
+    res.json({ message: "ML Service URL updated successfully!" });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
 /* =========================
