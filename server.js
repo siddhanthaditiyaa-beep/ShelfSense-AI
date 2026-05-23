@@ -19,6 +19,7 @@ const mongoSanitize = require("express-mongo-sanitize");
 const xss = require("xss-clean");
 const hpp = require("hpp");
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
@@ -121,6 +122,7 @@ const signupLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 10, message: { 
 
 app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
+app.use(cookieParser());
 app.use(mongoSanitize());
 app.use(xss());
 app.use(hpp());
@@ -466,17 +468,16 @@ function auth(role) {
 ========================= */
 app.get("/auth/google", (req, res, next) => {
   const type = req.query.type || "store";
-  passport.authenticate("google", {
-    scope: ["profile", "email"],
-    state: type
-  })(req, res, next);
+  res.cookie("oauthType", type, { maxAge: 5 * 60 * 1000, httpOnly: true });
+  passport.authenticate("google", { scope: ["profile", "email"] })(req, res, next);
 });
 
 app.get("/auth/google/callback",
   passport.authenticate("google", { failureRedirect: "/login.html?error=google_failed" }),
   async (req, res) => {
     try {
-      const oauthType = req.query.state || "store";
+      const oauthType = req.cookies?.oauthType || "store";
+res.clearCookie("oauthType");
 
       // CUSTOMER FLOW
       if (oauthType === "customer") {

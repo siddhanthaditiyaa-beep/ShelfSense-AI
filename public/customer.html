@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Shop | Retail Mart AI</title>
+  <title>Shop | ShelfSense AI</title>
   <link rel="stylesheet" href="style.css">
   <script src="theme.js"></script>
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
@@ -219,7 +219,6 @@
     }
     .find-nearby-btn:hover { background: var(--warning); color: white; transform: translateY(-1px); }
 
-    /* CART SIDEBAR */
     .cart-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 500; display: none; backdrop-filter: blur(4px); }
     .cart-overlay.open { display: block; }
 
@@ -247,7 +246,6 @@
     }
     .icon-btn:hover { background: var(--danger); color: white; border-color: var(--danger); transform: none; }
 
-    /* CART TABS */
     .cart-tabs { display: flex; border-bottom: 1px solid var(--border-color); }
     .cart-tab {
       flex: 1; padding: 10px; text-align: center; font-size: 0.82rem;
@@ -275,7 +273,6 @@
     .cart-item-name { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); }
     .cart-item-price { font-size: 0.8rem; color: var(--accent); font-weight: 700; }
     .cart-item-qty { font-size: 0.75rem; color: var(--text-muted); }
-
     .cart-item-actions { display: flex; flex-direction: column; gap: 4px; }
 
     .save-later-btn {
@@ -300,9 +297,7 @@
     }
     .move-to-cart-btn:hover { background: var(--accent); color: white; transform: none; }
 
-    .cart-footer {
-      padding: 16px 20px; border-top: 1px solid var(--border-color);
-    }
+    .cart-footer { padding: 16px 20px; border-top: 1px solid var(--border-color); }
 
     .cart-summary { margin-bottom: 12px; }
     .cart-summary-row { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 6px; }
@@ -326,7 +321,6 @@
     .checkout-btn:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
     .checkout-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
-    /* ORDER HISTORY */
     .order-card {
       background: var(--bg-card); border: 1px solid var(--border-color);
       border-radius: 14px; padding: 18px; margin-bottom: 14px;
@@ -342,7 +336,6 @@
     .order-footer { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-secondary); }
     .order-amount { font-weight: 700; color: var(--success); }
 
-    /* WISHLIST */
     .wishlist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
     .wishlist-item { background: var(--bg-card); border: 1px solid var(--danger); border-radius: 14px; padding: 16px; text-align: center; transition: all 0.3s; animation: fadeInUp 0.4s ease both; }
     .wishlist-item:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
@@ -351,43 +344,34 @@
     .wi-price { font-size: 0.95rem; font-weight: 700; color: var(--accent); margin-bottom: 4px; }
     .wi-stock { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px; }
 
-    /* PRODUCT MODAL */
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.6);
       z-index: 600; display: none; align-items: center;
       justify-content: center; backdrop-filter: blur(6px); padding: 20px;
     }
     .modal-overlay.open { display: flex; }
-
     .modal-wrapper { position: relative; width: 100%; max-width: 500px; }
-
     .modal {
       background: var(--bg-card); border: 1px solid var(--border-color);
       border-radius: 20px; overflow: hidden; box-shadow: var(--shadow-lg);
       animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
-
     @keyframes modalIn { from { opacity: 0; transform: scale(0.85) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-
     .modal-emoji-header { background: var(--accent-light); padding: 28px; text-align: center; font-size: 3.5rem; }
     .modal-body { padding: 22px; }
     .modal-name { font-size: 1.3rem; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
     .modal-price { font-size: 1.4rem; font-weight: 700; color: var(--accent); margin-bottom: 8px; }
     .modal-desc { font-size: 0.875rem; color: var(--text-muted); margin-bottom: 14px; }
-
     .interactive-stars { display: flex; gap: 4px; }
     .star { font-size: 1.4rem; cursor: pointer; transition: transform 0.15s; filter: grayscale(1); opacity: 0.4; }
     .star:hover, .star.active { filter: grayscale(0); opacity: 1; transform: scale(1.2); }
     .star.filled { filter: grayscale(0); opacity: 1; }
-
     .modal-stock-bar { height: 8px; background: var(--bg-tertiary); border-radius: 4px; overflow: hidden; margin: 8px 0; }
     .modal-stock-fill { height: 100%; border-radius: 4px; transition: width 0.8s ease; }
-
     .modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
     .modal-actions button { padding: 11px; border-radius: 10px; font-weight: 600; font-size: 0.875rem; cursor: pointer; border: none; transition: all 0.2s; }
     .modal-actions button:hover { transform: translateY(-1px); }
     .modal-buy-now { grid-column: 1 / -1; background: var(--warning) !important; color: white !important; }
-
     .modal-close-btn {
       position: absolute; top: 10px; right: 10px;
       width: 30px; height: 30px; border-radius: 50%;
@@ -396,7 +380,6 @@
       display: flex; align-items: center; justify-content: center; padding: 0;
     }
 
-    /* NEARBY MODAL */
     .nearby-modal {
       background: var(--bg-card); border: 1px solid var(--border-color);
       border-radius: 20px; width: 100%; max-width: 460px;
@@ -406,26 +389,21 @@
     .nearby-modal-header { padding: 18px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
     .nearby-modal-header h2 { font-size: 1rem; font-weight: 700; color: var(--text-primary); }
     .nearby-modal-body { padding: 16px; }
-
     .franchise-result { background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; }
     .franchise-result:hover { border-color: var(--accent); transform: translateX(4px); }
     .franchise-result h3 { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); }
     .franchise-result p { font-size: 0.78rem; color: var(--text-muted); margin-top: 3px; }
     .dist-badge { background: var(--info-bg); color: var(--info-text); padding: 5px 12px; border-radius: 20px; font-weight: 700; font-size: 0.82rem; white-space: nowrap; }
 
-    /* TOAST */
     #toast { position: fixed; bottom: 80px; right: 24px; padding: 12px 18px; border-radius: 12px; font-weight: 600; font-size: 0.85rem; display: none; z-index: 9999; max-width: 300px; box-shadow: var(--shadow-lg); }
 
-    /* SETTINGS FAB */
     .settings-fab { position: fixed; bottom: 24px; right: 24px; width: 44px; height: 44px; border-radius: 50%; background: var(--accent); color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; box-shadow: var(--shadow-lg); z-index: 1000; transition: all 0.3s; padding: 0; }
     .settings-fab:hover { transform: scale(1.1) rotate(30deg); }
-
     .settings-panel { position: fixed; bottom: 80px; right: 24px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; width: 220px; box-shadow: 0 8px 32px rgba(0,0,0,0.15); z-index: 999; display: none; }
     [data-theme="dark"] .settings-panel { background: #1e293b; border-color: rgba(255,255,255,0.1); }
     .settings-panel.open { display: block; }
     .settings-panel h3 { font-size: 0.9rem; font-weight: 600; color: #0f172a; margin-bottom: 14px; }
     [data-theme="dark"] .settings-panel h3 { color: rgba(255,255,255,0.9); }
-
     .theme-option { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: all 0.2s; margin-bottom: 6px; border: 1px solid transparent; font-size: 0.875rem; font-weight: 500; color: #0f172a; background: transparent; width: 100%; text-align: left; }
     [data-theme="dark"] .theme-option { color: rgba(255,255,255,0.85); }
     .theme-option:hover { background: #f1f5f9; transform: none; }
@@ -450,7 +428,7 @@
 
 <!-- HEADER -->
 <div class="shop-header">
-  <div class="shop-logo">🏪 Retail Mart</div>
+  <div class="shop-logo">🧠 ShelfSense AI</div>
   <div class="header-actions">
     <button class="header-btn" onclick="showMainTab('wishlist', this)">
       ❤️ Wishlist
@@ -488,7 +466,6 @@
     <div class="section-title">⭐ Recommended for You</div>
     <div class="recommended-scroll" id="recommendedScroll"></div>
   </div>
-
   <div class="filter-tabs">
     <button class="filter-tab active" onclick="filterByStatus('all', this)">All</button>
     <button class="filter-tab" onclick="filterByStatus('available', this)">✅ Available</button>
@@ -497,7 +474,6 @@
     <button class="filter-tab" onclick="filterByStatus('top-rated', this)">⭐ Top Rated</button>
     <button class="filter-tab" onclick="filterByStatus('wishlisted', this)">❤️ Wishlisted</button>
   </div>
-
   <div class="product-grid" id="productGrid">
     <div class="loading" style="grid-column:1/-1">
       <span class="loading-spinner">⏳</span> Loading products...
@@ -524,35 +500,24 @@
     <h2>🛒 Your Cart</h2>
     <button class="icon-btn" onclick="toggleCart()">✕</button>
   </div>
-
-  <!-- Cart Tabs -->
   <div class="cart-tabs">
     <button class="cart-tab active" onclick="switchCartTab('cart', this)">🛒 Cart (<span id="cartTabCount">0</span>)</button>
     <button class="cart-tab" onclick="switchCartTab('saved', this)">🔖 Saved (<span id="savedTabCount">0</span>)</button>
   </div>
-
-  <!-- Cart Items Panel -->
   <div class="cart-panel active" id="cartPanel">
     <div id="cartItems">
       <div class="cart-empty"><div class="cart-empty-icon">🛒</div><p>Your cart is empty</p></div>
     </div>
   </div>
-
-  <!-- Saved for Later Panel -->
   <div class="cart-panel" id="savedPanel">
     <div id="savedItems">
       <div class="cart-empty"><div class="cart-empty-icon">🔖</div><p>No saved items</p></div>
     </div>
   </div>
-
   <div class="cart-footer">
     <div class="cart-summary" id="cartSummary"></div>
-    <button class="pay-btn" id="payBtn" onclick="initiatePayment()" disabled>
-      💳 Pay with Razorpay
-    </button>
-    <button class="checkout-btn" id="checkoutBtn" onclick="checkout()" disabled>
-      Place Order (Free / Test)
-    </button>
+    <button class="pay-btn" id="payBtn" onclick="initiatePayment()" disabled>💳 Pay with Razorpay</button>
+    <button class="checkout-btn" id="checkoutBtn" onclick="checkout()" disabled>Place Order (Free / Test)</button>
   </div>
 </div>
 
@@ -587,7 +552,7 @@
 <div id="toast"></div>
 
 <script>
-// Handle Google OAuth redirect token
+/* ===== AUTH — Handle Google OAuth token + role check ===== */
 const urlParams = new URLSearchParams(window.location.search);
 const oauthToken = urlParams.get("token");
 if (oauthToken) {
@@ -596,19 +561,11 @@ if (oauthToken) {
   window.history.replaceState({}, document.title, "/customer.html");
 }
 
-// Handle Google OAuth redirect token
-const urlParams = new URLSearchParams(window.location.search);
-const oauthToken = urlParams.get("token");
-if (oauthToken) {
-  localStorage.setItem("token", oauthToken);
-  localStorage.setItem("role", "admin");
-  window.history.replaceState({}, document.title, "/admin.html");
-}
-
 const token = localStorage.getItem("token");
 const role = localStorage.getItem("role");
-if (!token || role !== "admin") window.location.href = "login.html";
+if (!token || role !== "customer") window.location.href = "login.html?tab=customer";
 
+/* ===== USER INFO ===== */
 function parseJwt(t) {
   try { return JSON.parse(atob(t.split('.')[1])); } catch(e) { return {}; }
 }
@@ -667,7 +624,7 @@ async function loadProducts() {
       fetch("/shop-items", { headers: { Authorization: token } }),
       fetch("/my-ratings", { headers: { Authorization: token } })
     ]);
-    if (!pRes.ok) { if (pRes.status === 401) { window.location.href = "login.html"; return; } }
+    if (!pRes.ok) { if (pRes.status === 401) { window.location.href = "login.html?tab=customer"; return; } }
     allProducts = await pRes.json();
     myRatings = await rRes.json();
     renderProducts();
@@ -685,9 +642,7 @@ function renderRecommended() {
     .filter(([k, i]) => i.stock > 0)
     .sort((a, b) => (b[1].avgRating || 0) - (a[1].avgRating || 0))
     .slice(0, 6);
-
   if (!recommended.length) { document.getElementById("recommendedSection").style.display = "none"; return; }
-
   scroll.innerHTML = recommended.map(([key, item]) => `
     <div class="recommended-card" onclick="openProductModal('${key}')">
       <div class="rec-emoji">${EMOJIS[key] || EMOJIS.default}</div>
@@ -702,7 +657,6 @@ function renderRecommended() {
 function renderProducts() {
   const grid = document.getElementById("productGrid");
   const search = currentSearch.toLowerCase();
-
   let filtered = Object.entries(allProducts).filter(([key, item]) => {
     const matchSearch = item.name.toLowerCase().includes(search) || key.includes(search);
     const matchFilter =
@@ -714,29 +668,24 @@ function renderProducts() {
       (currentFilter === "wishlisted" && wishlist.includes(key));
     return matchSearch && matchFilter;
   });
-
   if (!filtered.length) {
     grid.innerHTML = `<div style="grid-column:1/-1" class="empty-state"><span class="empty-icon">🔍</span><p>No products found</p></div>`;
     return;
   }
-
   grid.innerHTML = filtered.map(([key, item], idx) => {
     const emoji = EMOJIS[key] || EMOJIS.default;
     const qty = cart[key] || 0;
     const stockPct = Math.min((item.stock / 15) * 100, 100);
     const stockColor = item.stock === 0 ? "var(--danger)" : item.stock <= 3 ? "var(--warning)" : "var(--success)";
     const isWishlisted = wishlist.includes(key);
-
     let badge = item.stock === 0
       ? `<span class="stock-badge" style="background:var(--danger-bg);color:var(--danger-text)">❌ Out of Stock</span>`
       : item.stock <= 3
       ? `<span class="stock-badge" style="background:var(--warning-bg);color:var(--warning-text)">⚠️ Only ${item.stock} left!</span>`
       : `<span class="stock-badge" style="background:var(--success-bg);color:var(--success-text)">✅ In Stock</span>`;
-
     return `
       <div class="product-card ${item.stock === 0 ? 'out-of-stock' : ''} ${isWishlisted ? 'wishlisted' : ''}"
-           style="animation-delay:${idx * 0.05}s"
-           onclick="openProductModal('${key}')">
+           style="animation-delay:${idx * 0.05}s" onclick="openProductModal('${key}')">
         <div class="product-emoji-box">
           ${emoji}
           <button class="wishlist-btn ${isWishlisted ? 'active' : ''}"
@@ -745,13 +694,12 @@ function renderProducts() {
         <div class="product-info">
           <div class="product-name">${item.name}</div>
           <div class="product-price">
-  ${item.onSale
-    ? `<span style="text-decoration:line-through;color:var(--text-muted);font-size:0.85rem">₹${item.price}</span>
-       <span style="color:var(--danger);margin-left:6px">₹${item.salePrice}</span>
-       <span style="background:var(--danger);color:white;padding:2px 6px;border-radius:4px;font-size:0.7rem;margin-left:4px">${item.salePercent}% OFF</span>`
-    : `₹${item.price || 99}`
-  }
-</div>
+            ${item.onSale
+              ? `<span style="text-decoration:line-through;color:var(--text-muted);font-size:0.85rem">₹${item.price}</span>
+                 <span style="color:var(--danger);margin-left:6px">₹${item.salePrice}</span>
+                 <span style="background:var(--danger);color:white;padding:2px 6px;border-radius:4px;font-size:0.7rem;margin-left:4px">${item.salePercent}% OFF</span>`
+              : `₹${item.price || 99}`}
+          </div>
           <div class="star-rating">
             <span class="stars">${renderStars(item.avgRating || 0)}</span>
             <span class="rating-count">${item.totalRatings ? `(${item.totalRatings})` : 'No ratings'}</span>
@@ -761,7 +709,6 @@ function renderProducts() {
             <div class="product-stock-fill" style="width:${stockPct}%;background:${stockColor}"></div>
           </div>
           <div class="product-stock-text">${item.stock} units available</div>
-
           ${item.stock > 0 ? `
             <div class="qty-control" onclick="event.stopPropagation()">
               <button class="qty-btn" onclick="changeQty('${key}', -1)">−</button>
@@ -783,8 +730,7 @@ function renderProducts() {
             </button>
           `}
         </div>
-      </div>
-    `;
+      </div>`;
   }).join("");
 }
 
@@ -801,19 +747,17 @@ function openProductModal(key) {
   const item = allProducts[key];
   if (!item) return;
   const emoji = EMOJIS[key] || EMOJIS.default;
-  const desc = DESCRIPTIONS[key] || "A great product from Retail Mart";
+  const desc = DESCRIPTIONS[key] || "A great product from ShelfSense AI";
   const stockPct = Math.min((item.stock / 15) * 100, 100);
   const stockColor = item.stock === 0 ? "var(--danger)" : item.stock <= 3 ? "var(--warning)" : "var(--success)";
   const myRating = myRatings[key] || 0;
   const isWishlisted = wishlist.includes(key);
-
   document.getElementById("modalContent").innerHTML = `
     <div class="modal-emoji-header">${emoji}</div>
     <div class="modal-body">
       <div class="modal-name">${item.name}</div>
       <div class="modal-price">₹${item.price || 99}</div>
       <div class="modal-desc">${desc}</div>
-
       <div style="margin-bottom:14px">
         <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:4px">
           Avg: <strong>${item.avgRating ? item.avgRating.toFixed(1) + "⭐" : "No ratings yet"}</strong>
@@ -829,13 +773,11 @@ function openProductModal(key) {
           `).join("")}
         </div>
       </div>
-
       <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:4px">Stock Level</div>
       <div class="modal-stock-bar">
         <div class="modal-stock-fill" style="width:${stockPct}%;background:${stockColor}"></div>
       </div>
       <div style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:16px">${item.stock} units available</div>
-
       ${item.stock > 0 ? `
         <div class="modal-actions">
           <button style="background:var(--accent);color:white"
@@ -857,9 +799,7 @@ function openProductModal(key) {
           📍 Find Nearby Store
         </button>
       `}
-    </div>
-  `;
-
+    </div>`;
   document.getElementById("productModal").classList.add("open");
 }
 
@@ -924,8 +864,6 @@ function addToCart(key, name) {
 function buyNow(key, name, stock) {
   const item = allProducts[key];
   if (!item || item.stock === 0) return;
-
-  // Create a single-item cart for Buy Now
   const buyNowCart = { [key]: 1 };
   initiatePayment(buyNowCart);
 }
@@ -936,8 +874,7 @@ function saveForLater(key) {
   savedForLater[key] = qty;
   delete cart[key];
   localStorage.setItem("rm-saved", JSON.stringify(savedForLater));
-  renderProducts();
-  updateCartUI();
+  renderProducts(); updateCartUI();
   showToast("Saved for later 🔖");
 }
 
@@ -970,12 +907,10 @@ function toggleWishlist(key) {
 function renderWishlist() {
   const grid = document.getElementById("wishlistGrid");
   document.getElementById("wishlistCount").innerText = wishlist.length;
-
   if (!wishlist.length) {
     grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><span class="empty-icon">❤️</span><p>Your wishlist is empty</p><p style="font-size:0.8rem;margin-top:4px">Click ❤️ on any product to save it</p></div>`;
     return;
   }
-
   grid.innerHTML = wishlist.map(key => {
     const item = allProducts[key];
     if (!item) return "";
@@ -987,12 +922,10 @@ function renderWishlist() {
         <div class="wi-stock">${item.stock > 0 ? `${item.stock} in stock` : "Out of stock"}</div>
         ${item.stock > 0
           ? `<button class="add-to-cart-btn" onclick="addToCart('${key}', '${item.name}')">🛒 Add to Cart</button>`
-          : `<button class="find-nearby-btn" onclick="findNearby('${key}', '${item.name}')">📍 Find Nearby</button>`
-        }
+          : `<button class="find-nearby-btn" onclick="findNearby('${key}', '${item.name}')">📍 Find Nearby</button>`}
         <button style="margin-top:8px;width:100%;padding:6px;border-radius:8px;background:var(--danger-bg);color:var(--danger-text);border:1px solid var(--danger);font-size:0.78rem;font-weight:600;cursor:pointer"
           onclick="toggleWishlist('${key}')">Remove ✕</button>
-      </div>
-    `;
+      </div>`;
   }).join("");
 }
 
@@ -1002,19 +935,15 @@ function updateCartUI() {
   const savedEntries = Object.entries(savedForLater);
   const totalItems = Object.values(cart).reduce((a, b) => a + b, 0);
   let totalAmount = 0;
-
   cartEntries.forEach(([key, qty]) => {
     const item = allProducts[key];
     if (item) totalAmount += (item.price || 99) * qty;
   });
-
   document.getElementById("cartCount").innerText = totalItems;
   document.getElementById("cartTabCount").innerText = totalItems;
   document.getElementById("savedTabCount").innerText = savedEntries.length;
   document.getElementById("payBtn").disabled = totalItems === 0;
   document.getElementById("checkoutBtn").disabled = totalItems === 0;
-
-  // Cart items
   const cartItemsEl = document.getElementById("cartItems");
   if (!cartEntries.length) {
     cartItemsEl.innerHTML = `<div class="cart-empty"><div class="cart-empty-icon">🛒</div><p>Your cart is empty</p></div>`;
@@ -1034,12 +963,9 @@ function updateCartUI() {
             <button class="icon-btn" onclick="removeFromCart('${key}')">✕</button>
             <button class="save-later-btn" onclick="saveForLater('${key}')">🔖 Save</button>
           </div>
-        </div>
-      `;
+        </div>`;
     }).join("");
   }
-
-  // Saved items
   const savedItemsEl = document.getElementById("savedItems");
   if (!savedEntries.length) {
     savedItemsEl.innerHTML = `<div class="cart-empty"><div class="cart-empty-icon">🔖</div><p>No saved items</p></div>`;
@@ -1059,12 +985,9 @@ function updateCartUI() {
             <button class="move-to-cart-btn" onclick="moveToCart('${key}')">→ Cart</button>
             <button class="icon-btn" onclick="removeSaved('${key}')">✕</button>
           </div>
-        </div>
-      `;
+        </div>`;
     }).join("");
   }
-
-  // Summary
   document.getElementById("cartSummary").innerHTML = totalItems > 0 ? `
     <div class="cart-summary-row"><span>Items (${totalItems})</span><span>₹${totalAmount}</span></div>
     <div class="cart-summary-row"><span>Delivery</span><span style="color:var(--success)">FREE</span></div>
@@ -1074,8 +997,7 @@ function updateCartUI() {
 
 function removeFromCart(key) {
   delete cart[key];
-  renderProducts();
-  updateCartUI();
+  renderProducts(); updateCartUI();
   showToast("Item removed");
 }
 
@@ -1084,34 +1006,29 @@ function toggleCart() {
   document.getElementById("cartSidebar").classList.toggle("open");
 }
 
-/* ===== RAZORPAY PAYMENT ===== */
+/* ===== RAZORPAY ===== */
 async function initiatePayment(buyNowCart = null) {
   const cartToUse = buyNowCart || cart;
   if (!Object.keys(cartToUse).length) return;
-
   const btn = document.getElementById("payBtn");
   btn.innerText = "⏳ Loading...";
   btn.disabled = true;
-
   try {
     const res = await fetch("/create-payment-order", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: token },
       body: JSON.stringify({ cart: cartToUse })
     });
-
     const orderData = await res.json();
     if (!res.ok) throw new Error(orderData.message);
-
     const options = {
       key: orderData.keyId,
       amount: orderData.amount,
       currency: orderData.currency,
-      name: "Retail Mart AI",
-      description: "Purchase from Retail Mart",
+      name: "ShelfSense AI",
+      description: "Purchase from ShelfSense AI",
       order_id: orderData.orderId,
       handler: async function(response) {
-        // Payment successful — verify on backend
         try {
           const verifyRes = await fetch("/verify-payment", {
             method: "POST",
@@ -1123,46 +1040,20 @@ async function initiatePayment(buyNowCart = null) {
               cart: cartToUse
             })
           });
-
           const verifyData = await verifyRes.json();
           if (!verifyRes.ok) throw new Error(verifyData.message);
-
-          // Clear cart if not buy now
-          if (!buyNowCart) {
-            cart = {};
-            renderProducts();
-            updateCartUI();
-            toggleCart();
-          }
-
+          if (!buyNowCart) { cart = {}; renderProducts(); updateCartUI(); toggleCart(); }
           loadProducts();
           showToast("✅ Payment successful! Order placed.", "success");
-
-        } catch (err) {
-          showToast("Payment verification failed: " + err.message, "error");
-        }
+        } catch (err) { showToast("Payment verification failed: " + err.message, "error"); }
       },
-      prefill: {
-        name: fname,
-        email: userData.email || ""
-      },
-      theme: {
-        color: "#6366f1"
-      },
-      modal: {
-        ondismiss: function() {
-          showToast("Payment cancelled", "warning");
-        }
-      }
+      prefill: { name: fname, email: userData.email || "" },
+      theme: { color: "#6366f1" },
+      modal: { ondismiss: function() { showToast("Payment cancelled", "warning"); } }
     };
-
     const rzp = new Razorpay(options);
     rzp.open();
-
-  } catch (err) {
-    showToast("Failed to initiate payment: " + err.message, "error");
-  }
-
+  } catch (err) { showToast("Failed to initiate payment: " + err.message, "error"); }
   btn.innerText = "💳 Pay with Razorpay";
   btn.disabled = false;
 }
@@ -1173,7 +1064,6 @@ async function checkout() {
   const btn = document.getElementById("checkoutBtn");
   btn.innerText = "⏳ Placing...";
   btn.disabled = true;
-
   try {
     const res = await fetch("/checkout", {
       method: "POST",
@@ -1185,10 +1075,7 @@ async function checkout() {
     cart = {};
     renderProducts(); updateCartUI(); toggleCart(); loadProducts();
     showToast(data.notices?.length ? `Order placed! Note: ${data.notices.join(", ")}` : "✅ Order placed!", data.notices?.length ? "warning" : "success");
-  } catch (err) {
-    showToast("Order failed: " + err.message, "error");
-  }
-
+  } catch (err) { showToast("Order failed: " + err.message, "error"); }
   btn.innerText = "Place Order (Free / Test)";
   btn.disabled = false;
 }
@@ -1197,16 +1084,13 @@ async function checkout() {
 async function loadOrders() {
   const el = document.getElementById("orderHistory");
   el.innerHTML = `<div class="loading"><span class="loading-spinner">⏳</span></div>`;
-
   try {
     const res = await fetch("/my-orders", { headers: { Authorization: token } });
     const orders = await res.json();
-
     if (!orders.length) {
       el.innerHTML = `<div class="empty-state"><span class="empty-icon">📦</span><p>No orders yet</p><p style="font-size:0.8rem;margin-top:4px">Start shopping!</p></div>`;
       return;
     }
-
     el.innerHTML = orders.map((order, idx) => {
       const items = Object.entries(order.cart || {});
       return `
@@ -1220,15 +1104,13 @@ async function loadOrders() {
             ${items.map(([key, qty]) => `
               <div class="order-item-tag">
                 ${EMOJIS[key] || "🛍️"} ${order.itemNames?.[key] || key} × ${qty}
-              </div>
-            `).join("")}
+              </div>`).join("")}
           </div>
           <div class="order-footer">
             <span>${order.totalItems || items.reduce((a,[,q]) => a+q, 0)} items</span>
             <span class="order-amount">₹${order.totalAmount || "—"}</span>
           </div>
-        </div>
-      `;
+        </div>`;
     }).join("");
   } catch (err) {
     el.innerHTML = `<p style="color:var(--danger-text)">Failed to load orders</p>`;
@@ -1253,19 +1135,13 @@ async function findNearby(key, name) {
   document.getElementById("nearbyTitle").innerText = `📍 Stores with ${name}`;
   document.getElementById("nearbyContent").innerHTML = "⏳ Finding nearby stores...";
   document.getElementById("nearbyModal").classList.add("open");
-
   try {
-    const res = await fetch(`/nearby-franchises?product=${key}&lat=19.0760&lng=72.8777`, {
-      headers: { Authorization: token }
-    });
+    const res = await fetch(`/nearby-franchises?product=${key}&lat=19.0760&lng=72.8777`, { headers: { Authorization: token } });
     const results = await res.json();
-
     if (!results.length) {
-      document.getElementById("nearbyContent").innerHTML =
-        `<p style="color:var(--text-muted);text-align:center;padding:20px">No nearby stores have ${name} in stock.</p>`;
+      document.getElementById("nearbyContent").innerHTML = `<p style="color:var(--text-muted);text-align:center;padding:20px">No nearby stores have ${name} in stock.</p>`;
       return;
     }
-
     document.getElementById("nearbyContent").innerHTML = results.map(f => `
       <div class="franchise-result">
         <div>
@@ -1274,8 +1150,7 @@ async function findNearby(key, name) {
           <p style="color:var(--success);margin-top:3px;font-size:0.78rem">📦 ${f.stock} units in stock</p>
         </div>
         <div class="dist-badge">${f.distance} km</div>
-      </div>
-    `).join("");
+      </div>`).join("");
   } catch (err) {
     document.getElementById("nearbyContent").innerHTML = `<p style="color:var(--danger-text)">Failed to find nearby stores.</p>`;
   }
@@ -1301,7 +1176,7 @@ async function logout() {
   window.location.href = "login.html";
 }
 
-/* ===== CLOSE MODALS ON OVERLAY CLICK ===== */
+/* ===== CLOSE MODALS ===== */
 document.getElementById("productModal").addEventListener("click", function(e) { if (e.target === this) closeProductModal(); });
 document.getElementById("nearbyModal").addEventListener("click", function(e) { if (e.target === this) closeNearbyModal(); });
 
@@ -1309,7 +1184,6 @@ document.getElementById("nearbyModal").addEventListener("click", function(e) { i
 loadProducts();
 renderWishlist();
 
-// Silent background refresh — updates data without re-rendering visible UI
 setInterval(async () => {
   try {
     const [pRes, rRes] = await Promise.all([
@@ -1319,8 +1193,6 @@ setInterval(async () => {
     if (!pRes.ok) return;
     const newProducts = await pRes.json();
     const newRatings = await rRes.json();
-
-    // Only re-render if data actually changed
     if (JSON.stringify(newProducts) !== JSON.stringify(allProducts) ||
         JSON.stringify(newRatings) !== JSON.stringify(myRatings)) {
       allProducts = newProducts;
@@ -1329,9 +1201,8 @@ setInterval(async () => {
       renderRecommended();
       updateCartUI();
     }
-  } catch (err) {
-    // Silent fail — don't show error to user
-  }
-}, 30000);</script>
+  } catch (err) { /* Silent fail */ }
+}, 30000);
+</script>
 </body>
 </html>
