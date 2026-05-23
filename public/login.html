@@ -325,15 +325,6 @@
   if (existingToken && existingRole === "customer") window.location.href = "customer.html";
 
   const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.get("error")) {
-  const errorEl = document.getElementById("errorMsg");
-  errorEl.innerText = "Google login failed. Please try again or use email.";
-  errorEl.style.display = "block";
-}
-// Auto switch to customer tab if redirected from customer registration
-if (urlParams.get("tab") === "customer") {
-  switchTab("customer");
-}
 
   let currentTab = "store";
 

@@ -174,25 +174,21 @@
       </div>
 
       <div class="form-group">
-        <label>Password</label>
-        <div class="pw-wrapper">
-          <input type="password" id="password" placeholder="At least 6 characters">
-          <button type="button" class="pw-toggle" onclick="togglePassword('password','eye1')">
-            <span id="eye1">👁️</span>
-          </button>
-        </div>
-      </div>
+  <label>Password</label>
+  <div class="pw-wrapper">
+    <input type="password" id="password" placeholder="At least 6 characters">
+    <button type="button" class="pw-toggle" onclick="toggleBothPasswords()">
+      <span id="eyeToggle">👁️</span>
+    </button>
+  </div>
+</div>
 
-      <div class="form-group">
-        <label>Confirm Password</label>
-        <div class="pw-wrapper">
-          <input type="password" id="confirmPassword" placeholder="Repeat your password">
-          <button type="button" class="pw-toggle" onclick="togglePassword('confirmPassword','eye2')">
-            <span id="eye2">👁️</span>
-          </button>
-        </div>
-      </div>
-
+<div class="form-group">
+  <label>Confirm Password</label>
+  <div class="pw-wrapper">
+    <input type="password" id="confirmPassword" placeholder="Repeat your password">
+  </div>
+</div>
       <button class="submit-btn" id="signupBtn" onclick="signup()">
         Create Account
       </button>
@@ -208,15 +204,15 @@
 </div>
 
 <script>
-  function togglePassword(inputId, eyeId) {
-    const input = document.getElementById(inputId);
-    const eye = document.getElementById(eyeId);
-    if (input.type === "password") {
-      input.type = "text"; eye.innerText = "🙈";
-    } else {
-      input.type = "password"; eye.innerText = "👁️";
-    }
-  }
+  function toggleBothPasswords() {
+  const password = document.getElementById("password");
+  const confirmPassword = document.getElementById("confirmPassword");
+  const eye = document.getElementById("eyeToggle");
+  const isHidden = password.type === "password";
+  password.type = isHidden ? "text" : "password";
+  confirmPassword.type = isHidden ? "text" : "password";
+  eye.innerText = isHidden ? "🙈" : "👁️";
+}
 
   async function signup() {
     const fname = document.getElementById("fname").value.trim();
