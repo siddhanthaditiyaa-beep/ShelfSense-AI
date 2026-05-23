@@ -422,6 +422,69 @@
       .cart-sidebar { width: 100%; }
       .product-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
     }
+    .customer-avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #a78bfa);
+  color: white; display: flex; align-items: center;
+  justify-content: center; font-size: 0.85rem; font-weight: 700;
+  cursor: pointer; border: 2px solid rgba(255,255,255,0.2);
+  transition: all 0.2s; flex-shrink: 0; user-select: none;
+}
+.customer-avatar:hover { transform: scale(1.1); border-color: rgba(255,255,255,0.5); }
+
+.cpp-overlay {
+  position: fixed; inset: 0; z-index: 2000; display: none;
+}
+.cpp-overlay.open { display: block; }
+
+.customer-profile-panel {
+  position: fixed; top: 58px; right: 16px; width: 280px;
+  background: var(--bg-secondary); border: 1px solid var(--border-color);
+  border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  z-index: 2001; display: none; flex-direction: column;
+  overflow: hidden;
+}
+.customer-profile-panel.open {
+  display: flex;
+  animation: slideDown 0.2s ease;
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.cpp-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 16px; border-bottom: 1px solid var(--border-color);
+}
+.cpp-big-avatar {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #a78bfa);
+  color: white; display: flex; align-items: center;
+  justify-content: center; font-size: 1rem; font-weight: 700;
+  flex-shrink: 0;
+}
+.cpp-info { flex: 1; min-width: 0; }
+.cpp-name { font-size: 0.9rem; font-weight: 700; color: var(--text-primary); }
+.cpp-email {
+  font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.cpp-close {
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 1px solid var(--border-color); background: var(--bg-input);
+  color: var(--text-muted); font-size: 0.72rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0; flex-shrink: 0; transition: all 0.2s;
+}
+.cpp-close:hover { background: var(--danger); color: white; border-color: var(--danger); transform: none; }
+.cpp-footer { padding: 12px 16px; }
+.cpp-logout {
+  width: 100%; padding: 10px; border-radius: 8px;
+  background: var(--danger-bg); color: var(--danger-text);
+  border: 1px solid var(--danger); font-size: 0.875rem;
+  font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: center;
+}
+.cpp-logout:hover { background: var(--danger); color: white; transform: none; }
   </style>
 </head>
 <body>
@@ -438,7 +501,22 @@
     <button class="header-btn cart-btn" onclick="toggleCart()">
       🛒 Cart <div class="cart-count" id="cartCount">0</div>
     </button>
-    <button class="header-btn logout-btn" onclick="logout()">Logout</button>
+    <div class="customer-avatar" id="customerAvatar" onclick="toggleCustomerProfile()">P</div>
+
+<div class="cpp-overlay" id="cppOverlay" onclick="toggleCustomerProfile()"></div>
+<div class="customer-profile-panel" id="customerProfilePanel">
+  <div class="cpp-header">
+    <div class="cpp-big-avatar" id="cppBigAvatar">P</div>
+    <div class="cpp-info">
+      <div class="cpp-name" id="cppName">Loading...</div>
+      <div class="cpp-email" id="cppEmail">loading...</div>
+    </div>
+    <button class="cpp-close" onclick="toggleCustomerProfile()">✕</button>
+  </div>
+  <div class="cpp-footer">
+    <button class="cpp-logout" onclick="logout()">🚪 Logout from ShelfSense AI</button>
+  </div>
+</div>
   </div>
 </div>
 
@@ -1179,6 +1257,31 @@ async function logout() {
 /* ===== CLOSE MODALS ===== */
 document.getElementById("productModal").addEventListener("click", function(e) { if (e.target === this) closeProductModal(); });
 document.getElementById("nearbyModal").addEventListener("click", function(e) { if (e.target === this) closeNearbyModal(); });
+
+/* ===== CUSTOMER PROFILE BUBBLE ===== */
+function toggleCustomerProfile() {
+  const panel = document.getElementById("customerProfilePanel");
+  const overlay = document.getElementById("cppOverlay");
+  const isOpen = panel.classList.contains("open");
+  if (isOpen) {
+    panel.classList.remove("open");
+    overlay.classList.remove("open");
+  } else {
+    const initials = (fname || "?").charAt(0).toUpperCase();
+    document.getElementById("customerAvatar").innerText = initials;
+    document.getElementById("cppBigAvatar").innerText = initials;
+    document.getElementById("cppName").innerText = fname || "Customer";
+    document.getElementById("cppEmail").innerText = userData.email || "";
+    panel.classList.add("open");
+    overlay.classList.add("open");
+  }
+}
+
+// Set initial on page load
+document.addEventListener("DOMContentLoaded", () => {
+  const initials = (fname || "?").charAt(0).toUpperCase();
+  document.getElementById("customerAvatar").innerText = initials;
+});
 
 /* ===== INIT ===== */
 loadProducts();
