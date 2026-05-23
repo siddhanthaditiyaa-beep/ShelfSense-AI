@@ -360,7 +360,9 @@
   }
 
   function loginWithGoogle() { window.location.href = "/auth/google"; }
-  function loginCustomerWithGoogle() { window.location.href = "/auth/google"; }
+  function loginCustomerWithGoogle() {
+  window.location.href = "/auth/google?type=customer";
+}
 
   function fillDemo(email, password) {
     document.getElementById("storeEmail").value = email;
@@ -456,16 +458,33 @@
   }
 
   async function submitForgotPassword() {
-    const email = document.getElementById("forgotEmail").value.trim();
-    const errorEl = document.getElementById("forgotError");
-    const successEl = document.getElementById("forgotSuccess");
-    errorEl.style.display = "none";
-    successEl.style.display = "none";
-    if (!email) { errorEl.innerText = "Please enter your email address"; errorEl.style.display = "block"; return; }
+  const email = document.getElementById("forgotEmail").value.trim();
+  const errorEl = document.getElementById("forgotError");
+  const successEl = document.getElementById("forgotSuccess");
+  errorEl.style.display = "none";
+  successEl.style.display = "none";
+
+  if (!email) {
+    errorEl.innerText = "Please enter your email address";
+    errorEl.style.display = "block";
+    return;
+  }
+
+  try {
+    const res = await fetch("/forgot-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
     successEl.innerText = "✅ If this email is registered, a reset link has been sent. Check your inbox!";
     successEl.style.display = "block";
     document.getElementById("forgotEmail").value = "";
+  } catch (err) {
+    errorEl.innerText = "Server error. Please try again.";
+    errorEl.style.display = "block";
   }
+}
 
   document.getElementById("forgotModal").addEventListener("click", function(e) {
     if (e.target === this) closeForgotPassword();

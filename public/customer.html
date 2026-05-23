@@ -587,6 +587,15 @@
 <div id="toast"></div>
 
 <script>
+// Handle Google OAuth redirect token
+const urlParams = new URLSearchParams(window.location.search);
+const oauthToken = urlParams.get("token");
+if (oauthToken) {
+  localStorage.setItem("token", oauthToken);
+  localStorage.setItem("role", "customer");
+  window.history.replaceState({}, document.title, "/customer.html");
+}
+
 const token = localStorage.getItem("token");
 const role = localStorage.getItem("role");
 if (!token || role !== "customer") window.location.href = "login.html";

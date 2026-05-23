@@ -464,12 +464,54 @@ function auth(role) {
 /* =========================
    GOOGLE OAUTH ROUTES
 ========================= */
-app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+app.get("/auth/google", (req, res, next) => {
+  const type = req.query.type || "store";
+  req.session.oauthType = type;
+  passport.authenticate("google", { scope: ["profile", "email"] })(req, res, next);
+});
 
 app.get("/auth/google/callback",
   passport.authenticate("google", { failureRedirect: "/login.html?error=google_failed" }),
   async (req, res) => {
     try {
+      const oauthType = req.session.oauthType || "store";
+
+      // CUSTOMER FLOW
+      if (oauthType === "customer") {
+        const profile = req.user;
+        const email = profile.ownerEmail;
+        const name = profile.ownerName || "";
+        const nameParts = name.split(" ");
+        const fname = nameParts[0] || "Customer";
+        const lname = nameParts.slice(1).join(" ") || "";
+
+        // Check if customer already exists
+        let customer = await User.findOne({ email: email.toLowerCase() });
+        if (!customer) {
+          // Create new customer account
+          customer = await User.create({
+            fname, lname,
+            email: email.toLowerCase(),
+            role: "customer",
+            googleId: profile.googleId,
+            avatar: profile.avatar
+          });
+        } else {
+          // Update googleId if missing
+          if (!customer.googleId) {
+            customer.googleId = profile.googleId;
+            await customer.save();
+          }
+        }
+
+        const token = jwt.sign(
+          { id: customer._id, role: "customer", email: customer.email, fname: customer.fname },
+          process.env.JWT_SECRET, { expiresIn: "24h" }
+        );
+        return res.redirect(`/customer.html?token=${token}`);
+      }
+
+      // STORE OWNER FLOW (existing)
       const store = req.user;
       const needsOnboarding = !store.address || store.name.includes("'s Store");
       const token = jwt.sign(
@@ -478,7 +520,11 @@ app.get("/auth/google/callback",
       );
       if (needsOnboarding) res.redirect(`/onboarding.html?token=${token}&new=true`);
       else res.redirect(`/admin.html?token=${token}`);
-    } catch (err) { res.redirect("/login.html?error=server_error"); }
+
+    } catch (err) {
+      console.error("OAuth callback error:", err);
+      res.redirect("/login.html?error=server_error");
+    }
   }
 );
 
