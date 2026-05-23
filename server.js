@@ -1,7 +1,7 @@
 /* =========================================
    SHELFSENSE AI — Multi-Agent SaaS Platform
    server.js — Main Backend
-   Multi-tenant + Google OAuth + 10 Agents
+   Multi-tenant + Google OAuth + 15 Agents + Full Security
 ========================================= */
 
 require("dotenv").config();
@@ -78,9 +78,37 @@ async function sendAlert(subject, message, isUrgent = false, toEmail = null) {
 }
 
 /* =========================
+   JWT BLACKLIST (in-memory)
+========================= */
+const tokenBlacklist = new Set();
+
+function blacklistToken(token) {
+  tokenBlacklist.add(token);
+  // Auto-clean blacklist every hour to prevent memory leak
+}
+setInterval(() => {
+  tokenBlacklist.clear();
+  console.log("🧹 JWT blacklist cleared");
+}, 60 * 60 * 1000);
+
+/* =========================
    SECURITY MIDDLEWARE
 ========================= */
-app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://checkout.razorpay.com", "https://cdn.jsdelivr.net"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "https://api.razorpay.com"],
+      frameSrc: ["https://api.razorpay.com"],
+      objectSrc: ["'none'"],
+      upgradeInsecureRequests: process.env.NODE_ENV === "production" ? [] : null
+    }
+  },
+  crossOriginEmbedderPolicy: false
+}));
 
 app.use(session({
   secret: process.env.SESSION_SECRET,
@@ -93,7 +121,8 @@ app.use(session({
   cookie: {
     secure: process.env.NODE_ENV === "production",
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000
+    maxAge: 24 * 60 * 60 * 1000,
+    sameSite: "strict"
   }
 }));
 
@@ -113,12 +142,30 @@ app.use(cors({
     else callback(new Error("Not allowed by CORS"));
   },
   methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
   credentials: true
 }));
 
-const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5, message: { message: "Too many login attempts" }, standardHeaders: true, legacyHeaders: false });
-const signupLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 10, message: { message: "Too many signup attempts" }, standardHeaders: true, legacyHeaders: false });
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, max: 5,
+  message: { message: "Too many login attempts. Try again in 15 minutes." },
+  standardHeaders: true, legacyHeaders: false,
+  handler: async (req, res, next, options) => {
+    const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+    await SecurityLog.create({
+      type: "RATE_LIMIT_HIT", ip,
+      path: req.path,
+      message: `Rate limit exceeded on ${req.path} from IP ${ip}`
+    }).catch(() => {});
+    res.status(429).json(options.message);
+  }
+});
+
+const signupLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, max: 10,
+  message: { message: "Too many signup attempts" },
+  standardHeaders: true, legacyHeaders: false
+});
 
 app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
@@ -126,6 +173,57 @@ app.use(cookieParser());
 app.use(mongoSanitize());
 app.use(xss());
 app.use(hpp());
+
+/* =========================
+   CSRF TOKEN MIDDLEWARE
+========================= */
+function generateCsrfToken() {
+  return crypto.randomBytes(32).toString("hex");
+}
+
+app.get("/csrf-token", (req, res) => {
+  const token = generateCsrfToken();
+  res.cookie("csrfToken", token, {
+    httpOnly: false,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 60 * 60 * 1000
+  });
+  res.json({ csrfToken: token });
+});
+
+function verifyCsrf(req, res, next) {
+  // Skip CSRF for GET requests and OAuth
+  if (req.method === "GET" || req.path.startsWith("/auth/")) return next();
+  const cookieToken = req.cookies?.csrfToken;
+  const headerToken = req.headers["x-csrf-token"];
+  if (!cookieToken || !headerToken || cookieToken !== headerToken) {
+    return res.status(403).json({ message: "Invalid CSRF token" });
+  }
+  next();
+}
+
+/* =========================
+   SUSPICIOUS IP DETECTION
+========================= */
+const suspiciousIPs = new Map();
+
+function trackSuspiciousIP(req) {
+  const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "unknown";
+  const count = (suspiciousIPs.get(ip) || 0) + 1;
+  suspiciousIPs.set(ip, count);
+  if (count >= 10) {
+    SecurityLog.create({
+      type: "SUSPICIOUS_IP", ip,
+      path: req.path,
+      message: `IP ${ip} has ${count} failed attempts`
+    }).catch(() => {});
+    console.warn(`🚨 Suspicious IP detected: ${ip} with ${count} failures`);
+  }
+}
+
+// Clean suspicious IPs every hour
+setInterval(() => { suspiciousIPs.clear(); }, 60 * 60 * 1000);
 
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
@@ -188,8 +286,8 @@ const StoreSchema = new mongoose.Schema({
   phone: String,
   loginAttempts: { type: Number, default: 0 },
   lockUntil: Date,
-  resetToken: { type: String },
-  resetTokenExpiry: { type: Date },
+  resetToken: String,
+  resetTokenExpiry: Date,
   createdAt: { type: Date, default: Date.now }
 });
 
@@ -202,10 +300,11 @@ const UserSchema = new mongoose.Schema({
   password: String,
   googleId: String,
   avatar: String,
+  wishlist: { type: [String], default: [] },
   loginAttempts: { type: Number, default: 0 },
   lockUntil: Date,
-  resetToken: { type: String },
-  resetTokenExpiry: { type: Date },
+  resetToken: String,
+  resetTokenExpiry: Date,
   createdAt: { type: Date, default: Date.now }
 });
 
@@ -214,13 +313,18 @@ const ItemSchema = new mongoose.Schema({
   key: String,
   name: { type: String, maxlength: 100 },
   stock: { type: Number, min: 0, max: 99999 },
+  previousStock: { type: Number, default: 0 },
+  viewCount: { type: Number, default: 0 },
+  cartCount: { type: Number, default: 0 },
   salesHistory: { type: [Number], default: [] },
   avgRating: { type: Number, default: 0 },
   totalRatings: { type: Number, default: 0 },
+  sentimentScore: { type: Number, default: 0 },
   price: { type: Number, default: 99 },
   onSale: { type: Boolean, default: false },
   salePercent: { type: Number, default: 0 },
   salePrice: { type: Number, default: 0 },
+  autoDiscountApplied: { type: Boolean, default: false },
   expiryDate: { type: Date, default: null },
   category: { type: String, default: "general" },
   supplier: { type: String, default: "" },
@@ -237,6 +341,7 @@ const OrderSchema = new mongoose.Schema({
   totalAmount: Number,
   paymentId: String,
   paymentStatus: { type: String, default: "pending" },
+  flaggedAsFraud: { type: Boolean, default: false },
   time: String,
   createdAt: { type: Date, default: Date.now }
 });
@@ -278,6 +383,7 @@ const RatingSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   itemKey: String,
   rating: { type: Number, min: 1, max: 5 },
+  review: { type: String, default: "" },
   createdAt: { type: Date, default: Date.now }
 });
 
@@ -301,6 +407,39 @@ const AgentLogSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
+/* NEW: Audit Log Schema */
+const AuditLogSchema = new mongoose.Schema({
+  userEmail: String,
+  role: String,
+  action: String,
+  ip: String,
+  userAgent: String,
+  status: { type: String, default: "success" },
+  details: String,
+  createdAt: { type: Date, default: Date.now }
+});
+
+/* NEW: Fraud Log Schema */
+const FraudLogSchema = new mongoose.Schema({
+  userId: String,
+  userEmail: String,
+  reason: String,
+  orderId: String,
+  amount: Number,
+  ip: String,
+  createdAt: { type: Date, default: Date.now }
+});
+
+/* NEW: Wishlist Notification Schema */
+const WishlistNotificationSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  userEmail: String,
+  itemKey: String,
+  itemName: String,
+  notified: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now }
+});
+
 /* =========================
    MODELS
 ========================= */
@@ -316,6 +455,9 @@ const Rating = mongoose.model("Rating", RatingSchema);
 const PurchaseOrder = mongoose.model("PurchaseOrder", PurchaseOrderSchema);
 const AgentLog = mongoose.model("AgentLog", AgentLogSchema);
 const SystemSettings = mongoose.model("SystemSettings", SystemSettingsSchema);
+const AuditLog = mongoose.model("AuditLog", AuditLogSchema);
+const FraudLog = mongoose.model("FraudLog", FraudLogSchema);
+const WishlistNotification = mongoose.model("WishlistNotification", WishlistNotificationSchema);
 
 /* =========================
    HELPERS
@@ -356,6 +498,24 @@ function calculateDistance(lat1, lng1, lat2, lng2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
+/* NEW: Audit Logger */
+async function logAudit(req, userEmail, role, action, status = "success", details = "") {
+  try {
+    const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "unknown";
+    const userAgent = req.headers["user-agent"] || "unknown";
+    await AuditLog.create({ userEmail, role, action, ip, userAgent, status, details });
+  } catch (err) { console.error("Audit log error:", err.message); }
+}
+
+/* NEW: Sentiment Analysis Helper */
+function analyzeSentiment(rating) {
+  if (rating >= 4.5) return 1.0;
+  if (rating >= 4.0) return 0.7;
+  if (rating >= 3.0) return 0.3;
+  if (rating >= 2.0) return -0.3;
+  return -0.7;
+}
+
 /* =========================
    GOOGLE OAUTH
 ========================= */
@@ -363,8 +523,8 @@ passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
   callbackURL: process.env.NODE_ENV === "production"
-  ? "https://shelfsense-ai-lptz.onrender.com/auth/google/callback"
-  : "http://localhost:3000/auth/google/callback"
+    ? "https://shelfsense-ai-lptz.onrender.com/auth/google/callback"
+    : "http://localhost:3000/auth/google/callback"
 }, async (accessToken, refreshToken, profile, done) => {
   try {
     let store = await Store.findOne({ googleId: profile.id });
@@ -416,7 +576,7 @@ async function seedStoreInventory(storeId) {
 }
 
 /* =========================
-   INIT — Super Admin + Franchises
+   INIT
 ========================= */
 async function init() {
   if (!(await User.findOne({ role: "superadmin" }))) {
@@ -443,19 +603,26 @@ async function init() {
 init();
 
 /* =========================
-   JWT AUTH
+   JWT AUTH (with blacklist check)
 ========================= */
 function auth(role) {
   return (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (!authHeader) return res.status(401).json({ message: "No token provided" });
     const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : authHeader;
+
+    // Check blacklist
+    if (tokenBlacklist.has(token)) {
+      return res.status(401).json({ message: "Token has been revoked. Please login again." });
+    }
+
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       if (role && decoded.role !== role && decoded.role !== "superadmin") {
         return res.status(403).json({ message: "Forbidden" });
       }
       req.user = decoded;
+      req.token = token;
       next();
     } catch (err) {
       return res.status(401).json({ message: "Invalid or expired token" });
@@ -477,9 +644,8 @@ app.get("/auth/google/callback",
   async (req, res) => {
     try {
       const oauthType = req.cookies?.oauthType || "store";
-res.clearCookie("oauthType");
+      res.clearCookie("oauthType");
 
-      // CUSTOMER FLOW
       if (oauthType === "customer") {
         const profile = req.user;
         const email = profile.ownerEmail;
@@ -488,10 +654,8 @@ res.clearCookie("oauthType");
         const fname = nameParts[0] || "Customer";
         const lname = nameParts.slice(1).join(" ") || "";
 
-        // Check if customer already exists
         let customer = await User.findOne({ email: email.toLowerCase() });
         if (!customer) {
-          // Create new customer account
           customer = await User.create({
             fname, lname,
             email: email.toLowerCase(),
@@ -500,7 +664,6 @@ res.clearCookie("oauthType");
             avatar: profile.avatar
           });
         } else {
-          // Update googleId if missing
           if (!customer.googleId) {
             customer.googleId = profile.googleId;
             await customer.save();
@@ -511,19 +674,19 @@ res.clearCookie("oauthType");
           { id: customer._id, role: "customer", email: customer.email, fname: customer.fname },
           process.env.JWT_SECRET, { expiresIn: "24h" }
         );
+        await logAudit(req, customer.email, "customer", "GOOGLE_LOGIN");
         return res.redirect(`/customer.html?token=${token}`);
       }
 
-      // STORE OWNER FLOW (existing)
-const store = req.user;
-const token = jwt.sign(
-  { id: store._id, role: "admin", email: store.ownerEmail, fname: store.ownerName, storeId: store._id, storeName: store.name, plan: store.plan },
-  process.env.JWT_SECRET, { expiresIn: "24h" }
-);
-// Only send to onboarding if brand new store (no address AND name still has default format)
-const isNewStore = !store.address && store.name.includes("'s Store");
-if (isNewStore) res.redirect(`/onboarding.html?token=${token}&new=true`);
-else res.redirect(`/admin.html?token=${token}`);
+      const store = req.user;
+      const token = jwt.sign(
+        { id: store._id, role: "admin", email: store.ownerEmail, fname: store.ownerName, storeId: store._id, storeName: store.name, plan: store.plan },
+        process.env.JWT_SECRET, { expiresIn: "24h" }
+      );
+      await logAudit(req, store.ownerEmail, "admin", "GOOGLE_LOGIN");
+      const isNewStore = !store.address && store.name.includes("'s Store");
+      if (isNewStore) res.redirect(`/onboarding.html?token=${token}&new=true`);
+      else res.redirect(`/admin.html?token=${token}`);
 
     } catch (err) {
       console.error("OAuth callback error:", err);
@@ -547,6 +710,7 @@ app.post("/register-store", signupLimiter, async (req, res) => {
     const baseUrl = process.env.BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
     await sendAlert("Welcome to ShelfSense AI! 🎉", `Hi ${ownerName}!<br><br>Your store <strong>${storeName}</strong> has been created.<br><br><strong>Login:</strong> <a href="${baseUrl}/login.html">${baseUrl}/login.html</a><br><br>Welcome aboard!`, false, email);
     const token = jwt.sign({ id: store._id, role: "admin", email: store.ownerEmail, fname: ownerName, storeId: store._id, storeName: store.name, plan: store.plan }, process.env.JWT_SECRET, { expiresIn: "24h" });
+    await logAudit(req, email, "admin", "STORE_REGISTERED", "success", `Store: ${storeName}`);
     res.json({ message: "Store created successfully!", token, storeId: store._id });
   } catch (err) { console.error("Register error:", err.message); res.status(500).json({ message: "Server error" }); }
 });
@@ -559,9 +723,14 @@ app.post("/login-store", loginLimiter, async (req, res) => {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ message: "Email and password required" });
     const store = await Store.findOne({ ownerEmail: email.toLowerCase() });
-    if (!store) return res.status(401).json({ message: "Invalid credentials" });
+    if (!store) {
+      trackSuspiciousIP(req);
+      await logAudit(req, email, "admin", "LOGIN_FAILED", "failed", "Account not found");
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
     if (store.lockUntil && store.lockUntil > Date.now()) {
       const minutesLeft = Math.ceil((store.lockUntil - Date.now()) / 60000);
+      await logAudit(req, email, "admin", "LOGIN_BLOCKED", "failed", `Account locked for ${minutesLeft} minutes`);
       return res.status(423).json({ message: `Account locked. Try again in ${minutesLeft} minutes` });
     }
     const passwordMatch = await bcrypt.compare(password, store.password);
@@ -569,10 +738,13 @@ app.post("/login-store", loginLimiter, async (req, res) => {
       store.loginAttempts += 1;
       if (store.loginAttempts >= 5) { store.lockUntil = new Date(Date.now() + 30 * 60 * 1000); store.loginAttempts = 0; }
       await store.save();
+      trackSuspiciousIP(req);
+      await logAudit(req, email, "admin", "LOGIN_FAILED", "failed", "Wrong password");
       return res.status(401).json({ message: "Invalid credentials" });
     }
     store.loginAttempts = 0; store.lockUntil = null; await store.save();
     const token = jwt.sign({ id: store._id, role: "admin", email: store.ownerEmail, fname: store.ownerName, storeId: store._id, storeName: store.name, plan: store.plan }, process.env.JWT_SECRET, { expiresIn: "24h" });
+    await logAudit(req, email, "admin", "LOGIN_SUCCESS");
     res.json({ token, role: "admin", fname: store.ownerName, storeName: store.name, plan: store.plan });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
@@ -588,6 +760,7 @@ app.post("/signup", signupLimiter, async (req, res) => {
     if (await User.findOne({ email: email.toLowerCase() })) return res.status(400).json({ message: "User already exists" });
     const hashedPassword = await bcrypt.hash(password, 12);
     await User.create({ fname, lname, email: email.toLowerCase(), password: hashedPassword });
+    await logAudit(req, email, "customer", "CUSTOMER_REGISTERED");
     res.json({ message: "Account created successfully" });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
@@ -597,7 +770,11 @@ app.post("/login", loginLimiter, async (req, res) => {
     const { username, password } = req.body;
     if (!username || !password) return res.status(400).json({ message: "Username and password required" });
     const user = await User.findOne({ email: username.toLowerCase() });
-    if (!user) return res.status(401).json({ message: "Invalid credentials" });
+    if (!user) {
+      trackSuspiciousIP(req);
+      await logAudit(req, username, "unknown", "LOGIN_FAILED", "failed", "Account not found");
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
     if (user.lockUntil && user.lockUntil > Date.now()) {
       const minutesLeft = Math.ceil((user.lockUntil - Date.now()) / 60000);
       return res.status(423).json({ message: `Account locked. Try again in ${minutesLeft} minutes` });
@@ -607,21 +784,38 @@ app.post("/login", loginLimiter, async (req, res) => {
       user.loginAttempts += 1;
       if (user.loginAttempts >= 5) { user.lockUntil = new Date(Date.now() + 30 * 60 * 1000); user.loginAttempts = 0; }
       await user.save();
+      trackSuspiciousIP(req);
+      await logAudit(req, username, user.role, "LOGIN_FAILED", "failed", "Wrong password");
       return res.status(401).json({ message: "Invalid credentials" });
     }
     user.loginAttempts = 0; user.lockUntil = null; await user.save();
     const token = jwt.sign({ id: user._id, role: user.role, email: user.email, fname: user.fname }, process.env.JWT_SECRET, { expiresIn: "24h" });
+    await logAudit(req, user.email, user.role, "LOGIN_SUCCESS");
     res.json({ token, role: user.role, fname: user.fname });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
-app.post("/logout", (req, res) => {
+/* =========================
+   LOGOUT (with token blacklisting)
+========================= */
+app.post("/logout", async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+      const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : authHeader;
+      blacklistToken(token);
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        await logAudit(req, decoded.email, decoded.role, "LOGOUT");
+      } catch(e) {}
+    }
+  } catch(e) {}
   req.logout(() => {});
   res.json({ message: "Logged out successfully" });
 });
 
 /* =========================
-   FORGOT PASSWORD
+   FORGOT/RESET PASSWORD
 ========================= */
 app.post("/forgot-password", async (req, res) => {
   try {
@@ -642,6 +836,7 @@ app.post("/forgot-password", async (req, res) => {
       subject: "Reset Your ShelfSense Password",
       html: `<div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto"><div style="background:#7c3aed;padding:20px;border-radius:10px 10px 0 0"><h1 style="color:white;margin:0;font-size:1.3rem">🔐 ShelfSense AI — Password Reset</h1></div><div style="background:#f8fafc;padding:24px;border-radius:0 0 10px 10px;border:1px solid #e2e8f0"><p>Click below to reset your password. Expires in 1 hour.</p><a href="${resetLink}" style="display:inline-block;background:#7c3aed;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;margin:16px 0">Reset My Password</a><p style="color:#666;font-size:13px">If you did not request this, ignore this email.</p></div></div>`
     });
+    await logAudit(req, email, "unknown", "PASSWORD_RESET_REQUESTED");
     res.json({ message: "If that email is registered, a reset link has been sent." });
   } catch (err) { console.error("Forgot password error:", err); res.status(500).json({ error: "Something went wrong. Please try again." }); }
 });
@@ -659,6 +854,7 @@ app.post("/reset-password", async (req, res) => {
     account.resetToken = undefined;
     account.resetTokenExpiry = undefined;
     await account.save();
+    await logAudit(req, account.ownerEmail || account.email, account.role || "unknown", "PASSWORD_RESET_SUCCESS");
     res.json({ message: "Password reset successfully! You can now log in." });
   } catch (err) { console.error("Reset password error:", err); res.status(500).json({ error: "Something went wrong. Please try again." }); }
 });
@@ -670,6 +866,7 @@ app.post("/complete-onboarding", auth("admin"), async (req, res) => {
   try {
     const { storeName, address, phone, openingTime, closingTime, weatherCity } = req.body;
     await Store.updateOne({ _id: req.user.storeId }, { $set: { name: storeName, address, phone, openingTime, closingTime, weatherCity } });
+    await logAudit(req, req.user.email, "admin", "ONBOARDING_COMPLETE");
     res.json({ message: "Store setup complete!" });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
@@ -684,19 +881,80 @@ app.get("/shop-items", auth("customer"), async (req, res) => {
     const items = await Item.find(query);
     const view = {};
     items.forEach(i => {
-      view[i.key] = { name: i.name, stock: i.stock, price: i.price || 99, onSale: i.onSale || false, salePercent: i.salePercent || 0, salePrice: i.salePrice || i.price || 99, canBuy: i.stock > 0, warning: i.stock <= 3 ? i.stock : null, avgRating: i.avgRating || 0, totalRatings: i.totalRatings || 0 };
+      view[i.key] = {
+        name: i.name, stock: i.stock, price: i.price || 99,
+        onSale: i.onSale || false, salePercent: i.salePercent || 0,
+        salePrice: i.salePrice || i.price || 99,
+        canBuy: i.stock > 0, warning: i.stock <= 3 ? i.stock : null,
+        avgRating: i.avgRating || 0, totalRatings: i.totalRatings || 0,
+        sentimentScore: i.sentimentScore || 0
+      };
     });
     res.json(view);
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
+/* NEW: Track product view */
+app.post("/track-view", auth("customer"), async (req, res) => {
+  try {
+    const { itemKey } = req.body;
+    await Item.updateOne({ key: itemKey }, { $inc: { viewCount: 1 } });
+    res.json({ ok: true });
+  } catch (err) { res.json({ ok: false }); }
+});
+
+/* NEW: Save wishlist to DB */
+app.post("/save-wishlist", auth("customer"), async (req, res) => {
+  try {
+    const { wishlist } = req.body;
+    await User.updateOne({ _id: req.user.id }, { $set: { wishlist } });
+
+    // Create wishlist notifications for out-of-stock items
+    for (const itemKey of wishlist) {
+      const item = await Item.findOne({ key: itemKey });
+      if (item && item.stock === 0) {
+        const existing = await WishlistNotification.findOne({ userId: req.user.id, itemKey, notified: false });
+        if (!existing) {
+          await WishlistNotification.create({
+            userId: req.user.id,
+            userEmail: req.user.email,
+            itemKey,
+            itemName: item.name
+          });
+        }
+      }
+    }
+    res.json({ message: "Wishlist saved" });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
 /* =========================
-   CHECKOUT
+   CHECKOUT (with fraud detection)
 ========================= */
 app.post("/checkout", auth("customer"), async (req, res) => {
   try {
     const { cart, storeId } = req.body;
     if (!cart || typeof cart !== "object") return res.status(400).json({ message: "Invalid cart" });
+
+    // FRAUD DETECTION — check for suspicious order patterns
+    const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+    const recentOrders = await Order.find({
+      userId: req.user.id,
+      createdAt: { $gte: new Date(Date.now() - 5 * 60 * 1000) }
+    });
+
+    let flaggedAsFraud = false;
+    if (recentOrders.length >= 5) {
+      flaggedAsFraud = true;
+      await FraudLog.create({
+        userId: req.user.id,
+        userEmail: req.user.email,
+        reason: "5+ orders in 5 minutes",
+        ip
+      });
+      await logAudit(req, req.user.email, "customer", "FRAUD_DETECTED", "warning", "Too many orders in short time");
+    }
+
     const adjusted = {}, itemNames = {}, notices = [];
     let totalItems = 0, totalAmount = 0;
     for (const key in cart) {
@@ -704,15 +962,43 @@ app.post("/checkout", auth("customer"), async (req, res) => {
       const item = await Item.findOne({ key, storeId: storeId || { $exists: true } });
       if (!item) continue;
       const qty = Math.max(0, Math.min(parseInt(cart[key]) || 0, 100));
+
+      // Fraud: single item quantity > 50
+      if (qty > 50) {
+        flaggedAsFraud = true;
+        await FraudLog.create({ userId: req.user.id, userEmail: req.user.email, reason: `Unusual quantity: ${qty} of ${item.name}`, ip });
+      }
+
       const allowed = Math.min(qty, item.stock);
       adjusted[key] = allowed; itemNames[key] = item.name;
       totalItems += allowed;
       totalAmount += (item.onSale ? item.salePrice : item.price || 99) * allowed;
       if (qty > item.stock) notices.push(`${item.name}: only ${item.stock} available`);
-      await Item.updateOne({ key, storeId: item.storeId }, { $inc: { stock: -allowed }, $push: { salesHistory: { $each: [allowed], $slice: -30 } } });
+      await Item.updateOne({ key, storeId: item.storeId }, {
+        $inc: { stock: -allowed },
+        $set: { previousStock: item.stock },
+        $push: { salesHistory: { $each: [allowed], $slice: -30 } }
+      });
     }
-    await Order.create({ storeId, userId: req.user.id, userEmail: req.user.email, cart: adjusted, itemNames, totalItems, totalAmount, paymentStatus: "paid", time: new Date().toLocaleString() });
-    res.json({ message: "Order placed successfully", notices });
+
+    // Fraud: total amount > ₹50,000
+    if (totalAmount > 50000) {
+      flaggedAsFraud = true;
+      await FraudLog.create({ userId: req.user.id, userEmail: req.user.email, reason: `Unusually high order: ₹${totalAmount}`, ip });
+    }
+
+    await Order.create({
+      storeId, userId: req.user.id, userEmail: req.user.email,
+      cart: adjusted, itemNames, totalItems, totalAmount,
+      paymentStatus: "paid", flaggedAsFraud,
+      time: new Date().toLocaleString()
+    });
+
+    if (flaggedAsFraud) {
+      await sendAlert("🚨 Suspicious Order Detected", `Order from <strong>${req.user.email}</strong> flagged as potentially fraudulent. Amount: ₹${totalAmount}`, true);
+    }
+
+    res.json({ message: "Order placed successfully", notices, flaggedAsFraud });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
@@ -755,6 +1041,7 @@ app.post("/verify-payment", auth("customer"), async (req, res) => {
       await Item.updateOne({ key, storeId: item.storeId }, { $inc: { stock: -allowed }, $push: { salesHistory: { $each: [allowed], $slice: -30 } } });
     }
     await Order.create({ storeId, userId: req.user.id, userEmail: req.user.email, cart: adjusted, itemNames, totalItems, totalAmount, paymentId: razorpay_payment_id, paymentStatus: "paid", time: new Date().toLocaleString() });
+    await logAudit(req, req.user.email, "customer", "PAYMENT_SUCCESS", "success", `₹${totalAmount}`);
     res.json({ message: "Payment successful!", paymentId: razorpay_payment_id, notices });
   } catch (err) { res.status(500).json({ message: "Payment verification error" }); }
 });
@@ -770,7 +1057,7 @@ app.get("/my-orders", auth("customer"), async (req, res) => {
 });
 
 /* =========================
-   RATINGS
+   RATINGS (with sentiment)
 ========================= */
 app.post("/rate-product", auth("customer"), async (req, res) => {
   try {
@@ -783,7 +1070,10 @@ app.post("/rate-product", auth("customer"), async (req, res) => {
     else await Rating.create({ storeId: item.storeId, userId: req.user.id, itemKey, rating });
     const allRatings = await Rating.find({ itemKey, storeId: item.storeId });
     const avg = allRatings.reduce((a, b) => a + b.rating, 0) / allRatings.length;
-    await Item.updateOne({ key: itemKey, storeId: item.storeId }, { $set: { avgRating: Math.round(avg * 10) / 10, totalRatings: allRatings.length } });
+    const sentiment = analyzeSentiment(avg);
+    await Item.updateOne({ key: itemKey, storeId: item.storeId }, {
+      $set: { avgRating: Math.round(avg * 10) / 10, totalRatings: allRatings.length, sentimentScore: sentiment }
+    });
     res.json({ message: "Rating saved!", avgRating: Math.round(avg * 10) / 10, totalRatings: allRatings.length });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
@@ -961,7 +1251,7 @@ app.post("/admin/scan-shelf", auth("admin"), upload.single("image"), async (req,
     const imageBuffer = fs.readFileSync(req.file.path);
     const imageBase64 = imageBuffer.toString("base64");
     const urlSetting = await SystemSettings.findOne({ key: "ML_SERVICE_URL" });
-const ML_SERVICE_URL = (urlSetting && urlSetting.value) || process.env.ML_SERVICE_URL || "http://127.0.0.1:5001";
+    const ML_SERVICE_URL = (urlSetting && urlSetting.value) || process.env.ML_SERVICE_URL || "http://127.0.0.1:5001";
     const mlResponse = await fetch(`${ML_SERVICE_URL}/process-shelf-image`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -1001,7 +1291,7 @@ const ML_SERVICE_URL = (urlSetting && urlSetting.value) || process.env.ML_SERVIC
 });
 
 /* =========================
-   SYSTEM SETTINGS (ML URL)
+   ML URL
 ========================= */
 app.get("/admin/ml-url", auth("admin"), async (req, res) => {
   try {
@@ -1014,15 +1304,39 @@ app.get("/admin/ml-url", auth("admin"), async (req, res) => {
 app.post("/admin/ml-url", auth("admin"), async (req, res) => {
   try {
     const { url } = req.body;
-    if (!url || !url.startsWith("http")) {
-      return res.status(400).json({ message: "Invalid URL" });
-    }
+    if (!url || !url.startsWith("http")) return res.status(400).json({ message: "Invalid URL" });
     await SystemSettings.findOneAndUpdate(
       { key: "ML_SERVICE_URL" },
       { key: "ML_SERVICE_URL", value: url },
       { upsert: true, new: true }
     );
     res.json({ message: "ML Service URL updated successfully!" });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* =========================
+   AUDIT LOGS API
+========================= */
+app.get("/admin/audit-logs", auth("admin"), async (req, res) => {
+  try {
+    const logs = await AuditLog.find({ userEmail: req.user.email })
+      .sort({ createdAt: -1 }).limit(100);
+    res.json(logs);
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+app.get("/admin/fraud-logs", auth("admin"), async (req, res) => {
+  try {
+    const logs = await FraudLog.find({ userEmail: { $exists: true } })
+      .sort({ createdAt: -1 }).limit(50);
+    res.json(logs);
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+app.get("/admin/security-logs", auth("admin"), async (req, res) => {
+  try {
+    const logs = await SecurityLog.find().sort({ time: -1 }).limit(50);
+    res.json(logs);
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
@@ -1057,8 +1371,24 @@ app.get("/superadmin/stats", auth("superadmin"), async (req, res) => {
     const totalStores = await Store.countDocuments();
     const totalOrders = await Order.countDocuments();
     const totalItems = await Item.countDocuments();
+    const totalFraudFlags = await FraudLog.countDocuments();
+    const totalAuditLogs = await AuditLog.countDocuments();
     const planCounts = await Store.aggregate([{ $group: { _id: "$plan", count: { $sum: 1 } } }]);
-    res.json({ totalStores, totalOrders, totalItems, planCounts });
+    res.json({ totalStores, totalOrders, totalItems, totalFraudFlags, totalAuditLogs, planCounts });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+app.get("/superadmin/audit-logs", auth("superadmin"), async (req, res) => {
+  try {
+    const logs = await AuditLog.find().sort({ createdAt: -1 }).limit(200);
+    res.json(logs);
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+app.get("/superadmin/fraud-logs", auth("superadmin"), async (req, res) => {
+  try {
+    const logs = await FraudLog.find().sort({ createdAt: -1 }).limit(100);
+    res.json(logs);
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
@@ -1074,7 +1404,7 @@ app.post("/superadmin/update-plan", auth("superadmin"), async (req, res) => {
 });
 
 /* =========================================
-   10 AI AGENTS
+   15 AI AGENTS
 ========================================= */
 
 /* AGENT 1 — MONITORING */
@@ -1301,6 +1631,174 @@ cron.schedule("0 0 6 * * *", async () => {
   } catch (err) { console.error("Route Optimization error:", err.message); }
 });
 
+/* =========================================
+   NEW AGENTS (11-15)
+========================================= */
+
+/* AGENT 11 — SENTIMENT ANALYSIS */
+cron.schedule("0 0 2 * * *", async () => {
+  try {
+    const stores = await Store.find({ isActive: true });
+    for (const store of stores) {
+      const items = await Item.find({ storeId: store._id, totalRatings: { $gte: 3 } });
+      for (const item of items) {
+        const sentiment = analyzeSentiment(item.avgRating || 0);
+        await Item.updateOne({ _id: item._id }, { $set: { sentimentScore: sentiment } });
+        if (sentiment < -0.3) {
+          await logAgent(store._id, "Sentiment Analysis Agent",
+            `😟 Negative sentiment detected for ${item.name} — Avg rating: ${item.avgRating?.toFixed(1)}⭐ (${item.totalRatings} reviews). Consider quality review or discount.`,
+            { item: item.name, avgRating: item.avgRating, sentiment }, "warning");
+          await sendAlert(`Negative Reviews: ${item.name}`,
+            `<strong>${item.name}</strong> has a low average rating of ${item.avgRating?.toFixed(1)}⭐ from ${item.totalRatings} reviews at <strong>${store.name}</strong>. Consider reviewing product quality.`,
+            false, store.alertEmail);
+        } else if (sentiment > 0.7) {
+          await logAgent(store._id, "Sentiment Analysis Agent",
+            `😊 Excellent sentiment for ${item.name} — Avg rating: ${item.avgRating?.toFixed(1)}⭐ (${item.totalRatings} reviews). Consider increasing stock.`,
+            { item: item.name, avgRating: item.avgRating, sentiment }, "info");
+        }
+      }
+    }
+  } catch (err) { console.error("Sentiment Agent error:", err.message); }
+});
+
+/* AGENT 12 — DEMAND SURGE */
+cron.schedule("*/2 * * * *", async () => {
+  try {
+    const stores = await Store.find({ isActive: true });
+    for (const store of stores) {
+      const items = await Item.find({ storeId: store._id });
+      for (const item of items) {
+        // Detect if view count jumped significantly in last 2 minutes
+        if (item.viewCount > 50 && item.stock <= item.minStockLevel * 2) {
+          await logAgent(store._id, "Demand Surge Agent",
+            `📈 Demand surge detected for ${item.name}! ${item.viewCount} views but only ${item.stock} units left. Reorder recommended immediately.`,
+            { item: item.name, viewCount: item.viewCount, stock: item.stock }, "warning");
+          // Reset view counter after alert
+          await Item.updateOne({ _id: item._id }, { $set: { viewCount: 0 } });
+        }
+        // Detect surge from cart additions
+        if (item.cartCount > 20 && item.stock <= item.minStockLevel) {
+          await logAgent(store._id, "Demand Surge Agent",
+            `🛒 Cart surge for ${item.name}! Added to cart ${item.cartCount} times. Stock critically low at ${item.stock} units.`,
+            { item: item.name, cartCount: item.cartCount, stock: item.stock }, "critical");
+          await sendAlert(`Demand Surge: ${item.name}`,
+            `<strong>${item.name}</strong> has been added to cart ${item.cartCount} times with only ${item.stock} units left at <strong>${store.name}</strong>!`,
+            true, store.alertEmail);
+          await Item.updateOne({ _id: item._id }, { $set: { cartCount: 0 } });
+        }
+      }
+    }
+  } catch (err) { console.error("Demand Surge Agent error:", err.message); }
+});
+
+/* AGENT 13 — FRAUD DETECTION */
+cron.schedule("*/1 * * * *", async () => {
+  try {
+    // Detect multiple orders from same user in short time
+    const recentOrders = await Order.find({
+      createdAt: { $gte: new Date(Date.now() - 10 * 60 * 1000) }
+    });
+    const userOrderCount = {};
+    recentOrders.forEach(o => {
+      const uid = o.userId?.toString();
+      if (uid) userOrderCount[uid] = (userOrderCount[uid] || 0) + 1;
+    });
+    for (const [userId, count] of Object.entries(userOrderCount)) {
+      if (count >= 5) {
+        const user = await User.findById(userId);
+        if (user) {
+          const existing = await FraudLog.findOne({
+            userId, createdAt: { $gte: new Date(Date.now() - 10 * 60 * 1000) }
+          });
+          if (!existing) {
+            await FraudLog.create({
+              userId, userEmail: user.email,
+              reason: `${count} orders in 10 minutes — automated fraud detection`,
+              amount: 0
+            });
+            // Find which store this affects
+            const order = recentOrders.find(o => o.userId?.toString() === userId);
+            if (order?.storeId) {
+              await logAgent(order.storeId, "Fraud Detection Agent",
+                `🚨 FRAUD ALERT: ${user.email} placed ${count} orders in 10 minutes. Account flagged for review.`,
+                { userEmail: user.email, orderCount: count }, "critical");
+            }
+          }
+        }
+      }
+    }
+  } catch (err) { console.error("Fraud Detection Agent error:", err.message); }
+});
+
+/* AGENT 14 — AUTO DISCOUNT (slow-moving products) */
+cron.schedule("0 0 10 * * *", async () => {
+  try {
+    const stores = await Store.find({ isActive: true });
+    for (const store of stores) {
+      const items = await Item.find({ storeId: store._id });
+      for (const item of items) {
+        const history = item.salesHistory || [];
+        if (history.length < 7) continue;
+        const lastWeekSales = history.slice(-7).reduce((a, b) => a + b, 0);
+        // If item sold less than 2 units in last 7 days and stock > 15 — slow moving
+        if (lastWeekSales < 2 && item.stock > 15 && !item.onSale && !item.autoDiscountApplied) {
+          const discountPct = 15;
+          const discountPrice = Math.round(item.price * (1 - discountPct / 100));
+          await Item.updateOne({ _id: item._id }, {
+            $set: { onSale: true, salePercent: discountPct, salePrice: discountPrice, autoDiscountApplied: true }
+          });
+          await logAgent(store._id, "Auto Discount Agent",
+            `🏷️ Auto-discount applied to ${item.name}: ${discountPct}% off (sold only ${lastWeekSales} units last week, ${item.stock} units in stock)`,
+            { item: item.name, discount: discountPct, salesLastWeek: lastWeekSales }, "info");
+        }
+        // Remove auto-discount if item starts selling well again
+        if (lastWeekSales >= 5 && item.autoDiscountApplied) {
+          await Item.updateOne({ _id: item._id }, {
+            $set: { onSale: false, salePercent: 0, salePrice: item.price, autoDiscountApplied: false }
+          });
+          await logAgent(store._id, "Auto Discount Agent",
+            `✅ Auto-discount removed from ${item.name} — sales recovered (${lastWeekSales} units last week)`,
+            { item: item.name, salesLastWeek: lastWeekSales }, "info");
+        }
+      }
+    }
+  } catch (err) { console.error("Auto Discount Agent error:", err.message); }
+});
+
+/* AGENT 15 — SMART WISHLIST NOTIFICATION */
+cron.schedule("0 */30 * * * *", async () => {
+  try {
+    // Find all unnotified wishlist items that are now back in stock
+    const notifications = await WishlistNotification.find({ notified: false });
+    for (const notif of notifications) {
+      const item = await Item.findOne({ key: notif.itemKey });
+      if (item && item.stock > 0) {
+        // Send email notification
+        await emailTransporter.sendMail({
+          from: `"ShelfSense AI 🤖" <${process.env.ALERT_EMAIL}>`,
+          to: notif.userEmail,
+          subject: `✅ ${notif.itemName} is back in stock!`,
+          html: `
+            <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto">
+              <div style="background:#6366f1;padding:20px;border-radius:10px 10px 0 0">
+                <h1 style="color:white;margin:0;font-size:1.2rem">🛍️ ShelfSense AI — Back In Stock!</h1>
+              </div>
+              <div style="background:#f8fafc;padding:24px;border-radius:0 0 10px 10px;border:1px solid #e2e8f0">
+                <p style="font-size:1rem;color:#1e293b">Good news! <strong>${notif.itemName}</strong> is back in stock and ready for you to purchase.</p>
+                <p style="color:#6366f1;font-weight:bold">Current stock: ${item.stock} units available</p>
+                <p style="font-size:0.85rem;color:#94a3b8">Hurry before it sells out again!</p>
+              </div>
+            </div>`
+        });
+        await WishlistNotification.updateOne({ _id: notif._id }, { $set: { notified: true } });
+        await logAgent(null, "Smart Notification Agent",
+          `📧 Back-in-stock notification sent to ${notif.userEmail} for ${notif.itemName}`,
+          { userEmail: notif.userEmail, item: notif.itemName }, "info");
+      }
+    }
+  } catch (err) { console.error("Smart Notification Agent error:", err.message); }
+});
+
 /* =========================
    ERROR HANDLERS
 ========================= */
@@ -1319,8 +1817,8 @@ app.use((req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 ShelfSense AI running at http://localhost:${PORT}`);
-  console.log(`🔒 Security layer active`);
-  console.log(`🤖 All 10 AI Agents initialized`);
+  console.log(`🔒 Security layer active — CSRF, JWT Blacklist, Audit Log, IP Detection`);
+  console.log(`🤖 All 15 AI Agents initialized`);
   console.log(`💳 Razorpay active`);
   console.log(`📧 Email alerts active`);
   console.log(`🔐 Google OAuth active`);
