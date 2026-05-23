@@ -264,8 +264,8 @@
         successEl.innerText = "✅ Account created successfully! Redirecting to login...";
         successEl.style.display = "block";
         setTimeout(() => {
-          window.location.href = "login.html";
-        }, 2000);
+  window.location.href = "login.html?tab=customer";
+}, 2000);
       } else {
         errorEl.innerText = data.message || "Signup failed. Please try again.";
         errorEl.style.display = "block";

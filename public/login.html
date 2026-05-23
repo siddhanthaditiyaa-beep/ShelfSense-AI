@@ -291,16 +291,7 @@
         <button class="submit-btn" id="customerLoginBtn" onclick="loginCustomer()">
           Login to My Account
         </button>
-        <div style="text-align:center;margin-top:14px;font-size:0.82rem;">
-          <a href="customer-register.html" style="color:var(--secondary);text-decoration:none;font-weight:600;">
-            Don't have an account? Create account →
-          </a>
-          &nbsp;|&nbsp;
-          <a href="register.html" style="color:var(--secondary);text-decoration:none;font-weight:600;">
-            Register a store →
-          </a>
         </div>
-      </div>
 
     </div>
 
@@ -334,11 +325,15 @@
   if (existingToken && existingRole === "customer") window.location.href = "customer.html";
 
   const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get("error")) {
-    const errorEl = document.getElementById("errorMsg");
-    errorEl.innerText = "Google login failed. Please try again or use email.";
-    errorEl.style.display = "block";
-  }
+if (urlParams.get("error")) {
+  const errorEl = document.getElementById("errorMsg");
+  errorEl.innerText = "Google login failed. Please try again or use email.";
+  errorEl.style.display = "block";
+}
+// Auto switch to customer tab if redirected from customer registration
+if (urlParams.get("tab") === "customer") {
+  switchTab("customer");
+}
 
   let currentTab = "store";
 
