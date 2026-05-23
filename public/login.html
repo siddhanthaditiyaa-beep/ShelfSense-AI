@@ -140,8 +140,6 @@
     .register-link a:hover { text-decoration: underline; }
     .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 8px; vertical-align: middle; }
     @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* FORGOT PASSWORD MODAL */
     .modal-overlay {
       position: fixed; inset: 0;
       background: rgba(0,0,0,0.6); backdrop-filter: blur(6px);
@@ -202,7 +200,7 @@
 
     <div class="login-header">
       <h1>Welcome Back 👋</h1>
-      <p>Login to your ShelfSense AI dashboard</p>
+      <p id="pageSubtitle">Login to your ShelfSense AI dashboard</p>
     </div>
 
     <div class="login-card">
@@ -225,18 +223,15 @@
           </svg>
           Continue with Google
         </button>
-
         <div class="divider">
           <div class="divider-line"></div>
           <div class="divider-text">or login with email</div>
           <div class="divider-line"></div>
         </div>
-
         <div class="form-group">
           <label>Email Address</label>
           <input type="email" id="storeEmail" placeholder="your@email.com">
         </div>
-
         <div class="form-group">
           <label>Password</label>
           <div class="pw-wrapper">
@@ -249,11 +244,9 @@
             <a href="#" onclick="openForgotPassword(); return false;">Forgot password?</a>
           </div>
         </div>
-
         <button class="submit-btn" id="storeLoginBtn" onclick="loginStore()">
           Login to Dashboard
         </button>
-
         <div class="demo-box">
           <div class="demo-box-title">🔑 Demo Credentials</div>
           <div class="demo-row" onclick="fillDemo('superadmin@shelfsense.ai','superadmin123')">
@@ -268,6 +261,20 @@
 
       <!-- CUSTOMER LOGIN -->
       <div id="customerForm" style="display:none">
+        <button class="google-btn" onclick="loginCustomerWithGoogle()">
+          <svg width="20" height="20" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
+          Continue with Google
+        </button>
+        <div class="divider">
+          <div class="divider-line"></div>
+          <div class="divider-text">or login with email</div>
+          <div class="divider-line"></div>
+        </div>
         <div class="form-group">
           <label>Email Address</label>
           <input type="text" id="customerUsername" placeholder="your@email.com">
@@ -282,16 +289,25 @@
           </div>
         </div>
         <button class="submit-btn" id="customerLoginBtn" onclick="loginCustomer()">
-          Login to Shop
+          Login to My Account
         </button>
+        <div style="text-align:center;margin-top:14px;font-size:0.82rem;">
+          <a href="customer-register.html" style="color:var(--secondary);text-decoration:none;font-weight:600;">
+            Don't have an account? Create account →
+          </a>
+          &nbsp;|&nbsp;
+          <a href="register.html" style="color:var(--secondary);text-decoration:none;font-weight:600;">
+            Register a store →
+          </a>
+        </div>
       </div>
 
     </div>
 
-    <div class="register-link">
+    <div class="register-link" id="registerLink">
       Don't have a store? <a href="register.html">Register free →</a>
       &nbsp;|&nbsp;
-      <a href="customer-register.html" style="color:var(--text-muted)">Customer signup</a>
+      <a href="customer-register.html" style="color:var(--secondary);font-weight:600;">Customer signup</a>
     </div>
 
   </div>
@@ -311,14 +327,12 @@
 </div>
 
 <script>
-  /* ===== REDIRECT IF ALREADY LOGGED IN ===== */
   const existingToken = localStorage.getItem("token");
   const existingRole = localStorage.getItem("role");
   if (existingToken && existingRole === "admin") window.location.href = "admin.html";
   if (existingToken && existingRole === "superadmin") window.location.href = "superadmin.html";
   if (existingToken && existingRole === "customer") window.location.href = "customer.html";
 
-  /* ===== URL ERROR ===== */
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get("error")) {
     const errorEl = document.getElementById("errorMsg");
@@ -328,20 +342,13 @@
 
   let currentTab = "store";
 
-  /* ===== SHOW / HIDE PASSWORD ===== */
   function togglePassword(inputId, eyeId) {
     const input = document.getElementById(inputId);
     const eye = document.getElementById(eyeId);
-    if (input.type === "password") {
-      input.type = "text";
-      eye.innerText = "🙈";
-    } else {
-      input.type = "password";
-      eye.innerText = "👁️";
-    }
+    if (input.type === "password") { input.type = "text"; eye.innerText = "🙈"; }
+    else { input.type = "password"; eye.innerText = "👁️"; }
   }
 
-  /* ===== TABS ===== */
   function switchTab(tab) {
     currentTab = tab;
     document.getElementById("tabStore").classList.toggle("active", tab === "store");
@@ -349,130 +356,107 @@
     document.getElementById("storeForm").style.display = tab === "store" ? "block" : "none";
     document.getElementById("customerForm").style.display = tab === "customer" ? "block" : "none";
     document.getElementById("errorMsg").style.display = "none";
+    if (tab === "customer") {
+      document.getElementById("pageSubtitle").innerText = "Shop at ShelfSense stores";
+      document.getElementById("registerLink").innerHTML = `
+        New customer? <a href="customer-register.html">Create account →</a>
+        &nbsp;|&nbsp;
+        <a href="register.html" style="color:var(--secondary);font-weight:600;">Register a store →</a>
+      `;
+    } else {
+      document.getElementById("pageSubtitle").innerText = "Login to your ShelfSense AI dashboard";
+      document.getElementById("registerLink").innerHTML = `
+        Don't have a store? <a href="register.html">Register free →</a>
+        &nbsp;|&nbsp;
+        <a href="customer-register.html" style="color:var(--secondary);font-weight:600;">Customer signup</a>
+      `;
+    }
   }
 
-  /* ===== GOOGLE ===== */
-  function loginWithGoogle() {
-    window.location.href = "/auth/google";
-  }
+  function loginWithGoogle() { window.location.href = "/auth/google"; }
+  function loginCustomerWithGoogle() { window.location.href = "/auth/google"; }
 
-  /* ===== DEMO AUTOFILL ===== */
   function fillDemo(email, password) {
     document.getElementById("storeEmail").value = email;
     document.getElementById("storePassword").value = password;
-    // Reset eye icon to closed since we filled the password
     document.getElementById("storeEye").innerText = "👁️";
     document.getElementById("storePassword").type = "password";
   }
 
-  /* ===== STORE LOGIN ===== */
   async function loginStore() {
     const email = document.getElementById("storeEmail").value.trim();
     const password = document.getElementById("storePassword").value;
     const errorEl = document.getElementById("errorMsg");
     const btn = document.getElementById("storeLoginBtn");
     errorEl.style.display = "none";
-
-    if (!email || !password) {
-      errorEl.innerText = "Please enter email and password";
-      errorEl.style.display = "block";
-      return;
-    }
-
+    if (!email || !password) { errorEl.innerText = "Please enter email and password"; errorEl.style.display = "block"; return; }
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span>Logging in...';
-
     try {
-      // 1. Try store owner login first
       const res = await fetch("/login-store", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })
       });
       const data = await res.json();
-
       if (res.ok) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("role", "admin");
         localStorage.setItem("storeName", data.storeName || "My Store");
-        window.location.href = "admin.html";
-        return;
+        window.location.href = "admin.html"; return;
       }
-
-      // 2. Try super admin login
       const res2 = await fetch("/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: email, password })
       });
       const data2 = await res2.json();
-
       if (res2.ok && data2.role === "superadmin") {
         localStorage.setItem("token", data2.token);
         localStorage.setItem("role", "superadmin");
-        window.location.href = "superadmin.html";
-        return;
+        window.location.href = "superadmin.html"; return;
       }
-
-      // Both failed
       errorEl.innerText = data.message || "Invalid credentials. Please check your email and password.";
       errorEl.style.display = "block";
-
     } catch (err) {
-      errorEl.innerText = "Server error. Make sure the server is running at localhost:3000";
+      errorEl.innerText = "Server error. Make sure the server is running.";
       errorEl.style.display = "block";
     }
-
     btn.disabled = false;
     btn.innerHTML = "Login to Dashboard";
   }
 
-  /* ===== CUSTOMER LOGIN ===== */
   async function loginCustomer() {
     const username = document.getElementById("customerUsername").value.trim();
     const password = document.getElementById("customerPassword").value;
     const errorEl = document.getElementById("errorMsg");
     const btn = document.getElementById("customerLoginBtn");
     errorEl.style.display = "none";
-
-    if (!username || !password) {
-      errorEl.innerText = "Please enter email and password";
-      errorEl.style.display = "block";
-      return;
-    }
-
+    if (!username || !password) { errorEl.innerText = "Please enter email and password"; errorEl.style.display = "block"; return; }
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span>Logging in...';
-
     try {
       const res = await fetch("/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password })
       });
       const data = await res.json();
-
       if (!res.ok) {
         errorEl.innerText = data.message || "Invalid credentials";
         errorEl.style.display = "block";
         btn.disabled = false;
-        btn.innerHTML = "Login to Shop";
+        btn.innerHTML = "Login to My Account";
         return;
       }
-
       localStorage.setItem("token", data.token);
       localStorage.setItem("role", data.role);
       window.location.href = "customer.html";
-
     } catch (err) {
       errorEl.innerText = "Server error. Please try again.";
       errorEl.style.display = "block";
       btn.disabled = false;
-      btn.innerHTML = "Login to Shop";
+      btn.innerHTML = "Login to My Account";
     }
   }
 
-  /* ===== FORGOT PASSWORD ===== */
   function openForgotPassword() {
     const email = document.getElementById("storeEmail").value;
     if (email) document.getElementById("forgotEmail").value = email;
@@ -491,24 +475,16 @@
     const successEl = document.getElementById("forgotSuccess");
     errorEl.style.display = "none";
     successEl.style.display = "none";
-
-    if (!email) {
-      errorEl.innerText = "Please enter your email address";
-      errorEl.style.display = "block";
-      return;
-    }
-
+    if (!email) { errorEl.innerText = "Please enter your email address"; errorEl.style.display = "block"; return; }
     successEl.innerText = "✅ If this email is registered, a reset link has been sent. Check your inbox!";
     successEl.style.display = "block";
     document.getElementById("forgotEmail").value = "";
   }
 
-  /* ===== MODAL CLOSE ON OVERLAY CLICK ===== */
   document.getElementById("forgotModal").addEventListener("click", function(e) {
     if (e.target === this) closeForgotPassword();
   });
 
-  /* ===== ENTER KEY ===== */
   document.addEventListener("keypress", (e) => {
     if (e.key === "Enter") {
       if (currentTab === "store") loginStore();
