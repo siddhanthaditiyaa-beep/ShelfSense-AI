@@ -466,15 +466,17 @@ function auth(role) {
 ========================= */
 app.get("/auth/google", (req, res, next) => {
   const type = req.query.type || "store";
-  req.session.oauthType = type;
-  passport.authenticate("google", { scope: ["profile", "email"] })(req, res, next);
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+    state: type
+  })(req, res, next);
 });
 
 app.get("/auth/google/callback",
   passport.authenticate("google", { failureRedirect: "/login.html?error=google_failed" }),
   async (req, res) => {
     try {
-      const oauthType = req.session.oauthType || "store";
+      const oauthType = req.query.state || "store";
 
       // CUSTOMER FLOW
       if (oauthType === "customer") {
@@ -512,14 +514,15 @@ app.get("/auth/google/callback",
       }
 
       // STORE OWNER FLOW (existing)
-      const store = req.user;
-      const needsOnboarding = !store.address || store.name.includes("'s Store");
-      const token = jwt.sign(
-        { id: store._id, role: "admin", email: store.ownerEmail, fname: store.ownerName, storeId: store._id, storeName: store.name, plan: store.plan },
-        process.env.JWT_SECRET, { expiresIn: "24h" }
-      );
-      if (needsOnboarding) res.redirect(`/onboarding.html?token=${token}&new=true`);
-      else res.redirect(`/admin.html?token=${token}`);
+const store = req.user;
+const token = jwt.sign(
+  { id: store._id, role: "admin", email: store.ownerEmail, fname: store.ownerName, storeId: store._id, storeName: store.name, plan: store.plan },
+  process.env.JWT_SECRET, { expiresIn: "24h" }
+);
+// Only send to onboarding if brand new store (no address AND name still has default format)
+const isNewStore = !store.address && store.name.includes("'s Store");
+if (isNewStore) res.redirect(`/onboarding.html?token=${token}&new=true`);
+else res.redirect(`/admin.html?token=${token}`);
 
     } catch (err) {
       console.error("OAuth callback error:", err);

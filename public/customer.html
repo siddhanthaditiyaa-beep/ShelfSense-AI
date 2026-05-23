@@ -596,9 +596,18 @@ if (oauthToken) {
   window.history.replaceState({}, document.title, "/customer.html");
 }
 
+// Handle Google OAuth redirect token
+const urlParams = new URLSearchParams(window.location.search);
+const oauthToken = urlParams.get("token");
+if (oauthToken) {
+  localStorage.setItem("token", oauthToken);
+  localStorage.setItem("role", "admin");
+  window.history.replaceState({}, document.title, "/admin.html");
+}
+
 const token = localStorage.getItem("token");
 const role = localStorage.getItem("role");
-if (!token || role !== "customer") window.location.href = "login.html";
+if (!token || role !== "admin") window.location.href = "login.html";
 
 function parseJwt(t) {
   try { return JSON.parse(atob(t.split('.')[1])); } catch(e) { return {}; }
