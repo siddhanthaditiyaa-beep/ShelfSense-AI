@@ -2358,6 +2358,123 @@ app.get("/admin/download-stock", auth("admin"), async (req, res) => {
   }
 });
 
+/* =========================================
+   NEW AGENTS (16-18)
+========================================= */
+
+/* AGENT 16 — PEAK HOURS */
+cron.schedule("0 */1 * * *", async () => {
+  try {
+    const stores = await Store.find({ isActive: true });
+    for (const store of stores) {
+      const orders = await Order.find({ storeId: store._id }).sort({ createdAt: -1 }).limit(200);
+      if (orders.length < 10) continue;
+
+      // Count orders by hour
+      const hourCounts = Array(24).fill(0);
+      orders.forEach(o => {
+        const h = new Date(o.createdAt).getHours();
+        hourCounts[h]++;
+      });
+
+      const peakHour = hourCounts.indexOf(Math.max(...hourCounts));
+      const peakCount = hourCounts[peakHour];
+      const currentHour = new Date().getHours();
+      const isApproachingPeak = Math.abs(currentHour - peakHour) === 1;
+
+      if (isApproachingPeak) {
+        await logAgent(store._id, "Peak Hours Agent",
+          `⏰ Peak hour approaching! Most orders happen at ${peakHour}:00 (${peakCount} avg orders). Ensure shelves are fully stocked now.`,
+          { peakHour, peakCount }, "warning");
+      } else {
+        await logAgent(store._id, "Peak Hours Agent",
+          `⏰ Peak sales hour is ${peakHour}:00 — ${peakCount} orders typically. Current hour: ${currentHour}:00.`,
+          { peakHour, peakCount, currentHour }, "info");
+      }
+    }
+  } catch(err) { console.error("Peak Hours Agent error:", err.message); }
+});
+
+/* AGENT 17 — PRICE ELASTICITY */
+cron.schedule("0 0 */6 * * *", async () => {
+  try {
+    const stores = await Store.find({ isActive: true });
+    for (const store of stores) {
+      const items = await Item.find({ storeId: store._id });
+      for (const item of items) {
+        const history = item.salesHistory || [];
+        if (history.length < 6) continue;
+
+        // Compare first half vs second half sales
+        const mid = Math.floor(history.length / 2);
+        const firstHalf = history.slice(0, mid).reduce((a, b) => a + b, 0) / mid;
+        const secondHalf = history.slice(mid).reduce((a, b) => a + b, 0) / (history.length - mid);
+
+        const salesChange = ((secondHalf - firstHalf) / (firstHalf || 1)) * 100;
+
+        // Price change estimation (using dynamic pricing history)
+        if (Math.abs(salesChange) > 20) {
+          const direction = salesChange > 0 ? "increased" : "decreased";
+          const suggestion = salesChange > 0
+            ? `Consider increasing price by 5-8% to maximize revenue.`
+            : `Consider reducing price by 5-10% to boost demand.`;
+
+          await logAgent(store._id, "Price Elasticity Agent",
+            `📉 ${item.name}: Sales ${direction} by ${Math.abs(salesChange).toFixed(1)}% recently. ${suggestion}`,
+            { item: item.name, salesChange: salesChange.toFixed(1) },
+            salesChange < -20 ? "warning" : "info");
+        }
+      }
+    }
+  } catch(err) { console.error("Price Elasticity Agent error:", err.message); }
+});
+
+/* AGENT 18 — REORDER POINT */
+cron.schedule("0 */30 * * * *", async () => {
+  try {
+    const stores = await Store.find({ isActive: true });
+    for (const store of stores) {
+      const items = await Item.find({ storeId: store._id });
+      for (const item of items) {
+        const history = item.salesHistory || [];
+        if (history.length < 3) continue;
+
+        // Calculate average daily sales
+        const avgDailySales = history.slice(-7).reduce((a, b) => a + b, 0) / Math.min(history.length, 7);
+
+        // Lead time assumption: 3 days
+        const leadTimeDays = 3;
+        const safetyStock = Math.ceil(avgDailySales * 1.5);
+        const reorderPoint = Math.ceil(avgDailySales * leadTimeDays) + safetyStock;
+
+        if (item.stock <= reorderPoint && item.stock > 0) {
+          const daysLeft = avgDailySales > 0 ? Math.floor(item.stock / avgDailySales) : 999;
+
+          await logAgent(store._id, "Reorder Point Agent",
+            `📦 ${item.name}: Stock (${item.stock}) hit reorder point (${reorderPoint} units). ~${daysLeft} days of stock left. Reorder ${Math.ceil(avgDailySales * 14)} units now.`,
+            { item: item.name, stock: item.stock, reorderPoint, daysLeft },
+            daysLeft <= 3 ? "critical" : "warning");
+
+          // Create purchase order if not already pending
+          const existing = await PurchaseOrder.findOne({
+            storeId: store._id, itemKey: item.key, status: "pending"
+          });
+          if (!existing) {
+            const orderQty = Math.ceil(avgDailySales * 14);
+            await PurchaseOrder.create({
+              storeId: store._id,
+              itemKey: item.key,
+              itemName: item.name,
+              quantity: orderQty,
+              supplier: item.supplier || "Default Supplier"
+            });
+          }
+        }
+      }
+    }
+  } catch(err) { console.error("Reorder Point Agent error:", err.message); }
+});
+
 /* =========================
    ERROR HANDLERS
 ========================= */

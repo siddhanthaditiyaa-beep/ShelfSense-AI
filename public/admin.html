@@ -408,7 +408,7 @@
         <div class="stat-card"><div class="number" id="statLow" style="color:var(--warning)">-</div><div class="label">Low Stock</div></div>
         <div class="stat-card"><div class="number" id="statOut" style="color:var(--danger)">-</div><div class="label">Out of Stock</div></div>
         <div class="stat-card"><div class="number" id="statHealthy" style="color:var(--success)">-</div><div class="label">Healthy</div></div>
-        <div class="stat-card"><div class="number" id="statAgents" style="color:var(--accent)">15</div><div class="label">Active Agents</div></div>
+        <div class="stat-card"><div class="number" id="statAgents" style="color:var(--accent)">18</div><div class="label">Active Agents</div></div>
       </div>
       <div class="card">
         <h2>📈 Stock Overview</h2>
@@ -558,6 +558,9 @@
           <button class="agent-filter" onclick="filterAgentLogs('Fraud Detection Agent', this)">🚨 Fraud</button>
           <button class="agent-filter" onclick="filterAgentLogs('Auto Discount Agent', this)">🏷️ Auto Discount</button>
           <button class="agent-filter" onclick="filterAgentLogs('Smart Notification Agent', this)">🔔 Notifications</button>
+          <button class="agent-filter" onclick="filterAgentLogs('Peak Hours Agent', this)">⏰ Peak Hours</button>
+          <button class="agent-filter" onclick="filterAgentLogs('Price Elasticity Agent', this)">📉 Elasticity</button>
+          <button class="agent-filter" onclick="filterAgentLogs('Reorder Point Agent', this)">📦 Reorder</button>
           <button class="agent-filter" style="background:var(--danger-bg);color:var(--danger-text);border-color:var(--danger)" onclick="filterAgentLogs('all', this, 'critical')">🚨 Critical Only</button>
         </div>
         <div id="agentLogs">Loading agent logs...</div>
@@ -756,7 +759,10 @@
                 📈 Demand Surge — every 2 minutes<br>
                 🚨 Fraud Detection — every minute<br>
                 🏷️ Auto Discount — daily 10 AM<br>
-                🔔 Smart Notifications — every 30 minutes
+                🔔 Smart Notifications — every 30 minutes<br>
+                ⏰ Peak Hours Agent — every hour<br>
+                📉 Price Elasticity Agent — every 6 hours<br>
+                📦 Reorder Point Agent — every 30 minutes
               </div>
             </div>
           </div>
@@ -940,7 +946,7 @@
 <!-- AGENTS GUIDE MODAL -->
 <div class="modal-overlay" id="agentsGuideModal">
   <div class="modal-box" style="max-width:600px">
-    <div class="modal-header"><h2>🤖 15 AI Agents Guide</h2><button class="modal-close" onclick="closeModal('agentsGuideModal')">✕</button></div>
+    <div class="modal-header"><h2>🤖 18 AI Agents Guide</h2><button class="modal-close" onclick="closeModal('agentsGuideModal')">✕</button></div>
     <div class="modal-body" style="max-height:60vh;overflow-y:auto">
       <div style="display:flex;flex-direction:column;gap:10px">
         <div class="help-item" style="cursor:default"><span class="help-icon">🔔</span><div><div class="help-title">Monitoring Agent</div><div class="help-desc">Runs every 30 seconds. Alerts when stock = 0 (email sent) or stock ≤ minimum level (in-app warning).</div></div></div>
@@ -958,6 +964,9 @@
         <div class="help-item" style="cursor:default"><span class="help-icon">🚨</span><div><div class="help-title">Fraud Detection Agent</div><div class="help-desc">Runs every minute. Flags accounts placing 5+ orders in 10 minutes, quantities over 50 units, or amounts over ₹50,000 as suspicious.</div></div></div>
         <div class="help-item" style="cursor:default"><span class="help-icon">🏷️</span><div><div class="help-title">Auto Discount Agent</div><div class="help-desc">Runs daily at 10 AM. Products selling less than 2 units/week with 15+ in stock get automatic 15% discount. Removed when sales recover.</div></div></div>
         <div class="help-item" style="cursor:default"><span class="help-icon">🔔</span><div><div class="help-title">Smart Notification Agent</div><div class="help-desc">Runs every 30 minutes. Sends personalized emails to customers when their wishlisted out-of-stock items are back in stock.</div></div></div>
+        <div class="help-item" style="cursor:default"><span class="help-icon">⏰</span><div><div class="help-title">Peak Hours Agent</div><div class="help-desc">Runs every hour. Analyzes order history by hour of day to find peak sales time. Alerts store owner 1 hour before rush so shelves are fully stocked.</div></div></div>
+        <div class="help-item" style="cursor:default"><span class="help-icon">📉</span><div><div class="help-title">Price Elasticity Agent</div><div class="help-desc">Runs every 6 hours. Compares first half vs second half of sales history to detect if price changes are helping or hurting demand. Suggests price adjustments.</div></div></div>
+        <div class="help-item" style="cursor:default"><span class="help-icon">📦</span><div><div class="help-title">Reorder Point Agent</div><div class="help-desc">Runs every 30 minutes. Calculates optimal reorder point using formula: (avg daily sales × 3 day lead time) + safety stock. Auto-creates purchase order when threshold hit.</div></div></div>
       </div>
     </div>
   </div>
@@ -1006,7 +1015,10 @@ const AGENT_INFO = {
   "Demand Surge Agent":        { icon: "📈", desc: "Detects sudden spikes in product views and cart additions" },
   "Fraud Detection Agent":     { icon: "🚨", desc: "Monitors orders for suspicious patterns in real-time" },
   "Auto Discount Agent":       { icon: "🏷️", desc: "Auto-discounts slow-moving products to boost sales" },
-  "Smart Notification Agent":  { icon: "🔔", desc: "Notifies customers when wishlisted items are back in stock" }
+  "Smart Notification Agent":  { icon: "🔔", desc: "Notifies customers when wishlisted items are back in stock" },
+  "Peak Hours Agent":          { icon: "⏰", desc: "Detects peak sales hours and alerts before rush begins" },
+  "Price Elasticity Agent":    { icon: "📉", desc: "Analyzes how price changes affect sales volume" },
+  "Reorder Point Agent":       { icon: "📦", desc: "Calculates optimal reorder point using lead time and safety stock" }
 };
 
 /* ===== THEME / SETTINGS FAB ===== */
