@@ -546,6 +546,16 @@
     </div>
     <button class="cpp-close" onclick="toggleCustomerProfile()">✕</button>
   </div>
+<div style="padding:8px 16px;border-top:1px solid var(--border-color)">
+    <button onclick="toggleCustomer2FA()" style="width:100%;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;border:none;background:transparent;cursor:pointer;color:var(--text-primary)" onmouseover="this.style.background='var(--accent-light)'" onmouseout="this.style.background='transparent'">
+      <span style="font-size:1.1rem">🔐</span>
+      <div style="flex:1;text-align:left">
+        <div style="font-size:0.875rem;font-weight:600">Two-Factor Auth</div>
+        <div style="font-size:0.72rem;color:var(--text-muted)" id="customer2FAStatus">Loading...</div>
+      </div>
+      <span id="customer2FAToggle" style="font-size:1.4rem">⬜</span>
+    </button>
+  </div>
   <div class="cpp-footer">
     <button class="cpp-logout" onclick="logout()">🚪 Logout from ShelfSense AI</button>
   </div>
@@ -1316,10 +1326,34 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("customerAvatar").innerText = initials;
 });
 
+/* ===== CUSTOMER 2FA ===== */
+async function loadCustomer2FAStatus() {
+  try {
+    const res = await fetch("/customer/2fa-status", { headers: { Authorization: token } });
+    const data = await res.json();
+    const statusEl = document.getElementById("customer2FAStatus");
+    const toggleEl = document.getElementById("customer2FAToggle");
+    if (statusEl) statusEl.innerText = data.enabled ? "Enabled — OTP on login" : "Disabled — tap to enable";
+    if (toggleEl) toggleEl.innerText = data.enabled ? "✅" : "⬜";
+  } catch(err) {}
+}
+
+async function toggleCustomer2FA() {
+  try {
+    const res = await fetch("/customer/toggle-2fa", { method: "POST", headers: { "Content-Type": "application/json", Authorization: token } });
+    const data = await res.json();
+    const statusEl = document.getElementById("customer2FAStatus");
+    const toggleEl = document.getElementById("customer2FAToggle");
+    if (statusEl) statusEl.innerText = data.enabled ? "Enabled — OTP on login" : "Disabled — tap to enable";
+    if (toggleEl) toggleEl.innerText = data.enabled ? "✅" : "⬜";
+    showToast(data.message);
+  } catch(err) { showToast("Failed to update 2FA", "error"); }
+}
+
 /* ===== INIT ===== */
 loadProducts();
 renderWishlist();
-
+loadCustomer2FAStatus();
 setInterval(async () => {
   try {
     const [pRes, rRes] = await Promise.all([

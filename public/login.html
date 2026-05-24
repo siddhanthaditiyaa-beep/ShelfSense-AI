@@ -187,6 +187,34 @@
     }
     .modal-btn-cancel:hover { border-color: rgba(255,255,255,0.3); color: white; transform: none; }
     @media (max-width: 480px) { .login-card { padding: 24px 20px; } .navbar { padding: 0 20px; } }
+  .otp-screen { display: none; }
+.otp-screen.active { display: block; }
+.otp-email-badge {
+  background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3);
+  border-radius: 8px; padding: 8px 14px; font-size: 0.85rem;
+  color: var(--secondary); font-weight: 600; text-align: center;
+  margin-bottom: 20px; word-break: break-all;
+}
+.otp-inputs { display: flex; gap: 10px; justify-content: center; margin-bottom: 16px; }
+.otp-input {
+  width: 46px; height: 54px; border-radius: 10px;
+  border: 2px solid var(--border); background: rgba(255,255,255,0.05);
+  color: white; font-size: 1.4rem; font-weight: 700;
+  text-align: center; font-family: monospace; transition: all 0.2s; outline: none;
+}
+.otp-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99,102,241,0.2); }
+.otp-input.filled { border-color: var(--secondary); background: rgba(99,102,241,0.1); }
+.otp-timer { font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-bottom: 16px; }
+.otp-timer span { color: var(--secondary); font-weight: 700; }
+.resend-btn { background: none; border: none; color: var(--secondary); font-size: 0.85rem; font-weight: 600; cursor: pointer; text-decoration: underline; padding: 0; }
+.resend-btn:disabled { color: var(--text-muted); text-decoration: none; cursor: not-allowed; }
+.back-to-login-btn {
+  width: 100%; padding: 11px; border-radius: 10px;
+  background: transparent; color: var(--text-muted);
+  border: 1px solid var(--border); font-size: 0.875rem;
+  cursor: pointer; transition: all 0.2s; margin-top: 8px;
+}
+.back-to-login-btn:hover { border-color: rgba(255,255,255,0.3); color: white; }
   </style>
 </head>
 <body>
@@ -217,9 +245,31 @@
       </div>
 
       <div class="error-msg" id="errorMsg"></div>
-      <div class="countdown-msg" id="countdownMsg">⏱️ Try again in <span id="countdownTimer">15:00</span></div>
+<div class="countdown-msg" id="countdownMsg">⏱️ Try again in <span id="countdownTimer">15:00</span></div>
 
-      <!-- STORE OWNER LOGIN -->
+<!-- 2FA OTP SCREEN -->
+<div class="otp-screen" id="otpScreen">
+  <div style="text-align:center;font-size:2.5rem;margin-bottom:12px">🔐</div>
+  <div style="font-size:1rem;font-weight:700;color:white;text-align:center;margin-bottom:6px">Two-Factor Verification</div>
+  <div style="font-size:0.85rem;color:var(--text-muted);text-align:center;margin-bottom:20px">We sent a 6-digit OTP to your email</div>
+  <div class="otp-email-badge" id="otpEmailBadge">loading...</div>
+  <div class="otp-inputs">
+    <input class="otp-input" id="otp0" maxlength="1" type="text" inputmode="numeric">
+    <input class="otp-input" id="otp1" maxlength="1" type="text" inputmode="numeric">
+    <input class="otp-input" id="otp2" maxlength="1" type="text" inputmode="numeric">
+    <input class="otp-input" id="otp3" maxlength="1" type="text" inputmode="numeric">
+    <input class="otp-input" id="otp4" maxlength="1" type="text" inputmode="numeric">
+    <input class="otp-input" id="otp5" maxlength="1" type="text" inputmode="numeric">
+  </div>
+  <div class="otp-timer">OTP expires in <span id="otpTimerDisplay">5:00</span></div>
+  <button class="submit-btn" id="verifyOtpBtn" onclick="verifyOTP()">✅ Verify & Login</button>
+  <div style="text-align:center;margin-top:14px;font-size:0.85rem;color:var(--text-muted)">
+    Didn't get it? <button class="resend-btn" id="resendBtn" onclick="resendOTP()" disabled>Resend OTP</button>
+  </div>
+  <button class="back-to-login-btn" onclick="goBackToLogin()">← Back to Login</button>
+</div>
+
+<!-- STORE OWNER LOGIN -->
       <div id="storeForm">
         <button class="google-btn" onclick="loginWithGoogle()">
           <svg width="20" height="20" viewBox="0 0 24 24">
@@ -335,7 +385,9 @@
   if (urlParams.get("tab") === "customer") switchTab("customer");
 
   let currentTab = "store";
-  let countdownInterval = null;
+let countdownInterval = null;
+let otpEmail = "";
+let otpTimerInterval = null;
 
   function togglePassword(inputId, eyeId) {
     const input = document.getElementById(inputId);
@@ -448,24 +500,25 @@
         body: JSON.stringify({ email, password })
       });
       const data = await res.json();
-      if (res.ok) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("role", "admin");
-        localStorage.setItem("storeName", data.storeName || "My Store");
-        window.location.href = "admin.html"; return;
-      }
-      // Try superadmin login
-      const res2 = await fetch("/login", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: email, password })
-      });
-      const data2 = await res2.json();
-      if (res2.ok && data2.role === "superadmin") {
-        localStorage.setItem("token", data2.token);
-        localStorage.setItem("role", "superadmin");
-        window.location.href = "superadmin.html"; return;
-      }
-      showError(data.message || "Invalid credentials. Please check your email and password.");
+  if (res.ok) {
+      if (data.requireOTP) { showOTPScreen(data.email); btn.disabled = false; btn.innerHTML = "Login to Dashboard"; return; }
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("role", "admin");
+      localStorage.setItem("storeName", data.storeName || "My Store");
+      window.location.href = "admin.html"; return;
+    }
+    const res2 = await fetch("/login", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: email, password })
+    });
+    const data2 = await res2.json();
+    if (res2.ok && data2.requireOTP) { showOTPScreen(data2.email); btn.disabled = false; btn.innerHTML = "Login to Dashboard"; return; }
+    if (res2.ok && data2.role === "superadmin") {
+      localStorage.setItem("token", data2.token);
+      localStorage.setItem("role", "superadmin");
+      window.location.href = "superadmin.html"; return;
+    }
+    showError(data.message || "Invalid credentials. Please check your email and password.");
     } catch (err) {
       showError("Server error. Make sure the server is running.");
     }
@@ -495,6 +548,7 @@
         btn.innerHTML = "Login to My Account";
         return;
       }
+     if (data.requireOTP) { showOTPScreen(data.email); btn.disabled = false; btn.innerHTML = "Login to My Account"; return; }
       localStorage.setItem("token", data.token);
       localStorage.setItem("role", data.role);
       window.location.href = "customer.html";
@@ -504,6 +558,114 @@
       btn.innerHTML = "Login to My Account";
     }
   }
+
+/* ===== 2FA OTP ===== */
+function showOTPScreen(email) {
+  otpEmail = email;
+  document.getElementById("storeForm").style.display = "none";
+  document.getElementById("customerForm").style.display = "none";
+  document.getElementById("otpScreen").classList.add("active");
+  document.getElementById("otpEmailBadge").innerText = email;
+  document.getElementById("errorMsg").style.display = "none";
+  document.getElementById("countdownMsg").style.display = "none";
+  setupOTPInputs();
+  startOTPTimer(5 * 60);
+  setTimeout(() => document.getElementById("otp0").focus(), 100);
+}
+
+function setupOTPInputs() {
+  for (let i = 0; i < 6; i++) {
+    const input = document.getElementById(`otp${i}`);
+    input.value = ""; input.classList.remove("filled");
+    input.oninput = function() {
+      this.value = this.value.replace(/[^0-9]/g, "");
+      if (this.value) {
+        this.classList.add("filled");
+        if (i < 5) document.getElementById(`otp${i+1}`).focus();
+        else document.getElementById("verifyOtpBtn").focus();
+      } else { this.classList.remove("filled"); }
+    };
+    input.onkeydown = function(e) {
+      if (e.key === "Backspace" && !this.value && i > 0) document.getElementById(`otp${i-1}`).focus();
+    };
+  }
+}
+
+function getOTPValue() {
+  return Array.from({length:6}, (_, i) => document.getElementById(`otp${i}`).value).join("");
+}
+
+function startOTPTimer(seconds) {
+  if (otpTimerInterval) clearInterval(otpTimerInterval);
+  const display = document.getElementById("otpTimerDisplay");
+  const resendBtn = document.getElementById("resendBtn");
+  resendBtn.disabled = true;
+  otpTimerInterval = setInterval(() => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    display.innerText = `${m}:${s.toString().padStart(2, "0")}`;
+    display.style.color = seconds <= 30 ? "#ef4444" : "var(--secondary)";
+    if (seconds <= 0) {
+      clearInterval(otpTimerInterval);
+      display.innerText = "Expired ❌";
+      display.style.color = "#ef4444";
+      resendBtn.disabled = false;
+    }
+    seconds--;
+  }, 1000);
+}
+
+async function verifyOTP() {
+  const otp = getOTPValue();
+  const errorEl = document.getElementById("errorMsg");
+  const btn = document.getElementById("verifyOtpBtn");
+  if (otp.length !== 6) { errorEl.innerText = "Please enter the complete 6-digit OTP"; errorEl.style.display = "block"; return; }
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Verifying...';
+  errorEl.style.display = "none";
+  try {
+    const res = await fetch("/verify-otp", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: otpEmail, otp })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      errorEl.innerText = data.message || "Invalid OTP. Try again.";
+      errorEl.style.display = "block";
+      btn.disabled = false; btn.innerHTML = "✅ Verify & Login";
+      for (let i = 0; i < 6; i++) { document.getElementById(`otp${i}`).value = ""; document.getElementById(`otp${i}`).classList.remove("filled"); }
+      document.getElementById("otp0").focus();
+      return;
+    }
+    clearInterval(otpTimerInterval);
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("role", data.role);
+    if (data.storeName) localStorage.setItem("storeName", data.storeName);
+    if (data.role === "superadmin") window.location.href = "superadmin.html";
+    else if (data.role === "admin") window.location.href = "admin.html";
+    else window.location.href = "customer.html";
+  } catch(err) {
+    errorEl.innerText = "Server error. Please try again.";
+    errorEl.style.display = "block";
+    btn.disabled = false; btn.innerHTML = "✅ Verify & Login";
+  }
+}
+
+async function resendOTP() {
+  try {
+    await fetch("/resend-otp", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: otpEmail }) });
+    setupOTPInputs();
+    startOTPTimer(5 * 60);
+    document.getElementById("otp0").focus();
+  } catch(err) {}
+}
+
+function goBackToLogin() {
+  clearInterval(otpTimerInterval);
+  document.getElementById("otpScreen").classList.remove("active");
+  if (currentTab === "store") document.getElementById("storeForm").style.display = "block";
+  else document.getElementById("customerForm").style.display = "block";
+  document.getElementById("errorMsg").style.display = "none";
+}
 
   /* ===== FORGOT PASSWORD ===== */
   function openForgotPassword() {

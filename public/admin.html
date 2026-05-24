@@ -637,6 +637,14 @@
       <div class="pp-item-content"><div class="pp-item-title">Get Help</div><div class="pp-item-desc">Documentation and support</div></div>
       <span class="pp-item-arrow">›</span>
     </button>
+    <button class="pp-item" onclick="toggle2FA()">
+      <span class="pp-item-icon">🔐</span>
+      <div class="pp-item-content">
+        <div class="pp-item-title">Two-Factor Authentication</div>
+        <div class="pp-item-desc" id="twoFAStatus">Loading...</div>
+      </div>
+      <span id="twoFAToggle" style="font-size:1.4rem">⬜</span>
+    </button>
     <button class="pp-item" onclick="openShortcuts()">
       <span class="pp-item-icon">⌨️</span>
       <div class="pp-item-content"><div class="pp-item-title">Keyboard Shortcuts</div><div class="pp-item-desc">Quick navigation tips</div></div>
@@ -1454,10 +1462,35 @@ document.addEventListener("click", function(e) {
   }
 });
 
+/* ===== 2FA TOGGLE ===== */
+async function load2FAStatus() {
+  try {
+    const res = await fetch("/admin/2fa-status", { headers: { Authorization: token } });
+    const data = await res.json();
+    const statusEl = document.getElementById("twoFAStatus");
+    const toggleEl = document.getElementById("twoFAToggle");
+    if (statusEl) statusEl.innerText = data.enabled ? "Enabled — OTP required on login" : "Disabled — click to enable";
+    if (toggleEl) toggleEl.innerText = data.enabled ? "✅" : "⬜";
+  } catch(err) {}
+}
+
+async function toggle2FA() {
+  try {
+    const res = await fetch("/admin/toggle-2fa", { method: "POST", headers: { "Content-Type": "application/json", Authorization: token } });
+    const data = await res.json();
+    const statusEl = document.getElementById("twoFAStatus");
+    const toggleEl = document.getElementById("twoFAToggle");
+    if (statusEl) statusEl.innerText = data.enabled ? "Enabled — OTP required on login" : "Disabled — click to enable";
+    if (toggleEl) toggleEl.innerText = data.enabled ? "✅" : "⬜";
+    showToast(data.message);
+  } catch(err) { showToast("Failed to update 2FA", "error"); }
+}
+
 /* ===== INIT ===== */
 loadAdmin();
 loadSidebarUser();
 loadMLUrl();
+load2FAStatus();
 setInterval(loadAdmin, 15000);
 setInterval(() => { if (currentPage === "agents") loadAgentDashboard(); }, 30000);
 </script>

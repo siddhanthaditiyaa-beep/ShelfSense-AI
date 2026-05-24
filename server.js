@@ -82,6 +82,37 @@ async function sendAlert(subject, message, isUrgent = false, toEmail = null) {
 ========================= */
 const tokenBlacklist = new Set();
 
+/* =========================
+   2FA OTP STORE
+========================= */
+const otpStore = new Map();
+
+function generateOTP() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+async function sendOTPEmail(email, otp, name) {
+  await emailTransporter.sendMail({
+    from: `"ShelfSense AI 🔐" <${process.env.ALERT_EMAIL}>`,
+    to: email,
+    subject: "Your ShelfSense AI Login OTP",
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto">
+        <div style="background:#6366f1;padding:20px;border-radius:10px 10px 0 0">
+          <h1 style="color:white;margin:0;font-size:1.2rem">🔐 ShelfSense AI — Login Verification</h1>
+        </div>
+        <div style="background:#f8fafc;padding:24px;border-radius:0 0 10px 10px;border:1px solid #e2e8f0">
+          <p style="color:#1e293b">Hi <strong>${name}</strong>,</p>
+          <p style="color:#1e293b;margin-top:8px">Your one-time password (OTP) for login is:</p>
+          <div style="text-align:center;margin:24px 0">
+            <span style="font-size:2.5rem;font-weight:800;letter-spacing:12px;color:#6366f1">${otp}</span>
+          </div>
+          <p style="color:#64748b;font-size:0.85rem">Expires in <strong>5 minutes</strong>. Do not share it with anyone.</p>
+        </div>
+      </div>`
+  });
+}
+
 function blacklistToken(token) {
   tokenBlacklist.add(token);
   // Auto-clean blacklist every hour to prevent memory leak
@@ -277,8 +308,11 @@ const StoreSchema = new mongoose.Schema({
   lockUntil: Date,
   resetToken: String,
   resetTokenExpiry: Date,
-  createdAt: { type: Date, default: Date.now }
+twoFactorEnabled: { type: Boolean, default: false },
+createdAt: { type: Date, default: Date.now }
 });
+
+const UserSchema
 
 const UserSchema = new mongoose.Schema({
   storeId: { type: mongoose.Schema.Types.ObjectId, ref: "Store" },
@@ -294,8 +328,11 @@ const UserSchema = new mongoose.Schema({
   lockUntil: Date,
   resetToken: String,
   resetTokenExpiry: Date,
-  createdAt: { type: Date, default: Date.now }
+twoFactorEnabled: { type: Boolean, default: false },
+createdAt: { type: Date, default: Date.now }
 });
+
+const ItemSchema
 
 const ItemSchema = new mongoose.Schema({
   storeId: { type: mongoose.Schema.Types.ObjectId, ref: "Store" },
@@ -732,9 +769,19 @@ app.post("/login-store", loginLimiter, async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
     store.loginAttempts = 0; store.lockUntil = null; await store.save();
-    const token = jwt.sign({ id: store._id, role: "admin", email: store.ownerEmail, fname: store.ownerName, storeId: store._id, storeName: store.name, plan: store.plan }, process.env.JWT_SECRET, { expiresIn: "24h" });
-    await logAudit(req, email, "admin", "LOGIN_SUCCESS");
-    res.json({ token, role: "admin", fname: store.ownerName, storeName: store.name, plan: store.plan });
+await logAudit(req, email, "admin", "LOGIN_SUCCESS");
+if (store.twoFactorEnabled) {
+  const otp = generateOTP();
+  otpStore.set(store.ownerEmail.toLowerCase(), {
+    otp, name: store.ownerName,
+    expires: Date.now() + 5 * 60 * 1000,
+    storeData: { id: store._id, role: "admin", email: store.ownerEmail, fname: store.ownerName, storeId: store._id, storeName: store.name, plan: store.plan }
+  });
+  await sendOTPEmail(store.ownerEmail, otp, store.ownerName);
+  return res.json({ requireOTP: true, email: store.ownerEmail });
+}
+const token = jwt.sign({ id: store._id, role: "admin", email: store.ownerEmail, fname: store.ownerName, storeId: store._id, storeName: store.name, plan: store.plan }, process.env.JWT_SECRET, { expiresIn: "24h" });
+res.json({ token, role: "admin", fname: store.ownerName, storeName: store.name, plan: store.plan });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
@@ -778,9 +825,19 @@ app.post("/login", loginLimiter, async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
     user.loginAttempts = 0; user.lockUntil = null; await user.save();
-    const token = jwt.sign({ id: user._id, role: user.role, email: user.email, fname: user.fname }, process.env.JWT_SECRET, { expiresIn: "24h" });
-    await logAudit(req, user.email, user.role, "LOGIN_SUCCESS");
-    res.json({ token, role: user.role, fname: user.fname });
+await logAudit(req, user.email, user.role, "LOGIN_SUCCESS");
+if (user.twoFactorEnabled) {
+  const otp = generateOTP();
+  otpStore.set(user.email.toLowerCase(), {
+    otp, name: user.fname || user.email,
+    expires: Date.now() + 5 * 60 * 1000,
+    userData: { id: user._id, role: user.role, email: user.email, fname: user.fname }
+  });
+  await sendOTPEmail(user.email, otp, user.fname || "User");
+  return res.json({ requireOTP: true, email: user.email });
+}
+const token = jwt.sign({ id: user._id, role: user.role, email: user.email, fname: user.fname }, process.env.JWT_SECRET, { expiresIn: "24h" });
+res.json({ token, role: user.role, fname: user.fname });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
@@ -1301,6 +1358,84 @@ app.post("/admin/ml-url", auth("admin"), async (req, res) => {
     );
     res.json({ message: "ML Service URL updated successfully!" });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* =========================
+   2FA ROUTES
+========================= */
+app.post("/admin/toggle-2fa", auth("admin"), async (req, res) => {
+  try {
+    const store = await Store.findById(req.user.storeId);
+    if (!store) return res.status(404).json({ message: "Store not found" });
+    store.twoFactorEnabled = !store.twoFactorEnabled;
+    await store.save();
+    await logAudit(req, req.user.email, "admin", store.twoFactorEnabled ? "2FA_ENABLED" : "2FA_DISABLED");
+    res.json({ enabled: store.twoFactorEnabled, message: `2FA ${store.twoFactorEnabled ? "enabled" : "disabled"} successfully` });
+  } catch(err) { res.status(500).json({ message: "Server error" }); }
+});
+
+app.post("/customer/toggle-2fa", auth("customer"), async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+    user.twoFactorEnabled = !user.twoFactorEnabled;
+    await user.save();
+    await logAudit(req, req.user.email, "customer", user.twoFactorEnabled ? "2FA_ENABLED" : "2FA_DISABLED");
+    res.json({ enabled: user.twoFactorEnabled, message: `2FA ${user.twoFactorEnabled ? "enabled" : "disabled"} successfully` });
+  } catch(err) { res.status(500).json({ message: "Server error" }); }
+});
+
+app.get("/admin/2fa-status", auth("admin"), async (req, res) => {
+  try {
+    const store = await Store.findById(req.user.storeId);
+    res.json({ enabled: store?.twoFactorEnabled || false });
+  } catch(err) { res.status(500).json({ message: "Server error" }); }
+});
+
+app.get("/customer/2fa-status", auth("customer"), async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    res.json({ enabled: user?.twoFactorEnabled || false });
+  } catch(err) { res.status(500).json({ message: "Server error" }); }
+});
+
+app.post("/verify-otp", async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) return res.status(400).json({ message: "Email and OTP required" });
+    const record = otpStore.get(email.toLowerCase());
+    if (!record) return res.status(400).json({ message: "OTP expired. Please login again." });
+    if (Date.now() > record.expires) {
+      otpStore.delete(email.toLowerCase());
+      return res.status(400).json({ message: "OTP has expired. Please login again." });
+    }
+    if (record.otp !== otp.toString()) return res.status(400).json({ message: "Invalid OTP. Please try again." });
+    otpStore.delete(email.toLowerCase());
+    let token;
+    if (record.storeData) {
+      token = jwt.sign(record.storeData, process.env.JWT_SECRET, { expiresIn: "24h" });
+      await logAudit(req, email, "admin", "LOGIN_SUCCESS_2FA");
+      return res.json({ token, role: "admin", fname: record.storeData.fname, storeName: record.storeData.storeName, plan: record.storeData.plan });
+    } else {
+      token = jwt.sign(record.userData, process.env.JWT_SECRET, { expiresIn: "24h" });
+      await logAudit(req, email, record.userData.role, "LOGIN_SUCCESS_2FA");
+      return res.json({ token, role: record.userData.role, fname: record.userData.fname });
+    }
+  } catch(err) { res.status(500).json({ message: "Server error" }); }
+});
+
+app.post("/resend-otp", async (req, res) => {
+  try {
+    const { email } = req.body;
+    const record = otpStore.get(email.toLowerCase());
+    if (!record) return res.status(400).json({ message: "Session expired. Please login again." });
+    const otp = generateOTP();
+    record.otp = otp;
+    record.expires = Date.now() + 5 * 60 * 1000;
+    otpStore.set(email.toLowerCase(), record);
+    await sendOTPEmail(email, otp, record.name);
+    res.json({ message: "New OTP sent!" });
+  } catch(err) { res.status(500).json({ message: "Server error" }); }
 });
 
 /* =========================
