@@ -25,81 +25,17 @@
       --card-bg: rgba(255,255,255,0.05);
     }
 
-    body {
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      background: var(--dark);
-      color: var(--text);
-      overflow-x: hidden;
-    }
+    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--dark); color: var(--text); overflow-x: hidden; }
 
-    /* ===== NAVBAR ===== */
-    .navbar {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      height: 64px;
-      background: rgba(15,15,35,0.9);
-      backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 40px;
-      z-index: 1000;
-    }
-
-    .nav-logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 1.3rem;
-      font-weight: 700;
-      color: var(--text);
-      text-decoration: none;
-    }
-
-    .nav-logo-icon {
-      width: 36px; height: 36px;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.1rem;
-    }
-
-    .nav-links {
-      display: flex;
-      align-items: center;
-      gap: 32px;
-      list-style: none;
-    }
-
-    .nav-links a {
-      color: var(--text-muted);
-      text-decoration: none;
-      font-size: 0.9rem;
-      font-weight: 500;
-      transition: color 0.2s;
-    }
-
+    .navbar { position: fixed; top: 0; left: 0; right: 0; height: 64px; background: rgba(15,15,35,0.9); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 40px; z-index: 1000; }
+    .nav-logo { display: flex; align-items: center; gap: 10px; font-size: 1.3rem; font-weight: 700; color: var(--text); text-decoration: none; }
+    .nav-logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+    .nav-links { display: flex; align-items: center; gap: 32px; list-style: none; }
+    .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s; }
     .nav-links a:hover { color: var(--text); }
-
     .nav-actions { display: flex; align-items: center; gap: 12px; }
 
-    .btn {
-      padding: 9px 20px;
-      border-radius: 8px;
-      font-size: 0.875rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      border: none;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
+    .btn { padding: 9px 20px; border-radius: 8px; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: all 0.2s; border: none; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
     .btn:hover { transform: translateY(-1px); }
     .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
     .btn-ghost:hover { color: var(--text); border-color: rgba(255,255,255,0.3); }
@@ -109,194 +45,54 @@
     .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
     .btn-outline:hover { background: var(--card-bg); }
 
-    /* ===== HERO ===== */
-    .hero {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 100px 40px 80px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .hero-bg {
-      position: absolute;
-      inset: 0;
-      background:
-        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99,102,241,0.3), transparent),
-        radial-gradient(ellipse 50% 50% at 80% 50%, rgba(167,139,250,0.15), transparent),
-        radial-gradient(ellipse 50% 50% at 20% 80%, rgba(34,211,238,0.1), transparent);
-    }
-
+    .hero { min-height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center; padding: 100px 40px 80px; position: relative; overflow: hidden; }
+    .hero-bg { position: absolute; inset: 0; background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99,102,241,0.3), transparent), radial-gradient(ellipse 50% 50% at 80% 50%, rgba(167,139,250,0.15), transparent), radial-gradient(ellipse 50% 50% at 20% 80%, rgba(34,211,238,0.1), transparent); }
     .hero-content { position: relative; max-width: 800px; }
-
-    .hero-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(99,102,241,0.15);
-      border: 1px solid rgba(99,102,241,0.3);
-      color: var(--secondary);
-      padding: 6px 16px;
-      border-radius: 20px;
-      font-size: 0.82rem;
-      font-weight: 600;
-      margin-bottom: 24px;
-    }
-
+    .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3); color: var(--secondary); padding: 6px 16px; border-radius: 20px; font-size: 0.82rem; font-weight: 600; margin-bottom: 24px; }
     .hero-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); animation: pulse 2s infinite; }
-
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-
-    .hero h1 {
-      font-size: clamp(2.5rem, 6vw, 4.5rem);
-      font-weight: 800;
-      line-height: 1.1;
-      margin-bottom: 20px;
-      background: linear-gradient(135deg, #ffffff 0%, rgba(255,255,255,0.8) 50%, var(--secondary) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .hero p {
-      font-size: 1.2rem;
-      color: var(--text-muted);
-      max-width: 600px;
-      margin: 0 auto 40px;
-      line-height: 1.6;
-    }
-
+    .hero h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); font-weight: 800; line-height: 1.1; margin-bottom: 20px; background: linear-gradient(135deg, #ffffff 0%, rgba(255,255,255,0.8) 50%, var(--secondary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero p { font-size: 1.2rem; color: var(--text-muted); max-width: 600px; margin: 0 auto 40px; line-height: 1.6; }
     .hero-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
-
-    .hero-stats {
-      display: flex;
-      gap: 48px;
-      justify-content: center;
-      margin-top: 64px;
-      flex-wrap: wrap;
-    }
-
+    .hero-stats { display: flex; gap: 48px; justify-content: center; margin-top: 64px; flex-wrap: wrap; }
     .hero-stat { text-align: center; }
     .hero-stat-num { font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     .hero-stat-label { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
 
-    /* ===== SECTION ===== */
     section { padding: 100px 40px; }
     .section-label { font-size: 0.82rem; font-weight: 600; color: var(--secondary); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; text-align: center; }
     .section-title { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; text-align: center; margin-bottom: 16px; }
     .section-subtitle { font-size: 1.1rem; color: var(--text-muted); text-align: center; max-width: 600px; margin: 0 auto 60px; line-height: 1.6; }
 
-    /* ===== AGENTS SECTION ===== */
     .agents-section { background: linear-gradient(180deg, var(--dark) 0%, var(--dark2) 100%); }
-
-    .agents-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 20px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    .agent-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
-      transition: all 0.3s;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .agent-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, var(--primary), var(--secondary));
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-
+    .agents-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
+    .agent-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 24px; transition: all 0.3s; position: relative; overflow: hidden; }
+    .agent-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--primary), var(--secondary)); opacity: 0; transition: opacity 0.3s; }
     .agent-card:hover { transform: translateY(-4px); border-color: rgba(99,102,241,0.3); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
     .agent-card:hover::before { opacity: 1; }
-
     .agent-icon { font-size: 2rem; margin-bottom: 12px; }
     .agent-name { font-size: 0.95rem; font-weight: 700; color: var(--text); margin-bottom: 8px; }
     .agent-desc { font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; }
     .agent-tag { display: inline-block; margin-top: 12px; padding: 3px 10px; background: rgba(99,102,241,0.15); color: var(--secondary); border-radius: 20px; font-size: 0.72rem; font-weight: 600; }
 
-    /* ===== FEATURES ===== */
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 24px;
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-
-    .feature-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 28px;
-      transition: all 0.3s;
-    }
-
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; max-width: 1100px; margin: 0 auto; }
+    .feature-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 28px; transition: all 0.3s; }
     .feature-card:hover { transform: translateY(-4px); border-color: rgba(99,102,241,0.3); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
     .feature-icon { font-size: 2rem; margin-bottom: 14px; }
     .feature-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 8px; }
     .feature-desc { font-size: 0.875rem; color: var(--text-muted); line-height: 1.6; }
 
-    /* ===== PRICING ===== */
     .pricing-section { background: linear-gradient(180deg, var(--dark2) 0%, var(--dark) 100%); }
-
-    .pricing-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 24px;
-      max-width: 1000px;
-      margin: 0 auto;
-    }
-
-    .pricing-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 36px;
-      transition: all 0.3s;
-      position: relative;
-    }
-
-    .pricing-card.featured {
-      background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(167,139,250,0.1));
-      border-color: rgba(99,102,241,0.5);
-      transform: scale(1.05);
-    }
-
+    .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; max-width: 1000px; margin: 0 auto; }
+    .pricing-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 36px; transition: all 0.3s; position: relative; }
+    .pricing-card.featured { background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(167,139,250,0.1)); border-color: rgba(99,102,241,0.5); transform: scale(1.05); }
     .pricing-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
     .pricing-card.featured:hover { transform: scale(1.05) translateY(-4px); }
-
-    .pricing-badge {
-      position: absolute;
-      top: -12px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      color: white;
-      padding: 4px 16px;
-      border-radius: 20px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      white-space: nowrap;
-    }
-
+    .pricing-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; padding: 4px 16px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; white-space: nowrap; }
     .pricing-plan { font-size: 0.82rem; font-weight: 600; color: var(--secondary); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
     .pricing-price { font-size: 3rem; font-weight: 800; margin-bottom: 4px; }
     .pricing-price span { font-size: 1rem; color: var(--text-muted); font-weight: 400; }
     .pricing-desc { font-size: 0.875rem; color: var(--text-muted); margin-bottom: 28px; }
-
     .pricing-features { list-style: none; margin-bottom: 28px; }
     .pricing-features li { display: flex; align-items: center; gap: 10px; font-size: 0.875rem; color: var(--text-muted); margin-bottom: 12px; }
     .pricing-features li.included { color: var(--text); }
@@ -304,40 +100,17 @@
     .pricing-features li.excluded::before { content: "✗"; color: rgba(255,255,255,0.2); }
     .pricing-features li.excluded { color: rgba(255,255,255,0.2); }
 
-    /* ===== HOW IT WORKS ===== */
-    .steps-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 32px;
-      max-width: 900px;
-      margin: 0 auto;
-      position: relative;
-    }
-
+    .steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 32px; max-width: 900px; margin: 0 auto; }
     .step-card { text-align: center; }
     .step-number { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 800; margin: 0 auto 16px; }
     .step-title { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
     .step-desc { font-size: 0.875rem; color: var(--text-muted); line-height: 1.6; }
 
-    /* ===== CTA SECTION ===== */
-    .cta-section {
-      background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(167,139,250,0.1));
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      text-align: center;
-      padding: 100px 40px;
-    }
-
+    .cta-section { background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(167,139,250,0.1)); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); text-align: center; padding: 100px 40px; }
     .cta-section h2 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; margin-bottom: 16px; }
     .cta-section p { font-size: 1.1rem; color: var(--text-muted); margin-bottom: 40px; }
 
-    /* ===== FOOTER ===== */
-    footer {
-      background: var(--dark);
-      border-top: 1px solid var(--border);
-      padding: 60px 40px 32px;
-    }
-
+    footer { background: var(--dark); border-top: 1px solid var(--border); padding: 60px 40px 32px; }
     .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; max-width: 1100px; margin: 0 auto 48px; }
     .footer-brand p { font-size: 0.875rem; color: var(--text-muted); margin-top: 12px; line-height: 1.6; max-width: 260px; }
     .footer-col h4 { font-size: 0.875rem; font-weight: 700; margin-bottom: 16px; }
@@ -346,7 +119,6 @@
     .footer-bottom { display: flex; justify-content: space-between; align-items: center; padding-top: 32px; border-top: 1px solid var(--border); max-width: 1100px; margin: 0 auto; }
     .footer-bottom p { font-size: 0.82rem; color: var(--text-muted); }
 
-    /* ===== ANIMATIONS ===== */
     .fade-in { opacity: 0; transform: translateY(20px); transition: all 0.6s ease; }
     .fade-in.visible { opacity: 1; transform: translateY(0); }
 
@@ -385,17 +157,17 @@
   <div class="hero-content">
     <div class="hero-badge">
       <div class="hero-badge-dot"></div>
-      10 AI Agents Running 24/7
+      15 AI Agents Running 24/7
     </div>
     <h1>The Smartest Way to Manage Your Retail Store</h1>
-    <p>ShelfSense AI monitors your shelves, predicts demand, detects theft, and optimizes pricing — all automatically with 10 intelligent AI agents.</p>
+    <p>ShelfSense AI monitors your shelves, predicts demand, detects theft, analyzes sentiment, detects fraud and more — all automatically with 15 intelligent AI agents.</p>
     <div class="hero-actions">
       <a href="register.html" class="btn btn-primary btn-large">🚀 Start Free Trial</a>
       <a href="login.html" class="btn btn-outline btn-large">View Demo</a>
     </div>
     <div class="hero-stats">
       <div class="hero-stat">
-        <div class="hero-stat-num">10</div>
+        <div class="hero-stat-num">15</div>
         <div class="hero-stat-label">AI Agents</div>
       </div>
       <div class="hero-stat">
@@ -407,8 +179,8 @@
         <div class="hero-stat-label">Monitoring</div>
       </div>
       <div class="hero-stat">
-        <div class="hero-stat-num">99%</div>
-        <div class="hero-stat-label">Accuracy</div>
+        <div class="hero-stat-num">13</div>
+        <div class="hero-stat-label">Security Layers</div>
       </div>
     </div>
   </div>
@@ -417,7 +189,7 @@
 <!-- AGENTS SECTION -->
 <section class="agents-section" id="agents">
   <div class="section-label">Multi-Agent AI System</div>
-  <h2 class="section-title">10 AI Agents Working For You</h2>
+  <h2 class="section-title">15 AI Agents Working For You</h2>
   <p class="section-subtitle">Each agent is a specialized AI that runs automatically — no manual work needed.</p>
 
   <div class="agents-grid">
@@ -481,6 +253,36 @@
       <div class="agent-desc">When stock runs out, finds the nearest franchise with sufficient inventory and recommends optimal transfer routes.</div>
       <span class="agent-tag">Daily 6 AM</span>
     </div>
+    <div class="agent-card fade-in">
+      <div class="agent-icon">😊</div>
+      <div class="agent-name">Sentiment Analysis Agent</div>
+      <div class="agent-desc">Analyzes customer ratings to compute sentiment scores. Alerts when products receive negative reviews and recommends quality improvements.</div>
+      <span class="agent-tag">Daily 2 AM</span>
+    </div>
+    <div class="agent-card fade-in">
+      <div class="agent-icon">📈</div>
+      <div class="agent-name">Demand Surge Agent</div>
+      <div class="agent-desc">Detects sudden spikes in product views and cart additions. Sends early warning alerts before stock runs out during demand surges.</div>
+      <span class="agent-tag">Every 2 minutes</span>
+    </div>
+    <div class="agent-card fade-in">
+      <div class="agent-icon">🚨</div>
+      <div class="agent-name">Fraud Detection Agent</div>
+      <div class="agent-desc">Monitors order patterns in real-time. Flags suspicious activity like multiple rapid orders, unusual quantities and high amounts.</div>
+      <span class="agent-tag">Every minute</span>
+    </div>
+    <div class="agent-card fade-in">
+      <div class="agent-icon">🏷️</div>
+      <div class="agent-name">Auto Discount Agent</div>
+      <div class="agent-desc">Identifies slow-moving products and automatically applies targeted discounts. Removes discounts when sales recover to protect margins.</div>
+      <span class="agent-tag">Daily 10 AM</span>
+    </div>
+    <div class="agent-card fade-in">
+      <div class="agent-icon">🔔</div>
+      <div class="agent-name">Smart Notification Agent</div>
+      <div class="agent-desc">Sends personalized email notifications to customers when their wishlisted out-of-stock products come back in stock.</div>
+      <span class="agent-tag">Every 30 minutes</span>
+    </div>
   </div>
 </section>
 
@@ -489,7 +291,6 @@
   <div class="section-label">Platform Features</div>
   <h2 class="section-title">Everything Your Store Needs</h2>
   <p class="section-subtitle">A complete retail intelligence platform built for modern store owners.</p>
-
   <div class="features-grid">
     <div class="feature-card fade-in">
       <div class="feature-icon">🔍</div>
@@ -508,8 +309,8 @@
     </div>
     <div class="feature-card fade-in">
       <div class="feature-icon">🔒</div>
-      <div class="feature-title">Enterprise Security</div>
-      <div class="feature-desc">JWT authentication, bcrypt encryption, rate limiting, brute force protection, MongoDB injection prevention and more.</div>
+      <div class="feature-title">13-Layer Security</div>
+      <div class="feature-desc">JWT blacklisting, audit logs, CSRF protection, fraud detection, suspicious IP tracking, bcrypt encryption, rate limiting and more.</div>
     </div>
     <div class="feature-card fade-in">
       <div class="feature-icon">📧</div>
@@ -519,7 +320,7 @@
     <div class="feature-card fade-in">
       <div class="feature-icon">🎨</div>
       <div class="feature-title">Beautiful Dashboard</div>
-      <div class="feature-desc">Modern admin dashboard with collapsible sidebar, light/dark/system themes, real-time charts and agent activity logs.</div>
+      <div class="feature-desc">Modern admin dashboard with collapsible sidebar, light/dark/system themes, real-time charts and all 15 agent activity logs.</div>
     </div>
   </div>
 </section>
@@ -529,7 +330,6 @@
   <div class="section-label">Get Started</div>
   <h2 class="section-title">Up and Running in Minutes</h2>
   <p class="section-subtitle">No technical knowledge required. Set up your store and let the AI do the rest.</p>
-
   <div class="steps-grid">
     <div class="step-card fade-in">
       <div class="step-number">1</div>
@@ -549,7 +349,7 @@
     <div class="step-card fade-in">
       <div class="step-number">4</div>
       <div class="step-title">Relax</div>
-      <div class="step-desc">All 10 AI agents start working immediately. Get alerts on your phone and manage everything from one dashboard.</div>
+      <div class="step-desc">All 15 AI agents start working immediately. Get alerts on your email and manage everything from one dashboard.</div>
     </div>
   </div>
 </section>
@@ -559,9 +359,7 @@
   <div class="section-label">Simple Pricing</div>
   <h2 class="section-title">Choose Your Plan</h2>
   <p class="section-subtitle">Start free, upgrade when you need more. No hidden fees.</p>
-
   <div class="pricing-grid">
-    <!-- FREE -->
     <div class="pricing-card fade-in">
       <div class="pricing-plan">Free</div>
       <div class="pricing-price">₹0 <span>/ month</span></div>
@@ -571,7 +369,7 @@
         <li class="included">Monitoring Agent</li>
         <li class="included">Basic email alerts</li>
         <li class="included">Customer shop page</li>
-        <li class="excluded">Forecasting Agent</li>
+        <li class="excluded">All 15 AI Agents</li>
         <li class="excluded">Anomaly Detection</li>
         <li class="excluded">Dynamic Pricing</li>
         <li class="excluded">YOLOv8 Shelf Scan</li>
@@ -579,8 +377,6 @@
       </ul>
       <a href="register.html" class="btn btn-outline" style="width:100%;justify-content:center">Get Started Free</a>
     </div>
-
-    <!-- PRO -->
     <div class="pricing-card featured fade-in">
       <div class="pricing-badge">Most Popular</div>
       <div class="pricing-plan">Pro</div>
@@ -588,19 +384,17 @@
       <div class="pricing-desc">Everything you need to run a smart store</div>
       <ul class="pricing-features">
         <li class="included">Unlimited products</li>
-        <li class="included">All 10 AI Agents</li>
+        <li class="included">All 15 AI Agents</li>
         <li class="included">Real-time email alerts</li>
         <li class="included">YOLOv8 Shelf Scanning</li>
         <li class="included">Razorpay Payments</li>
         <li class="included">Franchise Locator</li>
-        <li class="included">Dynamic Pricing</li>
-        <li class="included">Weather Integration</li>
+        <li class="included">Fraud Detection</li>
+        <li class="included">13-Layer Security</li>
         <li class="excluded">Multiple stores</li>
       </ul>
       <a href="register.html" class="btn btn-primary" style="width:100%;justify-content:center">Start Pro Trial</a>
     </div>
-
-    <!-- ENTERPRISE -->
     <div class="pricing-card fade-in">
       <div class="pricing-plan">Enterprise</div>
       <div class="pricing-price">₹2,999 <span>/ month</span></div>
@@ -624,7 +418,7 @@
 <!-- CTA -->
 <section class="cta-section">
   <h2>Ready to Transform Your Store?</h2>
-  <p>Join hundreds of retail store owners using ShelfSense AI to run smarter, more profitable stores.</p>
+  <p>Join retail store owners using ShelfSense AI to run smarter, more profitable stores with 15 AI agents.</p>
   <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
     <a href="register.html" class="btn btn-primary btn-large">🚀 Start Free Trial</a>
     <a href="login.html" class="btn btn-outline btn-large">Login to Dashboard</a>
@@ -639,7 +433,7 @@
         <div class="nav-logo-icon">🧠</div>
         ShelfSense AI
       </a>
-      <p>The smartest retail management platform powered by 10 AI agents working 24/7 for your store.</p>
+      <p>The smartest retail management platform powered by 15 AI agents and 13 security layers working 24/7 for your store.</p>
     </div>
     <div class="footer-col">
       <h4>Product</h4>
@@ -670,18 +464,11 @@
 </footer>
 
 <script>
-// Fade in animation on scroll
 const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('visible');
-    }
-  });
+  entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
 }, { threshold: 0.1 });
-
 document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
 
-// Smooth scroll for nav links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   anchor.addEventListener('click', function(e) {
     e.preventDefault();
@@ -690,14 +477,9 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   });
 });
 
-// Navbar scroll effect
 window.addEventListener('scroll', () => {
   const navbar = document.querySelector('.navbar');
-  if (window.scrollY > 50) {
-    navbar.style.background = 'rgba(15,15,35,0.98)';
-  } else {
-    navbar.style.background = 'rgba(15,15,35,0.9)';
-  }
+  navbar.style.background = window.scrollY > 50 ? 'rgba(15,15,35,0.98)' : 'rgba(15,15,35,0.9)';
 });
 </script>
 

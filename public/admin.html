@@ -52,18 +52,9 @@
     .sidebar-divider { height: 1px; background: var(--border-color); margin: 8px; }
 
     .sidebar-bottom { padding: 12px 8px; border-top: 1px solid var(--border-color); }
-    .sidebar-user {
-      display: flex; align-items: center; gap: 10px;
-      padding: 8px 10px; border-radius: 10px; cursor: pointer;
-      transition: all 0.2s;
-    }
+    .sidebar-user { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; cursor: pointer; transition: all 0.2s; }
     .sidebar-user:hover { background: var(--accent-light); }
-    .sidebar-avatar {
-      width: 32px; height: 32px; border-radius: 50%;
-      background: linear-gradient(135deg, #6366f1, #a78bfa);
-      color: white; display: flex; align-items: center; justify-content: center;
-      font-size: 0.75rem; font-weight: 700; flex-shrink: 0; overflow: hidden;
-    }
+    .sidebar-avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #a78bfa); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0; overflow: hidden; }
     .sidebar-username { font-size: 0.82rem; font-weight: 600; color: var(--text-primary); }
     .sidebar-role { font-size: 0.7rem; color: var(--text-muted); }
     .sidebar-chevron { margin-left: auto; color: var(--text-muted); font-size: 0.7rem; transition: transform 0.2s; }
@@ -76,7 +67,7 @@
     .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px; margin-bottom: 20px; }
     .stat-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; text-align: center; box-shadow: var(--shadow-sm); transition: all 0.3s; }
     .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
-    .stat-card .number { font-size: 1.9rem; font-weight: 700; color: var(--stat-num-color); }
+    .stat-card .number { font-size: 1.9rem; font-weight: 700; }
     .stat-card .label { font-size: 0.78rem; color: var(--text-muted); margin-top: 4px; }
 
     .card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow-sm); transition: all 0.3s; }
@@ -157,7 +148,6 @@
     .stock-edit { display: flex; align-items: center; gap: 6px; }
     .stock-edit input { width: 70px; margin-bottom: 0; padding: 5px 8px; font-size: 0.85rem; }
 
-    /* AGENT CARDS */
     .agents-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; }
     .agent-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 18px; transition: all 0.3s; position: relative; overflow: hidden; }
     .agent-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #6366f1, #a78bfa); }
@@ -174,7 +164,6 @@
     .agent-pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--success); animation: pulse 2s infinite; display: inline-block; }
     @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.2); } }
 
-    /* AGENT LOGS */
     .agent-filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
     .agent-filter { padding: 5px 14px; border-radius: 20px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-secondary); font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
     .agent-filter:hover { border-color: var(--accent); color: var(--accent); transform: none; }
@@ -190,7 +179,6 @@
     .severity-warning { border-left: 3px solid var(--warning); }
     .severity-info { border-left: 3px solid var(--success); }
 
-    /* SETTINGS */
     .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
     @media (max-width: 768px) { .settings-grid { grid-template-columns: 1fr; } }
     .settings-group { margin-bottom: 16px; }
@@ -201,7 +189,6 @@
     .time-range input { flex: 1; margin-bottom: 0; }
     .time-range span { color: var(--text-muted); font-size: 0.9rem; flex-shrink: 0; }
 
-    /* PURCHASE ORDERS */
     .po-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; transition: all 0.2s; }
     .po-card:hover { border-color: var(--accent); box-shadow: var(--shadow-sm); }
     .po-info h3 { font-size: 0.9rem; font-weight: 700; color: var(--text-primary); }
@@ -212,7 +199,6 @@
 
     .settings-fab { position: fixed; bottom: 24px; right: 24px; width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #a78bfa); color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; box-shadow: var(--shadow-lg); z-index: 1000; transition: all 0.3s; padding: 0; }
     .settings-fab:hover { transform: scale(1.1) rotate(30deg); }
-
     .settings-panel { position: fixed; bottom: 80px; right: 24px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; width: 220px; box-shadow: var(--shadow-lg); z-index: 1001; display: none; }
     .settings-panel.open { display: block; animation: slideUp 0.2s ease; }
     .settings-panel h3 { font-size: 0.9rem; font-weight: 600; color: var(--text-primary); margin-bottom: 14px; }
@@ -220,132 +206,50 @@
     .theme-option:hover { background: var(--accent-light); transform: none; }
     .theme-option.active { background: var(--accent-light); border-color: var(--accent); color: var(--accent); font-weight: 600; }
     .theme-option-icon { font-size: 1.1rem; }
-
     .logout-btn { background: var(--danger-bg); color: var(--danger-text); border: 1px solid var(--danger); padding: 6px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 600; }
 
     @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes modalIn { from { opacity: 0; transform: scale(0.9) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 
-    /* ===== PROFILE PANEL ===== */
-    .profile-overlay {
-      position: fixed; inset: 0; z-index: 2000;
-      background: rgba(0,0,0,0.4); backdrop-filter: blur(3px);
-      display: none;
-    }
+    .profile-overlay { position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,0.4); backdrop-filter: blur(3px); display: none; }
     .profile-overlay.open { display: block; }
-
-    .profile-panel {
-      position: fixed; z-index: 2001;
-      bottom: 70px; left: 16px;
-      width: 300px;
-      background: var(--bg-secondary);
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-      display: none; flex-direction: column;
-      overflow: hidden;
-      animation: slideUp 0.2s ease;
-    }
+    .profile-panel { position: fixed; z-index: 2001; bottom: 70px; left: 16px; width: 300px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); display: none; flex-direction: column; overflow: hidden; animation: slideUp 0.2s ease; }
     .profile-panel.open { display: flex; }
-
-    .pp-header {
-      display: flex; align-items: center; gap: 12px;
-      padding: 16px; border-bottom: 1px solid var(--border-color);
-    }
-    .pp-avatar {
-      width: 44px; height: 44px; border-radius: 50%;
-      background: linear-gradient(135deg, #6366f1, #a78bfa);
-      color: white; display: flex; align-items: center;
-      justify-content: center; font-size: 1rem; font-weight: 700;
-      flex-shrink: 0; overflow: hidden;
-      border: 2px solid rgba(99,102,241,0.3);
-    }
+    .pp-header { display: flex; align-items: center; gap: 12px; padding: 16px; border-bottom: 1px solid var(--border-color); }
+    .pp-avatar { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #a78bfa); color: white; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 700; flex-shrink: 0; overflow: hidden; border: 2px solid rgba(99,102,241,0.3); }
     .pp-name { font-size: 0.9rem; font-weight: 700; color: var(--text-primary); }
     .pp-email { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 160px; }
     .pp-close { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-muted); font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; margin-left: auto; flex-shrink: 0; transition: all 0.2s; }
     .pp-close:hover { background: var(--danger); color: white; border-color: var(--danger); transform: none; }
-
-    .pp-plan {
-      display: flex; align-items: center; gap: 8px;
-      padding: 10px 16px; background: var(--accent-light);
-      border-bottom: 1px solid var(--border-color);
-      font-size: 0.82rem; font-weight: 600; color: var(--accent);
-    }
-    .pp-upgrade {
-      margin-left: auto; padding: 4px 10px; border-radius: 6px;
-      background: linear-gradient(135deg, #6366f1, #a78bfa); color: white;
-      font-size: 0.72rem; font-weight: 700; border: none; cursor: pointer; transition: all 0.2s;
-    }
+    .pp-plan { display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: var(--accent-light); border-bottom: 1px solid var(--border-color); font-size: 0.82rem; font-weight: 600; color: var(--accent); }
+    .pp-upgrade { margin-left: auto; padding: 4px 10px; border-radius: 6px; background: linear-gradient(135deg, #6366f1, #a78bfa); color: white; font-size: 0.72rem; font-weight: 700; border: none; cursor: pointer; transition: all 0.2s; }
     .pp-upgrade:hover { opacity: 0.9; transform: none; }
-
     .pp-menu { padding: 8px; }
-    .pp-item {
-      display: flex; align-items: center; gap: 12px;
-      width: 100%; padding: 10px 12px; border-radius: 10px;
-      border: none; background: transparent; cursor: pointer;
-      transition: all 0.2s; text-align: left;
-    }
+    .pp-item { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px; border-radius: 10px; border: none; background: transparent; cursor: pointer; transition: all 0.2s; text-align: left; }
     .pp-item:hover { background: var(--accent-light); transform: none; }
     .pp-item-icon { font-size: 1.1rem; flex-shrink: 0; width: 24px; text-align: center; }
     .pp-item-content { flex: 1; }
     .pp-item-title { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); }
     .pp-item-desc { font-size: 0.72rem; color: var(--text-muted); margin-top: 1px; }
     .pp-item-arrow { color: var(--text-muted); font-size: 1rem; }
-
     .pp-footer { padding: 12px 16px; border-top: 1px solid var(--border-color); }
-    .pp-logout {
-      width: 100%; padding: 10px; border-radius: 8px;
-      background: var(--danger-bg); color: var(--danger-text);
-      border: 1px solid var(--danger); font-size: 0.875rem;
-      font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: center;
-    }
+    .pp-logout { width: 100%; padding: 10px; border-radius: 8px; background: var(--danger-bg); color: var(--danger-text); border: 1px solid var(--danger); font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: center; }
     .pp-logout:hover { background: var(--danger); color: white; transform: none; }
 
-    /* ===== MODALS ===== */
-    .modal-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.6);
-      z-index: 3000; display: none; align-items: center;
-      justify-content: center; padding: 20px; backdrop-filter: blur(6px);
-    }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 3000; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(6px); }
     .modal-overlay.open { display: flex; }
-    .modal-box {
-      background: var(--bg-secondary); border: 1px solid var(--border-color);
-      border-radius: 20px; width: 100%; max-width: 480px;
-      box-shadow: var(--shadow-lg); overflow: hidden;
-      animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-      max-height: 90vh; overflow-y: auto;
-    }
+    .modal-box { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 20px; width: 100%; max-width: 480px; box-shadow: var(--shadow-lg); overflow: hidden; animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); max-height: 90vh; overflow-y: auto; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid var(--border-color); position: sticky; top: 0; background: var(--bg-secondary); z-index: 1; }
     .modal-header h2 { font-size: 1rem; font-weight: 700; color: var(--text-primary); }
     .modal-close { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border-color); background: var(--bg-input); color: var(--text-primary); cursor: pointer; font-size: 0.875rem; display: flex; align-items: center; justify-content: center; padding: 0; transition: all 0.2s; }
     .modal-close:hover { background: var(--danger); color: white; border-color: var(--danger); transform: none; }
     .modal-body { padding: 24px; }
 
-    /* AVATAR UPLOAD */
     .avatar-upload-section { text-align: center; margin-bottom: 24px; }
-    .avatar-edit-preview {
-  width: 80px; height: 80px; border-radius: 50%;
-  background: linear-gradient(135deg, #6366f1, #a78bfa);
-  color: white; display: flex; align-items: center;
-  justify-content: center; font-size: 1.5rem; font-weight: 700;
-  margin: 0 auto 16px; overflow: visible; cursor: pointer;
-  border: 3px solid var(--accent); position: relative;
-  transition: all 0.2s;
-}
-
-.avatar-edit-preview .avatar-inner {
-  width: 100%; height: 100%; border-radius: 50%;
-  overflow: hidden; display: flex; align-items: center; justify-content: center;
-}
+    .avatar-edit-preview { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #a78bfa); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; margin: 0 auto 16px; overflow: visible; cursor: pointer; border: 3px solid var(--accent); position: relative; transition: all 0.2s; }
+    .avatar-edit-preview .avatar-inner { width: 100%; height: 100%; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; }
     .avatar-edit-preview:hover { border-color: #a78bfa; transform: scale(1.05); }
-    .avatar-camera-badge {
-  position: absolute; bottom: -2px; right: -2px;
-  width: 26px; height: 26px;
-  background: var(--accent); border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.75rem; border: 3px solid var(--bg-secondary);
-  z-index: 10; pointer-events: none;
-}
+    .avatar-camera-badge { position: absolute; bottom: -2px; right: -2px; width: 26px; height: 26px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; border: 3px solid var(--bg-secondary); z-index: 10; pointer-events: none; }
     .avatar-hint { font-size: 0.75rem; color: var(--text-muted); }
     .avatar-remove-btn { font-size: 0.72rem; color: var(--danger-text); background: none; border: none; cursor: pointer; padding: 4px; margin-top: 2px; display: none; }
     .avatar-remove-btn:hover { transform: none; text-decoration: underline; }
@@ -353,11 +257,9 @@
     .mf-group { margin-bottom: 16px; }
     .mf-group label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
     .mf-group input { margin-bottom: 0; }
-
     .modal-save-btn { width: 100%; padding: 12px; border-radius: 10px; background: linear-gradient(135deg, #6366f1, #a78bfa); color: white; font-size: 0.95rem; font-weight: 700; border: none; cursor: pointer; transition: all 0.2s; margin-top: 8px; }
     .modal-save-btn:hover { opacity: 0.9; transform: translateY(-1px); }
 
-    /* SUBSCRIPTION PLANS */
     .sub-plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
     @media (max-width: 550px) { .sub-plans { grid-template-columns: 1fr; } }
     .sub-plan { background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 14px; padding: 16px; position: relative; transition: all 0.2s; }
@@ -374,14 +276,12 @@
     .sub-plan-btn.primary { background: linear-gradient(135deg, #6366f1, #a78bfa); color: white; border: none; }
     .sub-plan-btn.primary:hover { opacity: 0.9; }
 
-    /* HELP */
     .help-item { display: flex; align-items: flex-start; gap: 14px; padding: 14px; border-radius: 12px; background: var(--bg-input); border: 1px solid var(--border-color); margin-bottom: 10px; cursor: pointer; transition: all 0.2s; }
     .help-item:hover { border-color: var(--accent); transform: translateX(4px); }
     .help-icon { font-size: 1.5rem; flex-shrink: 0; }
     .help-title { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
     .help-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.4; }
 
-    /* SHORTCUTS */
     .shortcut-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border-color); font-size: 0.875rem; color: var(--text-muted); }
     .shortcut-item:last-child { border-bottom: none; }
     .shortcut-item span { color: var(--text-primary); }
@@ -430,7 +330,6 @@
       <button class="sidebar-item" data-page="logs" onclick="showPage('logs', this)"><span class="sidebar-emoji">📝</span> Logs</button>
       <button class="sidebar-item" data-page="store-settings" onclick="showPage('store-settings', this)"><span class="sidebar-emoji">⚙️</span> Store Settings</button>
     </div>
-
     <div class="sidebar-bottom">
       <div class="sidebar-user" id="sidebarUserBtn" onclick="toggleProfilePanel()">
         <div class="sidebar-avatar" id="sidebarAvatar">SA</div>
@@ -449,11 +348,11 @@
     <!-- OVERVIEW PAGE -->
     <div class="page active" id="page-overview">
       <div class="stats-row">
-        <div class="stat-card"><div class="number" id="statTotal">-</div><div class="label">Total Items</div></div>
+        <div class="stat-card"><div class="number" id="statTotal" style="color:var(--accent)">-</div><div class="label">Total Items</div></div>
         <div class="stat-card"><div class="number" id="statLow" style="color:var(--warning)">-</div><div class="label">Low Stock</div></div>
         <div class="stat-card"><div class="number" id="statOut" style="color:var(--danger)">-</div><div class="label">Out of Stock</div></div>
         <div class="stat-card"><div class="number" id="statHealthy" style="color:var(--success)">-</div><div class="label">Healthy</div></div>
-        <div class="stat-card"><div class="number" id="statAgents" style="color:var(--accent)">10</div><div class="label">Active Agents</div></div>
+        <div class="stat-card"><div class="number" id="statAgents" style="color:var(--accent)">15</div><div class="label">Active Agents</div></div>
       </div>
       <div class="card">
         <h2>📈 Stock Overview</h2>
@@ -479,9 +378,7 @@
         <h2>📦 Current Inventory</h2>
         <div style="overflow-x:auto">
           <table>
-            <thead>
-              <tr><th>Item</th><th>Stock</th><th>Price</th><th>Status</th><th>Update Stock</th><th>Set Price</th><th>Sale</th><th>Delete</th></tr>
-            </thead>
+            <thead><tr><th>Item</th><th>Stock</th><th>Price</th><th>Status</th><th>Update Stock</th><th>Set Price</th><th>Sale</th><th>Delete</th></tr></thead>
             <tbody id="inventoryTable"></tbody>
           </table>
         </div>
@@ -507,6 +404,11 @@
           <button class="agent-filter" onclick="filterAgentLogs('Weather Agent', this)">🌦️ Weather</button>
           <button class="agent-filter" onclick="filterAgentLogs('Expiry Agent', this)">📅 Expiry</button>
           <button class="agent-filter" onclick="filterAgentLogs('Route Optimization Agent', this)">🗺️ Route</button>
+          <button class="agent-filter" onclick="filterAgentLogs('Sentiment Analysis Agent', this)">😊 Sentiment</button>
+          <button class="agent-filter" onclick="filterAgentLogs('Demand Surge Agent', this)">📈 Demand Surge</button>
+          <button class="agent-filter" onclick="filterAgentLogs('Fraud Detection Agent', this)">🚨 Fraud</button>
+          <button class="agent-filter" onclick="filterAgentLogs('Auto Discount Agent', this)">🏷️ Auto Discount</button>
+          <button class="agent-filter" onclick="filterAgentLogs('Smart Notification Agent', this)">🔔 Notifications</button>
           <button class="agent-filter" style="background:var(--danger-bg);color:var(--danger-text);border-color:var(--danger)" onclick="filterAgentLogs('all', this, 'critical')">🚨 Critical Only</button>
         </div>
         <div id="agentLogs">Loading agent logs...</div>
@@ -523,18 +425,14 @@
           <label>Number of slots:</label>
           <input type="number" id="totalSlotsInput" value="8" min="1" max="20">
         </div>
-        <!-- ML Service URL Updater -->
-<div style="background:var(--accent-light);border:1px solid var(--accent);border-radius:12px;padding:16px;margin-bottom:16px;">
-  <h3 style="color:var(--accent);margin:0 0 10px 0;font-size:0.9rem;">🤖 ML Service URL — Update when Colab reconnects</h3>
-  <div style="display:flex;gap:8px;align-items:center;">
-    <input type="text" id="mlServiceUrl" placeholder="https://your-ngrok-url.ngrok-free.dev"
-      style="flex:1;margin-bottom:0;" />
-    <button onclick="updateMLUrl()" class="btn-primary" style="white-space:nowrap;">
-      Update URL
-    </button>
-  </div>
-  <p id="mlUrlStatus" style="margin:8px 0 0 0;font-size:0.8rem;color:var(--text-muted);"></p>
-</div>
+        <div style="background:var(--accent-light);border:1px solid var(--accent);border-radius:12px;padding:16px;margin-bottom:16px;">
+          <h3 style="color:var(--accent);margin:0 0 10px 0;font-size:0.9rem;">🤖 ML Service URL — Update when Colab reconnects</h3>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="text" id="mlServiceUrl" placeholder="https://your-ngrok-url.ngrok-free.dev" style="flex:1;margin-bottom:0;" />
+            <button onclick="updateMLUrl()" class="btn-primary" style="white-space:nowrap;">Update URL</button>
+          </div>
+          <p id="mlUrlStatus" style="margin:8px 0 0 0;font-size:0.8rem;color:var(--text-muted);"></p>
+        </div>
         <div class="upload-area" onclick="document.getElementById('fileInput').click()">
           <div style="font-size:3rem">📷</div>
           <p>Click to upload a shelf image</p>
@@ -637,8 +535,8 @@
           <div>
             <div class="settings-group"><label>🌦️ Weather City</label><input type="text" id="settingWeatherCity" placeholder="Mumbai"><p class="hint">Used by Weather Agent</p></div>
             <div class="card" style="background:var(--accent-light);border-color:var(--accent);margin-top:8px">
-              <h2 style="font-size:0.85rem">🤖 Agent Schedule</h2>
-              <div style="font-size:0.8rem;color:var(--text-secondary);line-height:1.8">
+              <h2 style="font-size:0.85rem">🤖 Agent Schedule (15 Agents)</h2>
+              <div style="font-size:0.8rem;color:var(--text-secondary);line-height:1.9">
                 🔔 Monitoring — every 30 seconds<br>
                 📊 Forecasting — every 15 minutes<br>
                 🛡️ Anomaly Detection — every 45 seconds<br>
@@ -648,7 +546,12 @@
                 👥 Customer Behavior — daily 1 AM<br>
                 🌦️ Weather Agent — daily 8 AM<br>
                 📅 Expiry Agent — daily 7 AM<br>
-                🗺️ Route Optimizer — daily 6 AM
+                🗺️ Route Optimizer — daily 6 AM<br>
+                😊 Sentiment Analysis — daily 2 AM<br>
+                📈 Demand Surge — every 2 minutes<br>
+                🚨 Fraud Detection — every minute<br>
+                🏷️ Auto Discount — daily 10 AM<br>
+                🔔 Smart Notifications — every 30 minutes
               </div>
             </div>
           </div>
@@ -673,13 +576,11 @@
     </div>
     <button class="pp-close" onclick="closeProfilePanel()">✕</button>
   </div>
-
   <div class="pp-plan">
     <span id="ppPlanIcon">⚡</span>
     <span id="ppPlanName">Free Plan</span>
     <button class="pp-upgrade" id="ppUpgradeBtn" onclick="openSubscription()">Upgrade →</button>
   </div>
-
   <div class="pp-menu">
     <button class="pp-item" onclick="openEditProfile()">
       <span class="pp-item-icon">👤</span>
@@ -707,7 +608,6 @@
       <span class="pp-item-arrow">›</span>
     </button>
   </div>
-
   <div class="pp-footer">
     <button class="pp-logout" onclick="logout()">🚪 Log out of ShelfSense AI</button>
   </div>
@@ -716,18 +616,13 @@
 <!-- EDIT PROFILE MODAL -->
 <div class="modal-overlay" id="editProfileModal">
   <div class="modal-box">
-    <div class="modal-header">
-      <h2>👤 Edit Profile</h2>
-      <button class="modal-close" onclick="closeModal('editProfileModal')">✕</button>
-    </div>
+    <div class="modal-header"><h2>👤 Edit Profile</h2><button class="modal-close" onclick="closeModal('editProfileModal')">✕</button></div>
     <div class="modal-body">
       <div class="avatar-upload-section">
         <div class="avatar-edit-preview" id="avatarPreview" onclick="document.getElementById('avatarFileInput').click()">
-  <div class="avatar-inner">
-    <span id="avatarPreviewText">SA</span>
-  </div>
-  <div class="avatar-camera-badge">📷</div>
-</div>
+          <div class="avatar-inner"><span id="avatarPreviewText">SA</span></div>
+          <div class="avatar-camera-badge">📷</div>
+        </div>
         <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="handleAvatarUpload(event)">
         <p class="avatar-hint">Click to upload profile photo (optional)</p>
         <button class="avatar-remove-btn" id="avatarRemoveBtn" onclick="removeAvatar()">Remove photo ✕</button>
@@ -744,10 +639,7 @@
 <!-- SUBSCRIPTION MODAL -->
 <div class="modal-overlay" id="subscriptionModal">
   <div class="modal-box" style="max-width:600px">
-    <div class="modal-header">
-      <h2>💳 Manage Subscription</h2>
-      <button class="modal-close" onclick="closeModal('subscriptionModal')">✕</button>
-    </div>
+    <div class="modal-header"><h2>💳 Manage Subscription</h2><button class="modal-close" onclick="closeModal('subscriptionModal')">✕</button></div>
     <div class="modal-body">
       <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Choose the plan that works best for your store.</p>
       <div class="sub-plans">
@@ -765,7 +657,7 @@
           <div class="sub-plan-name">Pro</div>
           <div class="sub-plan-price">₹999<span>/mo</span></div>
           <ul class="sub-plan-features">
-            <li>✅ Unlimited products</li><li>✅ All 10 AI Agents</li>
+            <li>✅ Unlimited products</li><li>✅ All 15 AI Agents</li>
             <li>✅ YOLOv8 Shelf Scan</li><li>✅ Razorpay Payments</li><li>✅ Real-time alerts</li>
           </ul>
           <button class="sub-plan-btn primary" onclick="selectPlan('pro')">Upgrade to Pro</button>
@@ -789,51 +681,27 @@
   <div class="modal-box">
     <div class="modal-header"><h2>🆘 Get Help</h2><button class="modal-close" onclick="closeModal('helpModal')">✕</button></div>
     <div class="modal-body">
-  <div class="help-item" onclick="window.open('https://mail.google.com/mail/?view=cm&to=shelfsense.alerts@gmail.com&su=ShelfSense+AI+Support&body=Hi+ShelfSense+team,+I+need+help+with...', '_blank')">
-    <span class="help-icon">📧</span>
-    <div>
-      <div class="help-title">Email Support</div>
-      <div class="help-desc">shelfsense.alerts@gmail.com — We reply within 24 hours</div>
+      <div class="help-item" onclick="window.open('https://mail.google.com/mail/?view=cm&to=shelfsense.alerts@gmail.com&su=ShelfSense+AI+Support&body=Hi+ShelfSense+team,+I+need+help+with...', '_blank')">
+        <span class="help-icon">📧</span>
+        <div><div class="help-title">Email Support</div><div class="help-desc">shelfsense.alerts@gmail.com — We reply within 24 hours</div></div>
+        <span style="color:var(--text-muted);font-size:0.8rem">↗</span>
+      </div>
+      <div class="help-item" onclick="showAgentsGuide()">
+        <span class="help-icon">🤖</span>
+        <div><div class="help-title">AI Agents Guide</div><div class="help-desc">15 agents explained — monitoring, forecasting, fraud detection and more</div></div>
+        <span style="color:var(--text-muted);font-size:0.8rem">›</span>
+      </div>
+      <div class="help-item" onclick="window.open('privacy.html', '_blank')">
+        <span class="help-icon">🔒</span>
+        <div><div class="help-title">Security & Privacy</div><div class="help-desc">13 security layers protecting your store data 24/7</div></div>
+        <span style="color:var(--text-muted);font-size:0.8rem">↗</span>
+      </div>
+      <div class="help-item" onclick="window.open('about.html', '_blank')">
+        <span class="help-icon">🏢</span>
+        <div><div class="help-title">About ShelfSense AI</div><div class="help-desc">Our story, team, and technology stack</div></div>
+        <span style="color:var(--text-muted);font-size:0.8rem">↗</span>
+      </div>
     </div>
-    <span style="color:var(--text-muted);font-size:0.8rem">↗</span>
-  </div>
-
-  <div class="help-item" onclick="window.open('contact.html', '_blank')">
-    <span class="help-icon">💬</span>
-    <div>
-      <div class="help-title">Contact Form</div>
-      <div class="help-desc">Send us a detailed message with your issue</div>
-    </div>
-    <span style="color:var(--text-muted);font-size:0.8rem">↗</span>
-  </div>
-
-  <div class="help-item" onclick="showAgentsGuide()">
-    <span class="help-icon">🤖</span>
-    <div>
-      <div class="help-title">AI Agents Guide</div>
-      <div class="help-desc">10 agents explained — monitoring, forecasting, anomaly detection and more</div>
-    </div>
-    <span style="color:var(--text-muted);font-size:0.8rem">›</span>
-  </div>
-
-  <div class="help-item" onclick="window.open('privacy.html', '_blank')">
-    <span class="help-icon">🔒</span>
-    <div>
-      <div class="help-title">Security & Privacy</div>
-      <div class="help-desc">9 security layers protecting your store data 24/7</div>
-    </div>
-    <span style="color:var(--text-muted);font-size:0.8rem">↗</span>
-  </div>
-
-  <div class="help-item" onclick="window.open('about.html', '_blank')">
-    <span class="help-icon">🏢</span>
-    <div>
-      <div class="help-title">About ShelfSense AI</div>
-      <div class="help-desc">Our story, team, and technology stack</div>
-    </div>
-    <span style="color:var(--text-muted);font-size:0.8rem">↗</span>
-  </div>
-</div>
   </div>
 </div>
 
@@ -842,69 +710,41 @@
   <div class="modal-box">
     <div class="modal-header"><h2>⌨️ Keyboard Shortcuts</h2><button class="modal-close" onclick="closeModal('shortcutsModal')">✕</button></div>
     <div class="modal-body">
-  <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:16px">Press <kbd>G</kbd> then the letter within 0.8 seconds</p>
-  <div class="shortcut-item"><div><kbd>G</kbd> then <kbd>O</kbd></div><span>Go to Overview</span></div>
-  <div class="shortcut-item"><div><kbd>G</kbd> then <kbd>I</kbd></div><span>Go to Inventory</span></div>
-  <div class="shortcut-item"><div><kbd>G</kbd> then <kbd>A</kbd></div><span>Go to AI Agents</span></div>
-  <div class="shortcut-item"><div><kbd>G</kbd> then <kbd>S</kbd></div><span>Go to Shelf Scan</span></div>
-  <div class="shortcut-item"><div><kbd>G</kbd> then <kbd>F</kbd></div><span>Go to Franchises</span></div>
-  <div class="shortcut-item"><div><kbd>G</kbd> then <kbd>L</kbd></div><span>Go to Logs</span></div>
-  <div class="shortcut-item"><div><kbd>G</kbd> then <kbd>P</kbd></div><span>Go to Purchase Orders</span></div>
-  <div class="shortcut-item"><kbd>\</kbd><span>Toggle Sidebar</span></div>
-  <div class="shortcut-item"><kbd>Esc</kbd><span>Close any panel or modal</span></div>
-</div>
+      <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:16px">Press <kbd>G</kbd> then the letter within 0.8 seconds</p>
+      <div class="shortcut-item"><div><kbd>G</kbd> then <kbd>O</kbd></div><span>Go to Overview</span></div>
+      <div class="shortcut-item"><div><kbd>G</kbd> then <kbd>I</kbd></div><span>Go to Inventory</span></div>
+      <div class="shortcut-item"><div><kbd>G</kbd> then <kbd>A</kbd></div><span>Go to AI Agents</span></div>
+      <div class="shortcut-item"><div><kbd>G</kbd> then <kbd>S</kbd></div><span>Go to Shelf Scan</span></div>
+      <div class="shortcut-item"><div><kbd>G</kbd> then <kbd>F</kbd></div><span>Go to Franchises</span></div>
+      <div class="shortcut-item"><div><kbd>G</kbd> then <kbd>L</kbd></div><span>Go to Logs</span></div>
+      <div class="shortcut-item"><div><kbd>G</kbd> then <kbd>P</kbd></div><span>Go to Purchase Orders</span></div>
+      <div class="shortcut-item"><kbd>\</kbd><span>Toggle Sidebar</span></div>
+      <div class="shortcut-item"><kbd>Esc</kbd><span>Close any panel or modal</span></div>
+    </div>
   </div>
 </div>
 
 <!-- AGENTS GUIDE MODAL -->
 <div class="modal-overlay" id="agentsGuideModal">
   <div class="modal-box" style="max-width:600px">
-    <div class="modal-header">
-      <h2>🤖 AI Agents Guide</h2>
-      <button class="modal-close" onclick="closeModal('agentsGuideModal')">✕</button>
-    </div>
+    <div class="modal-header"><h2>🤖 15 AI Agents Guide</h2><button class="modal-close" onclick="closeModal('agentsGuideModal')">✕</button></div>
     <div class="modal-body" style="max-height:60vh;overflow-y:auto">
       <div style="display:flex;flex-direction:column;gap:10px">
-        <div class="help-item" style="cursor:default">
-          <span class="help-icon">🔔</span>
-          <div><div class="help-title">Monitoring Agent</div><div class="help-desc">Runs every 30 seconds. Alerts when stock = 0 (email sent) or stock ≤ minimum level (in-app warning).</div></div>
-        </div>
-        <div class="help-item" style="cursor:default">
-          <span class="help-icon">📊</span>
-          <div><div class="help-title">Forecasting Agent</div><div class="help-desc">Runs every 15 minutes. Uses exponential smoothing + weekend 1.3x multiplier. Auto-restocks when days until empty ≤ 3.</div></div>
-        </div>
-        <div class="help-item" style="cursor:default">
-          <span class="help-icon">🛡️</span>
-          <div><div class="help-title">Anomaly Detection Agent</div><div class="help-desc">Runs every 45 seconds. Uses Z-score analysis. Outside shop hours = theft alert email sent immediately.</div></div>
-        </div>
-        <div class="help-item" style="cursor:default">
-          <span class="help-icon">💰</span>
-          <div><div class="help-title">Dynamic Pricing Agent</div><div class="help-desc">Runs every hour. High demand + low stock = +10% price. Low demand + excess stock = -10% price.</div></div>
-        </div>
-        <div class="help-item" style="cursor:default">
-          <span class="help-icon">🏆</span>
-          <div><div class="help-title">Competitor Analysis Agent</div><div class="help-desc">Runs daily at 9 AM. Compares your prices with market averages. Alerts if 15%+ above or below market.</div></div>
-        </div>
-        <div class="help-item" style="cursor:default">
-          <span class="help-icon">🔄</span>
-          <div><div class="help-title">Supplier Agent</div><div class="help-desc">Runs every 2 hours. Creates purchase orders when stock ≤ minimum. Stock updates when you click Mark Received.</div></div>
-        </div>
-        <div class="help-item" style="cursor:default">
-          <span class="help-icon">👥</span>
-          <div><div class="help-title">Customer Behavior Agent</div><div class="help-desc">Runs daily at 1 AM. Uses co-occurrence analysis to find products bought together. Suggests bundle deals.</div></div>
-        </div>
-        <div class="help-item" style="cursor:default">
-          <span class="help-icon">🌦️</span>
-          <div><div class="help-title">Weather Agent</div><div class="help-desc">Runs daily at 8 AM. Fetches real weather from Open-Meteo API. Recommends cold drinks in heat, snacks in rain.</div></div>
-        </div>
-        <div class="help-item" style="cursor:default">
-          <span class="help-icon">📅</span>
-          <div><div class="help-title">Expiry Agent</div><div class="help-desc">Runs daily at 7 AM. Auto-applies 30% discount on items expiring within 7 days. Urgent email for expired items.</div></div>
-        </div>
-        <div class="help-item" style="cursor:default">
-          <span class="help-icon">🗺️</span>
-          <div><div class="help-title">Route Optimization Agent</div><div class="help-desc">Runs daily at 6 AM. When stock = 0, finds nearest franchise with 5+ units using Haversine distance formula.</div></div>
-        </div>
+        <div class="help-item" style="cursor:default"><span class="help-icon">🔔</span><div><div class="help-title">Monitoring Agent</div><div class="help-desc">Runs every 30 seconds. Alerts when stock = 0 (email sent) or stock ≤ minimum level (in-app warning).</div></div></div>
+        <div class="help-item" style="cursor:default"><span class="help-icon">📊</span><div><div class="help-title">Forecasting Agent</div><div class="help-desc">Runs every 15 minutes. Uses exponential smoothing + weekend 1.3x multiplier. Auto-restocks when days until empty ≤ 3.</div></div></div>
+        <div class="help-item" style="cursor:default"><span class="help-icon">🛡️</span><div><div class="help-title">Anomaly Detection Agent</div><div class="help-desc">Runs every 45 seconds. Uses Z-score analysis. Outside shop hours = theft alert email sent immediately.</div></div></div>
+        <div class="help-item" style="cursor:default"><span class="help-icon">💰</span><div><div class="help-title">Dynamic Pricing Agent</div><div class="help-desc">Runs every hour. High demand + low stock = +10% price. Low demand + excess stock = -10% price.</div></div></div>
+        <div class="help-item" style="cursor:default"><span class="help-icon">🏆</span><div><div class="help-title">Competitor Analysis Agent</div><div class="help-desc">Runs daily at 9 AM. Compares your prices with market averages. Alerts if 15%+ above or below market.</div></div></div>
+        <div class="help-item" style="cursor:default"><span class="help-icon">🔄</span><div><div class="help-title">Supplier Agent</div><div class="help-desc">Runs every 2 hours. Creates purchase orders when stock ≤ minimum. Stock updates when you click Mark Received.</div></div></div>
+        <div class="help-item" style="cursor:default"><span class="help-icon">👥</span><div><div class="help-title">Customer Behavior Agent</div><div class="help-desc">Runs daily at 1 AM. Uses co-occurrence analysis to find products bought together. Suggests bundle deals.</div></div></div>
+        <div class="help-item" style="cursor:default"><span class="help-icon">🌦️</span><div><div class="help-title">Weather Agent</div><div class="help-desc">Runs daily at 8 AM. Fetches real weather from Open-Meteo API. Recommends cold drinks in heat, snacks in rain.</div></div></div>
+        <div class="help-item" style="cursor:default"><span class="help-icon">📅</span><div><div class="help-title">Expiry Agent</div><div class="help-desc">Runs daily at 7 AM. Auto-applies 30% discount on items expiring within 7 days. Urgent email for expired items.</div></div></div>
+        <div class="help-item" style="cursor:default"><span class="help-icon">🗺️</span><div><div class="help-title">Route Optimization Agent</div><div class="help-desc">Runs daily at 6 AM. When stock = 0, finds nearest franchise with 5+ units using Haversine distance formula.</div></div></div>
+        <div class="help-item" style="cursor:default"><span class="help-icon">😊</span><div><div class="help-title">Sentiment Analysis Agent</div><div class="help-desc">Runs daily at 2 AM. Analyzes average ratings to compute sentiment scores. Negative sentiment triggers quality review alerts.</div></div></div>
+        <div class="help-item" style="cursor:default"><span class="help-icon">📈</span><div><div class="help-title">Demand Surge Agent</div><div class="help-desc">Runs every 2 minutes. Detects when product views exceed 50 or cart additions exceed 20 with low stock. Sends immediate reorder alerts.</div></div></div>
+        <div class="help-item" style="cursor:default"><span class="help-icon">🚨</span><div><div class="help-title">Fraud Detection Agent</div><div class="help-desc">Runs every minute. Flags accounts placing 5+ orders in 10 minutes, quantities over 50 units, or amounts over ₹50,000 as suspicious.</div></div></div>
+        <div class="help-item" style="cursor:default"><span class="help-icon">🏷️</span><div><div class="help-title">Auto Discount Agent</div><div class="help-desc">Runs daily at 10 AM. Products selling less than 2 units/week with 15+ in stock get automatic 15% discount. Removed when sales recover.</div></div></div>
+        <div class="help-item" style="cursor:default"><span class="help-icon">🔔</span><div><div class="help-title">Smart Notification Agent</div><div class="help-desc">Runs every 30 minutes. Sends personalized emails to customers when their wishlisted out-of-stock items are back in stock.</div></div></div>
       </div>
     </div>
   </div>
@@ -914,32 +754,69 @@
 <button class="settings-fab" onclick="toggleSettings()">⚙️</button>
 <div class="settings-panel" id="settingsPanel">
   <h3>🎨 Appearance</h3>
-  <div class="theme-option" data-theme="light" onclick="setTheme('light')"><span class="theme-option-icon">☀️</span> Light Mode</div>
-  <div class="theme-option" data-theme="dark" onclick="setTheme('dark')"><span class="theme-option-icon">🌙</span> Dark Mode</div>
-  <div class="theme-option" data-theme="system" onclick="setTheme('system')"><span class="theme-option-icon">💻</span> System Default</div>
+  <button class="theme-option" onclick="setTheme('light')"><span class="theme-option-icon">☀️</span> Light Mode</button>
+  <button class="theme-option" onclick="setTheme('dark')"><span class="theme-option-icon">🌙</span> Dark Mode</button>
+  <button class="theme-option" onclick="setTheme('system')"><span class="theme-option-icon">💻</span> System Default</button>
 </div>
 
 <div id="toast"></div>
 
 <script>
+/* ===== HANDLE OAUTH TOKEN ===== */
+const urlParams = new URLSearchParams(window.location.search);
+const oauthToken = urlParams.get("token");
+if (oauthToken) {
+  localStorage.setItem("token", oauthToken);
+  localStorage.setItem("role", "admin");
+  window.history.replaceState({}, document.title, "/admin.html");
+}
+
 const token = localStorage.getItem("token");
 const role = localStorage.getItem("role");
 if (!token || role !== "admin") window.location.href = "login.html";
 
 let chart, selectedFile = null, sidebarOpen = true, currentPage = "overview";
 
+/* ===== ALL 15 AGENTS ===== */
 const AGENT_INFO = {
-  "Monitoring Agent":         { icon: "🔔", desc: "Monitors stock levels every 30 seconds" },
-  "Forecasting Agent":        { icon: "📊", desc: "Predicts demand using exponential smoothing" },
-  "Anomaly Detection Agent":  { icon: "🛡️", desc: "Detects theft and unusual stock drops" },
-  "Dynamic Pricing Agent":    { icon: "💰", desc: "Adjusts prices based on demand and stock" },
-  "Competitor Analysis Agent":{ icon: "🏆", desc: "Compares prices with market averages" },
-  "Supplier Agent":           { icon: "🔄", desc: "Auto-generates purchase orders" },
-  "Customer Behavior Agent":  { icon: "👥", desc: "Finds product bundle opportunities" },
-  "Weather Agent":            { icon: "🌦️", desc: "Adjusts recommendations based on weather" },
-  "Expiry Agent":             { icon: "📅", desc: "Tracks expiry dates and auto-discounts" },
-  "Route Optimization Agent": { icon: "🗺️", desc: "Finds optimal stock transfer routes" }
+  "Monitoring Agent":          { icon: "🔔", desc: "Monitors stock levels every 30 seconds" },
+  "Forecasting Agent":         { icon: "📊", desc: "Predicts demand using exponential smoothing" },
+  "Anomaly Detection Agent":   { icon: "🛡️", desc: "Detects theft and unusual stock drops" },
+  "Dynamic Pricing Agent":     { icon: "💰", desc: "Adjusts prices based on demand and stock" },
+  "Competitor Analysis Agent": { icon: "🏆", desc: "Compares prices with market averages" },
+  "Supplier Agent":            { icon: "🔄", desc: "Auto-generates purchase orders" },
+  "Customer Behavior Agent":   { icon: "👥", desc: "Finds product bundle opportunities" },
+  "Weather Agent":             { icon: "🌦️", desc: "Adjusts recommendations based on weather" },
+  "Expiry Agent":              { icon: "📅", desc: "Tracks expiry dates and auto-discounts" },
+  "Route Optimization Agent":  { icon: "🗺️", desc: "Finds optimal stock transfer routes" },
+  "Sentiment Analysis Agent":  { icon: "😊", desc: "Analyzes customer ratings for product sentiment" },
+  "Demand Surge Agent":        { icon: "📈", desc: "Detects sudden spikes in product views and cart additions" },
+  "Fraud Detection Agent":     { icon: "🚨", desc: "Monitors orders for suspicious patterns in real-time" },
+  "Auto Discount Agent":       { icon: "🏷️", desc: "Auto-discounts slow-moving products to boost sales" },
+  "Smart Notification Agent":  { icon: "🔔", desc: "Notifies customers when wishlisted items are back in stock" }
 };
+
+/* ===== THEME / SETTINGS FAB ===== */
+function toggleSettings() {
+  const panel = document.getElementById("settingsPanel");
+  panel.classList.toggle("open");
+}
+
+function setTheme(theme) {
+  if (typeof window.setTheme === "function") {
+    window.setTheme(theme);
+  } else {
+    localStorage.setItem("theme", theme);
+    if (theme === "dark") document.documentElement.setAttribute("data-theme", "dark");
+    else if (theme === "light") document.documentElement.setAttribute("data-theme", "light");
+    else {
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      document.documentElement.setAttribute("data-theme", prefersDark ? "dark" : "light");
+    }
+  }
+  document.getElementById("settingsPanel").classList.remove("open");
+  showToast("Theme updated!");
+}
 
 /* ===== SIDEBAR ===== */
 function toggleSidebar() {
@@ -963,7 +840,7 @@ function showPage(page, clickedBtn) {
   document.querySelectorAll(".topbar-nav-item").forEach(item => item.classList.toggle("active", item.dataset.page === page));
   if (["overview","inventory","logs"].includes(page)) loadAdmin();
   if (page === "franchise") loadAllFranchises();
-  if (page === "shelf-scan") loadRecentScans();
+  if (page === "shelf-scan") { loadRecentScans(); loadMLUrl(); }
   if (page === "planogram") loadPlanogram();
   if (page === "agents") loadAgentDashboard();
   if (page === "orders") loadPurchaseOrders();
@@ -1005,18 +882,16 @@ function refreshAvatarDisplay() {
   const previewEl = document.getElementById("avatarPreview");
   const previewText = document.getElementById("avatarPreviewText");
   const removeBtn = document.getElementById("avatarRemoveBtn");
-
   let name = "Store Admin";
   try { const d = JSON.parse(atob(token.split('.')[1])); name = d.fname || d.email || "SA"; } catch(e) {}
   const initials = getInitials(name);
-
   if (savedAvatar) {
     const imgHtml = `<img src="${savedAvatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
     if (sidebarEl) sidebarEl.innerHTML = imgHtml;
     if (ppEl) ppEl.innerHTML = imgHtml;
     if (previewEl) {
       const inner = previewEl.querySelector(".avatar-inner") || previewEl;
-      previewText.style.display = "none";
+      if (previewText) previewText.style.display = "none";
       const existing = inner.querySelector("img.avatar-img");
       if (!existing) {
         const img = document.createElement("img");
@@ -1040,61 +915,39 @@ function handleAvatarUpload(event) {
   if (!file) return;
   if (file.size > 2 * 1024 * 1024) { showToast("Photo must be under 2MB", "error"); return; }
   const reader = new FileReader();
-  reader.onload = (e) => {
-    localStorage.setItem("userAvatar", e.target.result);
-    refreshAvatarDisplay();
-    showToast("✅ Photo uploaded!");
-  };
+  reader.onload = (e) => { localStorage.setItem("userAvatar", e.target.result); refreshAvatarDisplay(); showToast("✅ Photo uploaded!"); };
   reader.readAsDataURL(file);
 }
 
-function removeAvatar() {
-  localStorage.removeItem("userAvatar");
-  refreshAvatarDisplay();
-  showToast("Photo removed");
-}
+function removeAvatar() { localStorage.removeItem("userAvatar"); refreshAvatarDisplay(); showToast("Photo removed"); }
 
 /* ===== PROFILE PANEL ===== */
 function toggleProfilePanel() {
   const panel = document.getElementById("profilePanel");
   const overlay = document.getElementById("profileOverlay");
   const btn = document.getElementById("sidebarUserBtn");
-
-  if (panel.classList.contains("open")) {
-    closeProfilePanel();
-    return;
-  }
-
-  // Position panel above the sidebar user button
+  if (panel.classList.contains("open")) { closeProfilePanel(); return; }
   const sidebarEl = document.getElementById("sidebar");
   const sidebarWidth = sidebarOpen ? sidebarEl.offsetWidth : 0;
   panel.style.left = Math.max(8, sidebarWidth - 300 + 8) + "px";
-
-  // Populate data
   try {
     const decoded = JSON.parse(atob(token.split('.')[1]));
     const name = decoded.fname || decoded.email || "Store Admin";
     const email = decoded.email || "";
     const storeName = decoded.storeName || "ShelfSense AI";
     const plan = decoded.plan || "free";
-
     document.getElementById("ppName").innerText = name;
     document.getElementById("ppEmail").innerText = email;
-
     const planIcons = { free: "⚡", pro: "🚀", enterprise: "👑" };
     const planNames = { free: "Free Plan", pro: "Pro Plan", enterprise: "Enterprise Plan" };
     document.getElementById("ppPlanIcon").innerText = planIcons[plan] || "⚡";
     document.getElementById("ppPlanName").innerText = planNames[plan] || "Free Plan";
     document.getElementById("ppUpgradeBtn").style.display = plan === "enterprise" ? "none" : "inline-block";
-
-    // Pre-fill edit form
     document.getElementById("epName").value = name;
     document.getElementById("epEmail").value = email;
     document.getElementById("epStoreName").value = storeName;
-
     refreshAvatarDisplay();
   } catch(e) {}
-
   panel.classList.add("open");
   overlay.classList.add("open");
   btn.classList.add("open");
@@ -1112,28 +965,20 @@ function openHelp() { closeProfilePanel(); document.getElementById("helpModal").
 function openShortcuts() { closeProfilePanel(); document.getElementById("shortcutsModal").classList.add("open"); }
 function closeModal(id) { document.getElementById(id).classList.remove("open"); }
 
+function showAgentsGuide() { closeModal("helpModal"); document.getElementById("agentsGuideModal").classList.add("open"); }
+
 async function saveProfile() {
   try {
     const res = await fetch("/admin/settings", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: token },
-      body: JSON.stringify({
-        storeName: document.getElementById("epStoreName").value,
-        phone: document.getElementById("epPhone").value,
-        alertEmail: document.getElementById("epEmail").value,
-        openingTime: "09:00", closingTime: "22:00", weatherCity: "Mumbai"
-      })
+      body: JSON.stringify({ storeName: document.getElementById("epStoreName").value, phone: document.getElementById("epPhone").value, alertEmail: document.getElementById("epEmail").value, openingTime: "09:00", closingTime: "22:00", weatherCity: "Mumbai" })
     });
     const data = await res.json();
     showToast(data.message || "Profile updated! ✅");
     closeModal("editProfileModal");
     loadSidebarUser();
   } catch(err) { showToast("Failed to save", "error"); }
-}
-
-function showAgentsGuide() {
-  closeModal("helpModal");
-  document.getElementById("agentsGuideModal").classList.add("open");
 }
 
 function selectPlan(plan) {
@@ -1168,9 +1013,7 @@ function renderInventoryTable(items) {
   const table = document.getElementById("inventoryTable");
   if (!table) return;
   table.innerHTML = items.map(item => {
-    let status = item.stock === 0 ? `<span class="badge badge-red">Out of Stock</span>`
-      : item.stock <= 3 ? `<span class="badge badge-yellow">Low Stock</span>`
-      : `<span class="badge badge-green">Healthy</span>`;
+    let status = item.stock === 0 ? `<span class="badge badge-red">Out of Stock</span>` : item.stock <= 3 ? `<span class="badge badge-yellow">Low Stock</span>` : `<span class="badge badge-green">Healthy</span>`;
     let saleTag = item.onSale ? `<span class="badge badge-purple" style="margin-left:6px">🔥 ${item.salePercent}% OFF</span>` : "";
     return `<tr>
       <td><strong>${item.name}</strong>${saleTag}</td>
@@ -1209,42 +1052,41 @@ function renderOverviewLogs(monitoring, forecasting) {
   const fEl = document.getElementById("overviewForecasting");
   if (!mEl || !fEl) return;
   const criticalLogs = monitoring.filter(l => l.severity === "critical" || l.severity === "warning").slice(0, 5);
-  mEl.innerHTML = criticalLogs.length === 0 ? "<p style='color:var(--text-muted)'>No alerts</p>"
-    : criticalLogs.map(l => `<div class="log-item ${l.severity === 'critical' ? 'monitoring' : ''}">${l.message || l.item}<div class="log-time">${l.agent || ''} • ${l.time}</div></div>`).join("");
-  fEl.innerHTML = monitoring.slice(0, 5).length === 0 ? "<p style='color:var(--text-muted)'>No actions yet</p>"
-    : monitoring.slice(0, 5).map(l => `<div class="log-item forecasting">${l.message || l.item}<div class="log-time">${l.agent || ''} • ${l.time}</div></div>`).join("");
+  mEl.innerHTML = criticalLogs.length === 0 ? "<p style='color:var(--text-muted)'>No alerts</p>" : criticalLogs.map(l => `<div class="log-item ${l.severity === 'critical' ? 'monitoring' : ''}">${l.message || l.item}<div class="log-time">${l.agent || ''} • ${l.time}</div></div>`).join("");
+  fEl.innerHTML = monitoring.slice(0, 5).length === 0 ? "<p style='color:var(--text-muted)'>No actions yet</p>" : monitoring.slice(0, 5).map(l => `<div class="log-item forecasting">${l.message || l.item}<div class="log-time">${l.agent || ''} • ${l.time}</div></div>`).join("");
 }
 
 function renderLogs(logs, id, type) {
   const el = document.getElementById(id);
   if (!el) return;
-  el.innerHTML = logs.length === 0 ? "<p style='color:var(--text-muted)'>No logs yet</p>"
-    : logs.map(l => `<div class="log-item ${type}">${l.message || l.item}<div class="log-time">${l.agent || ''} • ${l.time}</div></div>`).join("");
+  el.innerHTML = logs.length === 0 ? "<p style='color:var(--text-muted)'>No logs yet</p>" : logs.map(l => `<div class="log-item ${type}">${l.message || l.item}<div class="log-time">${l.agent || ''} • ${l.time}</div></div>`).join("");
 }
 
 /* ===== AGENT DASHBOARD ===== */
 async function loadAgentDashboard() { await loadAgentCards(); await loadAgentLogs("all"); }
 
 async function loadAgentCards() {
-  const res = await fetch("/admin/agent-logs", { headers: { Authorization: token } });
-  const logs = await res.json();
-  const grid = document.getElementById("agentsGrid");
-  grid.innerHTML = Object.entries(AGENT_INFO).map(([name, info]) => {
-    const agentLogs = logs.filter(l => l.agent === name);
-    const lastLog = agentLogs[0];
-    const hasCritical = agentLogs.some(l => l.severity === "critical");
-    const hasWarning = agentLogs.some(l => l.severity === "warning");
-    const cardClass = hasCritical ? "critical" : hasWarning ? "warning" : "active";
-    return `<div class="agent-card ${cardClass}">
-      <div class="agent-header">
-        <span class="agent-icon">${info.icon}</span>
-        <div><div class="agent-name">${name}</div></div>
-        <div class="agent-status"><span class="agent-pulse"></span></div>
-      </div>
-      <div class="agent-last-action">${lastLog ? lastLog.action : info.desc}</div>
-      <div class="agent-time">${lastLog ? new Date(lastLog.createdAt).toLocaleString() : 'Waiting for first run...'}</div>
-    </div>`;
-  }).join("");
+  try {
+    const res = await fetch("/admin/agent-logs", { headers: { Authorization: token } });
+    const logs = await res.json();
+    const grid = document.getElementById("agentsGrid");
+    grid.innerHTML = Object.entries(AGENT_INFO).map(([name, info]) => {
+      const agentLogs = logs.filter(l => l.agent === name);
+      const lastLog = agentLogs[0];
+      const hasCritical = agentLogs.some(l => l.severity === "critical");
+      const hasWarning = agentLogs.some(l => l.severity === "warning");
+      const cardClass = hasCritical ? "critical" : hasWarning ? "warning" : "active";
+      return `<div class="agent-card ${cardClass}">
+        <div class="agent-header">
+          <span class="agent-icon">${info.icon}</span>
+          <div><div class="agent-name">${name}</div></div>
+          <div class="agent-status"><span class="agent-pulse"></span></div>
+        </div>
+        <div class="agent-last-action">${lastLog ? lastLog.action : info.desc}</div>
+        <div class="agent-time">${lastLog ? new Date(lastLog.createdAt).toLocaleString() : 'Waiting for first run...'}</div>
+      </div>`;
+    }).join("");
+  } catch(err) { console.error("loadAgentCards error:", err); }
 }
 
 async function filterAgentLogs(agent, btn, severity = "all") {
@@ -1423,19 +1265,37 @@ function renderScanResult(data) {
     div.innerHTML = `<div class="slot-number">Slot ${i}</div><div style="font-size:1.2rem">${isOccupied ? "✅" : "❌"}</div><div style="font-size:0.65rem;margin-top:2px">${isOccupied ? (detail?.product || "") : "Empty"}</div>`;
     grid.appendChild(div);
   }
-  document.getElementById("presentProducts").innerHTML = data.present_products.length === 0 ? "<p style='color:var(--text-muted)'>None detected</p>"
-    : data.present_products.map(p => `<span class="product-tag" style="background:var(--success-bg);color:var(--success-text)">✅ ${p}</span>`).join("");
-  document.getElementById("missingProducts").innerHTML = data.missing_products.length === 0 ? "<p style='color:var(--text-muted)'>None missing ✅</p>"
-    : data.missing_products.map(p => `<span class="product-tag" style="background:var(--danger-bg);color:var(--danger-text)">❌ ${p}</span>`).join("");
-  document.getElementById("missingProductBtns").innerHTML = data.missing_products.length === 0 ? "<p style='color:var(--text-muted)'>No missing products 🎉</p>"
-    : data.missing_products.map(p => `<button class="btn-warning" style="font-size:0.8rem" onclick="findFranchiseForProduct('${p}')">📍 Find ${p} nearby</button>`).join("");
+  document.getElementById("presentProducts").innerHTML = data.present_products.length === 0 ? "<p style='color:var(--text-muted)'>None detected</p>" : data.present_products.map(p => `<span class="product-tag" style="background:var(--success-bg);color:var(--success-text)">✅ ${p}</span>`).join("");
+  document.getElementById("missingProducts").innerHTML = data.missing_products.length === 0 ? "<p style='color:var(--text-muted)'>None missing ✅</p>" : data.missing_products.map(p => `<span class="product-tag" style="background:var(--danger-bg);color:var(--danger-text)">❌ ${p}</span>`).join("");
+  document.getElementById("missingProductBtns").innerHTML = data.missing_products.length === 0 ? "<p style='color:var(--text-muted)'>No missing products 🎉</p>" : data.missing_products.map(p => `<button class="btn-warning" style="font-size:0.8rem" onclick="findFranchiseForProduct('${p}')">📍 Find ${p} nearby</button>`).join("");
 }
 
 async function loadRecentScans() {
   const res = await fetch("/admin/shelf-scans", { headers: { Authorization: token } });
   const scans = await res.json();
-  document.getElementById("recentScans").innerHTML = scans.length === 0 ? "<p style='color:var(--text-muted)'>No scans yet</p>"
-    : scans.map(s => `<div style="padding:12px;border:1px solid var(--border-color);border-radius:10px;margin-bottom:8px"><strong>${s.shelf_id}</strong> — ${s.occupied_slots}/${s.total_slots} slots occupied<span class="badge ${s.empty_slots > 5 ? 'badge-red' : 'badge-green'}" style="margin-left:8px">${s.empty_slots} empty</span><div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px">${s.detectedAt}</div></div>`).join("");
+  document.getElementById("recentScans").innerHTML = scans.length === 0 ? "<p style='color:var(--text-muted)'>No scans yet</p>" : scans.map(s => `<div style="padding:12px;border:1px solid var(--border-color);border-radius:10px;margin-bottom:8px"><strong>${s.shelf_id}</strong> — ${s.occupied_slots}/${s.total_slots} slots occupied<span class="badge ${s.empty_slots > 5 ? 'badge-red' : 'badge-green'}" style="margin-left:8px">${s.empty_slots} empty</span><div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px">${s.detectedAt}</div></div>`).join("");
+}
+
+/* ===== ML URL ===== */
+async function loadMLUrl() {
+  try {
+    const res = await fetch("/admin/ml-url", { headers: { Authorization: token } });
+    const data = await res.json();
+    const el = document.getElementById("mlServiceUrl");
+    if (el) el.value = data.url || "";
+  } catch (err) { console.log("Could not load ML URL"); }
+}
+
+async function updateMLUrl() {
+  const url = document.getElementById("mlServiceUrl").value.trim();
+  const statusEl = document.getElementById("mlUrlStatus");
+  if (!url || !url.startsWith("http")) { statusEl.textContent = "❌ Please enter a valid URL starting with http"; statusEl.style.color = "#ef4444"; return; }
+  try {
+    const res = await fetch("/admin/ml-url", { method: "POST", headers: { "Content-Type": "application/json", Authorization: token }, body: JSON.stringify({ url }) });
+    const data = await res.json();
+    if (res.ok) { statusEl.textContent = "✅ " + data.message; statusEl.style.color = "#10b981"; showToast("✅ ML Service URL updated!"); }
+    else { statusEl.textContent = "❌ " + data.message; statusEl.style.color = "#ef4444"; }
+  } catch (err) { statusEl.textContent = "❌ Network error"; statusEl.style.color = "#ef4444"; }
 }
 
 /* ===== PLANOGRAM ===== */
@@ -1472,8 +1332,7 @@ async function savePlanogram() {
 async function loadAllFranchises() {
   const res = await fetch("/admin/franchises", { headers: { Authorization: token } });
   const franchises = await res.json();
-  document.getElementById("allFranchises").innerHTML = franchises.map(f => `
-    <div class="franchise-card"><div><h3>🏪 ${f.name}</h3><p>📍 ${f.address}</p></div><span class="badge badge-blue">Active</span></div>`).join("");
+  document.getElementById("allFranchises").innerHTML = franchises.map(f => `<div class="franchise-card"><div><h3>🏪 ${f.name}</h3><p>📍 ${f.address}</p></div><span class="badge badge-blue">Active</span></div>`).join("");
 }
 
 async function findFranchise() {
@@ -1486,13 +1345,12 @@ async function findFranchiseForProduct(product, targetEl) {
   const res = await fetch(`/nearby-franchises?product=${product}&lat=19.0760&lng=72.8777`, { headers: { Authorization: token } });
   const results = await res.json();
   const el = targetEl || document.getElementById("franchiseResults");
-  el.innerHTML = results.length === 0 ? `<p style='color:var(--text-muted)'>No nearby stores have ${product} in stock</p>`
-    : results.map(f => `<div class="franchise-card"><div><h3>🏪 ${f.name}</h3><p>📍 ${f.address}</p><p style="color:var(--success);margin-top:4px">📦 ${f.stock} units</p></div><div class="distance-badge">📏 ${f.distance} km</div></div>`).join("");
+  el.innerHTML = results.length === 0 ? `<p style='color:var(--text-muted)'>No nearby stores have ${product} in stock</p>` : results.map(f => `<div class="franchise-card"><div><h3>🏪 ${f.name}</h3><p>📍 ${f.address}</p><p style="color:var(--success);margin-top:4px">📦 ${f.stock} units</p></div><div class="distance-badge">📏 ${f.distance} km</div></div>`).join("");
 }
 
 /* ===== LOGOUT ===== */
 async function logout() {
-  await fetch("/logout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token }) });
+  try { await fetch("/logout", { method: "POST", headers: { "Content-Type": "application/json", Authorization: token }, body: JSON.stringify({ token }) }); } catch(e) {}
   localStorage.clear(); window.location.href = "login.html";
 }
 
@@ -1500,37 +1358,21 @@ async function logout() {
 let keySeq = [], keyTimer = null;
 
 document.addEventListener("keydown", (e) => {
-  // Never fire when typing in inputs
   if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") return;
-
-  // Escape closes everything
   if (e.key === "Escape") {
     closeProfilePanel();
     document.querySelectorAll(".modal-overlay").forEach(m => m.classList.remove("open"));
     document.getElementById("settingsPanel").classList.remove("open");
     return;
   }
-
-  // Backslash toggles sidebar
-  if (e.key === "\\" || e.key === "|") {
-    toggleSidebar();
-    return;
-  }
-
-  // G+key shortcuts
+  if (e.key === "\\" || e.key === "|") { toggleSidebar(); return; }
   keySeq.push(e.key.toLowerCase());
   if (keyTimer) clearTimeout(keyTimer);
   keyTimer = setTimeout(() => { keySeq = []; }, 800);
-
   if (keySeq.length >= 2) {
     const combo = keySeq.slice(-2).join("");
-    if (combo === "go") { showPage("overview", null); keySeq = []; }
-    else if (combo === "gi") { showPage("inventory", null); keySeq = []; }
-    else if (combo === "ga") { showPage("agents", null); keySeq = []; }
-    else if (combo === "gs") { showPage("shelf-scan", null); keySeq = []; }
-    else if (combo === "gf") { showPage("franchise", null); keySeq = []; }
-    else if (combo === "gl") { showPage("logs", null); keySeq = []; }
-    else if (combo === "gp") { showPage("orders", null); keySeq = []; }
+    const pages = { go: "overview", gi: "inventory", ga: "agents", gs: "shelf-scan", gf: "franchise", gl: "logs", gp: "orders" };
+    if (pages[combo]) { showPage(pages[combo], null); keySeq = []; }
   }
 });
 
@@ -1538,49 +1380,21 @@ document.querySelectorAll(".modal-overlay").forEach(overlay => {
   overlay.addEventListener("click", function(e) { if (e.target === this) this.classList.remove("open"); });
 });
 
+/* ===== CLOSE SETTINGS PANEL ON OUTSIDE CLICK ===== */
+document.addEventListener("click", function(e) {
+  const panel = document.getElementById("settingsPanel");
+  const fab = document.querySelector(".settings-fab");
+  if (panel.classList.contains("open") && !panel.contains(e.target) && !fab.contains(e.target)) {
+    panel.classList.remove("open");
+  }
+});
+
 /* ===== INIT ===== */
 loadAdmin();
 loadSidebarUser();
+loadMLUrl();
 setInterval(loadAdmin, 15000);
 setInterval(() => { if (currentPage === "agents") loadAgentDashboard(); }, 30000);
-/* ===== ML SERVICE URL ===== */
-async function loadMLUrl() {
-  try {
-    const res = await fetch("/admin/ml-url", { headers: { Authorization: token } });
-    const data = await res.json();
-    const el = document.getElementById("mlServiceUrl");
-    if (el) el.value = data.url || "";
-  } catch (err) { console.log("Could not load ML URL"); }
-}
-
-async function updateMLUrl() {
-  const url = document.getElementById("mlServiceUrl").value.trim();
-  const statusEl = document.getElementById("mlUrlStatus");
-  if (!url || !url.startsWith("http")) {
-    statusEl.textContent = "❌ Please enter a valid URL starting with http";
-    statusEl.style.color = "#ef4444"; return;
-  }
-  try {
-    const res = await fetch("/admin/ml-url", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: token },
-      body: JSON.stringify({ url })
-    });
-    const data = await res.json();
-    if (res.ok) {
-      statusEl.textContent = "✅ " + data.message;
-      statusEl.style.color = "#10b981";
-      showToast("✅ ML Service URL updated!");
-    } else {
-      statusEl.textContent = "❌ " + data.message;
-      statusEl.style.color = "#ef4444";
-    }
-  } catch (err) {
-    statusEl.textContent = "❌ Network error";
-    statusEl.style.color = "#ef4444";
-  }
-}
-loadMLUrl();
 </script>
 
 </body>
