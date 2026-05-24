@@ -518,7 +518,55 @@
   font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: center;
 }
 .cpp-logout:hover { background: var(--danger); color: white; transform: none; }
-  </style>
+ .filter-section {
+  background: var(--bg-card); border: 1px solid var(--border-color);
+  border-radius: 14px; padding: 16px; margin-bottom: 20px;
+}
+.filter-section-title {
+  font-size: 0.82rem; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px;
+}
+.price-range-inputs {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+}
+.price-range-inputs input {
+  width: 80px; padding: 7px 10px; font-size: 0.82rem;
+  border-radius: 8px; margin-bottom: 0; text-align: center;
+}
+.price-range-inputs span { color: var(--text-muted); font-size: 0.85rem; flex-shrink: 0; }
+.price-slider {
+  width: 100%; accent-color: var(--accent);
+  height: 4px; cursor: pointer; margin-bottom: 8px;
+}
+.category-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.category-pill {
+  padding: 4px 12px; border-radius: 20px; font-size: 0.78rem;
+  font-weight: 600; cursor: pointer; transition: all 0.2s;
+  border: 1px solid var(--border-color); background: var(--bg-input);
+  color: var(--text-secondary);
+}
+.category-pill:hover { border-color: var(--accent); color: var(--accent); }
+.category-pill.active { background: var(--accent); color: white; border-color: var(--accent); }
+.active-filters {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;
+}
+.active-filter-tag {
+  display: flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;
+  background: var(--accent-light); color: var(--accent);
+  border: 1px solid rgba(99,102,241,0.3);
+}
+.active-filter-tag button {
+  background: none; border: none; color: var(--accent);
+  font-size: 0.8rem; cursor: pointer; padding: 0; line-height: 1;
+  font-weight: 700; margin-left: 2px;
+}
+.active-filter-tag button:hover { transform: none; color: var(--danger); }
+.results-count {
+  font-size: 0.82rem; color: var(--text-muted);
+  margin-bottom: 14px; font-weight: 500;
+}
+ </style>
 </head>
 <body>
 
@@ -588,14 +636,61 @@
     <div class="section-title">⭐ Recommended for You</div>
     <div class="recommended-scroll" id="recommendedScroll"></div>
   </div>
-  <div class="filter-tabs">
-    <button class="filter-tab active" onclick="filterByStatus('all', this)">All</button>
-    <button class="filter-tab" onclick="filterByStatus('available', this)">✅ Available</button>
-    <button class="filter-tab" onclick="filterByStatus('low', this)">⚠️ Low Stock</button>
-    <button class="filter-tab" onclick="filterByStatus('out', this)">❌ Out of Stock</button>
-    <button class="filter-tab" onclick="filterByStatus('top-rated', this)">⭐ Top Rated</button>
-    <button class="filter-tab" onclick="filterByStatus('wishlisted', this)">❤️ Wishlisted</button>
+<!-- ADVANCED FILTERS -->
+  <div class="filter-section">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span style="font-size:0.9rem;font-weight:700;color:var(--text-primary)">🔍 Filter Products</span>
+      <button onclick="clearAllFilters()" style="font-size:0.75rem;padding:4px 10px;background:var(--bg-tertiary);color:var(--text-muted);border:1px solid var(--border-color);border-radius:6px">Clear All</button>
+    </div>
+
+    <!-- Status Filter -->
+    <div class="filter-section-title">Stock Status</div>
+    <div class="filter-tabs" style="margin-bottom:14px">
+      <button class="filter-tab active" id="statusFilter-all" onclick="filterByStatus('all', this)">All</button>
+      <button class="filter-tab" id="statusFilter-available" onclick="filterByStatus('available', this)">✅ Available</button>
+      <button class="filter-tab" id="statusFilter-low" onclick="filterByStatus('low', this)">⚠️ Low Stock</button>
+      <button class="filter-tab" id="statusFilter-out" onclick="filterByStatus('out', this)">❌ Out of Stock</button>
+      <button class="filter-tab" id="statusFilter-top-rated" onclick="filterByStatus('top-rated', this)">⭐ Top Rated</button>
+      <button class="filter-tab" id="statusFilter-wishlisted" onclick="filterByStatus('wishlisted', this)">❤️ Wishlisted</button>
+    </div>
+
+    <!-- Category Filter -->
+    <div class="filter-section-title">Category</div>
+    <div class="category-pills" id="categoryPills" style="margin-bottom:14px">
+      <button class="category-pill active" onclick="filterByCategory('all', this)">🏪 All</button>
+      <button class="category-pill" onclick="filterByCategory('snacks', this)">🍿 Snacks</button>
+      <button class="category-pill" onclick="filterByCategory('beverages', this)">🥤 Beverages</button>
+      <button class="category-pill" onclick="filterByCategory('food', this)">🥫 Food</button>
+      <button class="category-pill" onclick="filterByCategory('staples', this)">🍚 Staples</button>
+      <button class="category-pill" onclick="filterByCategory('general', this)">📦 General</button>
+    </div>
+
+    <!-- Price Range Filter -->
+    <div class="filter-section-title">Price Range</div>
+    <div class="price-range-inputs">
+      <span>₹</span>
+      <input type="number" id="priceMin" value="0" min="0" placeholder="Min" oninput="applyPriceFilter()">
+      <span>—</span>
+      <input type="number" id="priceMax" value="500" min="0" placeholder="Max" oninput="applyPriceFilter()">
+      <span style="font-size:0.78rem;color:var(--text-muted)" id="priceRangeLabel">₹0 – ₹500</span>
+    </div>
+    <input type="range" class="price-slider" id="priceMaxSlider" min="0" max="1000" value="500"
+      oninput="document.getElementById('priceMax').value=this.value; applyPriceFilter()">
+
+    <!-- Sort -->
+    <div class="filter-section-title" style="margin-top:10px">Sort By</div>
+    <div class="filter-tabs">
+      <button class="filter-tab active" id="sort-default" onclick="sortProducts('default', this)">Default</button>
+      <button class="filter-tab" id="sort-price-asc" onclick="sortProducts('price-asc', this)">Price ↑</button>
+      <button class="filter-tab" id="sort-price-desc" onclick="sortProducts('price-desc', this)">Price ↓</button>
+      <button class="filter-tab" id="sort-rating" onclick="sortProducts('rating', this)">Top Rated</button>
+      <button class="filter-tab" id="sort-name" onclick="sortProducts('name', this)">A–Z</button>
+    </div>
   </div>
+
+  <!-- ACTIVE FILTERS + RESULTS COUNT -->
+  <div id="activeFilters" class="active-filters"></div>
+  <div class="results-count" id="resultsCount"></div>
   <div class="product-grid" id="productGrid">
     <div class="loading" style="grid-column:1/-1">
       <span class="loading-spinner">⏳</span> Loading products...
@@ -775,6 +870,10 @@ let savedForLater = JSON.parse(localStorage.getItem("rm-saved") || "{}");
 let wishlist = JSON.parse(localStorage.getItem("rm-wishlist") || "[]");
 let myRatings = {};
 let currentFilter = "all";
+let currentCategory = "all";
+let currentPriceMin = 0;
+let currentPriceMax = 500;
+let currentSort = "default";
 let currentSearch = "";
 
 /* ===== MAIN TABS ===== */
@@ -836,17 +935,34 @@ function renderRecommended() {
 function renderProducts() {
   const grid = document.getElementById("productGrid");
   const search = currentSearch.toLowerCase();
+
   let filtered = Object.entries(allProducts).filter(([key, item]) => {
+    const effectivePrice = item.onSale ? item.salePrice : item.price;
     const matchSearch = item.name.toLowerCase().includes(search) || key.includes(search);
-    const matchFilter =
+    const matchStatus =
       currentFilter === "all" ||
       (currentFilter === "available" && item.stock > 3) ||
       (currentFilter === "low" && item.stock > 0 && item.stock <= 3) ||
       (currentFilter === "out" && item.stock === 0) ||
       (currentFilter === "top-rated" && (item.avgRating || 0) >= 4) ||
       (currentFilter === "wishlisted" && wishlist.includes(key));
-    return matchSearch && matchFilter;
+    const matchCategory = currentCategory === "all" || (item.category || "general") === currentCategory;
+    const matchPrice = effectivePrice >= currentPriceMin && effectivePrice <= currentPriceMax;
+    return matchSearch && matchStatus && matchCategory && matchPrice;
   });
+
+  // Sort
+  if (currentSort === "price-asc") filtered.sort((a, b) => (a[1].onSale ? a[1].salePrice : a[1].price) - (b[1].onSale ? b[1].salePrice : b[1].price));
+  else if (currentSort === "price-desc") filtered.sort((a, b) => (b[1].onSale ? b[1].salePrice : b[1].price) - (a[1].onSale ? a[1].salePrice : a[1].price));
+  else if (currentSort === "rating") filtered.sort((a, b) => (b[1].avgRating || 0) - (a[1].avgRating || 0));
+  else if (currentSort === "name") filtered.sort((a, b) => a[1].name.localeCompare(b[1].name));
+
+  // Results count
+  const countEl = document.getElementById("resultsCount");
+  if (countEl) countEl.innerText = `Showing ${filtered.length} of ${Object.keys(allProducts).length} products`;
+
+  // Active filter tags
+  updateActiveFilterTags();
   if (!filtered.length) {
     grid.innerHTML = `<div style="grid-column:1/-1" class="empty-state"><span class="empty-icon">🔍</span><p>No products found</p></div>`;
     return;
@@ -1333,9 +1449,75 @@ async function loadOrders() {
 /* ===== FILTERS ===== */
 function filterByStatus(status, btn) {
   currentFilter = status;
-  document.querySelectorAll(".filter-tab").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll(".filter-tabs .filter-tab").forEach(t => {
+    if (t.id?.startsWith("statusFilter")) t.classList.remove("active");
+  });
   btn.classList.add("active");
   renderProducts();
+}
+
+function filterByCategory(category, btn) {
+  currentCategory = category;
+  document.querySelectorAll(".category-pill").forEach(p => p.classList.remove("active"));
+  btn.classList.add("active");
+  renderProducts();
+}
+
+function applyPriceFilter() {
+  currentPriceMin = parseInt(document.getElementById("priceMin").value) || 0;
+  currentPriceMax = parseInt(document.getElementById("priceMax").value) || 500;
+  document.getElementById("priceMaxSlider").value = currentPriceMax;
+  const label = document.getElementById("priceRangeLabel");
+  if (label) label.innerText = `₹${currentPriceMin} – ₹${currentPriceMax}`;
+  renderProducts();
+}
+
+function sortProducts(sort, btn) {
+  currentSort = sort;
+  document.querySelectorAll("[id^='sort-']").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  renderProducts();
+}
+
+function clearAllFilters() {
+  currentFilter = "all";
+  currentCategory = "all";
+  currentPriceMin = 0;
+  currentPriceMax = 500;
+  currentSort = "default";
+  currentSearch = "";
+  document.getElementById("searchInput").value = "";
+  document.getElementById("priceMin").value = 0;
+  document.getElementById("priceMax").value = 500;
+  document.getElementById("priceMaxSlider").value = 500;
+  document.getElementById("priceRangeLabel").innerText = "₹0 – ₹500";
+  document.querySelectorAll(".filter-tab").forEach(t => t.classList.remove("active"));
+  document.getElementById("statusFilter-all")?.classList.add("active");
+  document.getElementById("sort-default")?.classList.add("active");
+  document.querySelectorAll(".category-pill").forEach(p => p.classList.remove("active"));
+  document.querySelector(".category-pill")?.classList.add("active");
+  renderProducts();
+}
+
+function updateActiveFilterTags() {
+  const el = document.getElementById("activeFilters");
+  if (!el) return;
+  const tags = [];
+  if (currentFilter !== "all") tags.push({ label: `Status: ${currentFilter}`, clear: () => { currentFilter = "all"; document.getElementById("statusFilter-all")?.click(); } });
+  if (currentCategory !== "all") tags.push({ label: `Category: ${currentCategory}`, clear: () => { currentCategory = "all"; document.querySelector(".category-pill")?.click(); } });
+  if (currentPriceMin > 0 || currentPriceMax < 500) tags.push({ label: `Price: ₹${currentPriceMin}–₹${currentPriceMax}`, clear: () => { currentPriceMin=0; currentPriceMax=500; document.getElementById("priceMin").value=0; document.getElementById("priceMax").value=500; document.getElementById("priceMaxSlider").value=500; renderProducts(); } });
+  if (currentSort !== "default") tags.push({ label: `Sort: ${currentSort}`, clear: () => { currentSort="default"; document.getElementById("sort-default")?.click(); } });
+  if (currentSearch) tags.push({ label: `Search: "${currentSearch}"`, clear: () => { currentSearch=""; document.getElementById("searchInput").value=""; renderProducts(); } });
+  el.innerHTML = tags.map((t, i) => `
+    <span class="active-filter-tag">
+      ${t.label}
+      <button onclick="clearTag(${i})">✕</button>
+    </span>`).join("");
+  window._filterTagClears = tags.map(t => t.clear);
+}
+
+function clearTag(idx) {
+  if (window._filterTagClears?.[idx]) window._filterTagClears[idx]();
 }
 
 function filterProducts() {

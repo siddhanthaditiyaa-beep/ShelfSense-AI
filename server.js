@@ -312,8 +312,6 @@ twoFactorEnabled: { type: Boolean, default: false },
 createdAt: { type: Date, default: Date.now }
 });
 
-const UserSchema
-
 const UserSchema = new mongoose.Schema({
   storeId: { type: mongoose.Schema.Types.ObjectId, ref: "Store" },
   role: { type: String, default: "customer", enum: ["customer", "admin", "superadmin"] },
@@ -333,8 +331,6 @@ const UserSchema = new mongoose.Schema({
 twoFactorEnabled: { type: Boolean, default: false },
 createdAt: { type: Date, default: Date.now }
 });
-
-const ItemSchema
 
 const ItemSchema = new mongoose.Schema({
   storeId: { type: mongoose.Schema.Types.ObjectId, ref: "Store" },
@@ -973,14 +969,15 @@ app.get("/shop-items", auth("customer"), async (req, res) => {
     const query = storeId ? { storeId } : {};
     const items = await Item.find(query);
     const view = {};
-    items.forEach(i => {
+   items.forEach(i => {
       view[i.key] = {
         name: i.name, stock: i.stock, price: i.price || 99,
         onSale: i.onSale || false, salePercent: i.salePercent || 0,
         salePrice: i.salePrice || i.price || 99,
         canBuy: i.stock > 0, warning: i.stock <= 3 ? i.stock : null,
         avgRating: i.avgRating || 0, totalRatings: i.totalRatings || 0,
-        sentimentScore: i.sentimentScore || 0
+        sentimentScore: i.sentimentScore || 0,
+        category: i.category || "general"
       };
     });
     res.json(view);
