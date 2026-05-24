@@ -1212,15 +1212,49 @@ async function loadOrders() {
       el.innerHTML = `<div class="empty-state"><span class="empty-icon">📦</span><p>No orders yet</p><p style="font-size:0.8rem;margin-top:4px">Start shopping!</p></div>`;
       return;
     }
-    el.innerHTML = orders.map((order, idx) => {
-      const items = Object.entries(order.cart || {});
-      return `
+   const statusConfig = {
+        placed:     { emoji: "📦", label: "Placed",     color: "#6366f1" },
+        processing: { emoji: "⚙️", label: "Processing", color: "#f59e0b" },
+        ready:      { emoji: "✅", label: "Ready",      color: "#22c55e" },
+        delivered:  { emoji: "🎉", label: "Delivered",  color: "#22d3ee" }
+      };
+
+      el.innerHTML = orders.map((order, idx) => {
+        const items = Object.entries(order.cart || {});
+        const status = order.status || "placed";
+        const sCfg = statusConfig[status];
+        const steps = ["placed","processing","ready","delivered"];
+        const stepIdx = steps.indexOf(status);
+        return `
         <div class="order-card" style="animation-delay:${idx * 0.05}s">
           <div class="order-header">
             <span class="order-id">Order #${order._id.toString().slice(-8).toUpperCase()}</span>
-            <span class="order-paid-badge">✅ ${order.paymentStatus === 'paid' ? 'Paid' : 'Confirmed'}</span>
-            <span class="order-time">${order.time}</span>
+            <span style="background:${sCfg.color}20;color:${sCfg.color};padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;border:1px solid ${sCfg.color}40">
+              ${sCfg.emoji} ${sCfg.label}
+            </span>
+            <span class="order-time">${order.time || ""}</span>
           </div>
+
+          <!-- Status Progress -->
+          <div style="display:flex;align-items:center;margin:10px 0;gap:0">
+            ${steps.map((step, i) => {
+              const sc = statusConfig[step];
+              const done = i <= stepIdx;
+              return `
+                <div style="flex:1;text-align:center">
+                  <div style="width:22px;height:22px;border-radius:50%;margin:0 auto;
+                    background:${done ? sc.color : 'var(--bg-tertiary)'};
+                    display:flex;align-items:center;justify-content:center;
+                    font-size:0.65rem;border:2px solid ${done ? sc.color : 'var(--border-color)'}">
+                    ${i < stepIdx ? '✓' : sc.emoji}
+                  </div>
+                  <div style="font-size:0.6rem;margin-top:3px;color:${i === stepIdx ? sc.color : 'var(--text-muted)'};font-weight:${i === stepIdx ? '700' : '400'}">${sc.label}</div>
+                </div>
+                ${i < steps.length - 1 ? `<div style="flex:0.3;height:2px;background:${i < stepIdx ? 'var(--success)' : 'var(--border-color)'};margin-bottom:16px"></div>` : ''}
+              `;
+            }).join("")}
+          </div>
+
           <div class="order-items">
             ${items.map(([key, qty]) => `
               <div class="order-item-tag">

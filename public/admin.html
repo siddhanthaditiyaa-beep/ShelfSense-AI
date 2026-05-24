@@ -382,6 +382,7 @@
       <div class="sidebar-divider"></div>
       <div class="sidebar-section-label">System</div>
       <button class="sidebar-item" data-page="logs" onclick="showPage('logs', this)"><span class="sidebar-emoji">📝</span> Logs</button>
+      <button class="sidebar-item" data-page="manage-orders" onclick="showPage('manage-orders', this)"><span class="sidebar-emoji">🧾</span> Orders</button>
       <button class="sidebar-item" data-page="sessions" onclick="showPage('sessions', this)"><span class="sidebar-emoji">🔑</span> Sessions</button>
 <button class="sidebar-item" data-page="store-settings" onclick="showPage('store-settings', this)"><span class="sidebar-emoji">⚙️</span> Store Settings</button>
     </div>
@@ -657,6 +658,26 @@
         <div class="card"><h2>🤖 Agent Actions</h2><div id="forecastingLogs">Loading...</div></div>
       </div>
     </div>
+
+<!-- ORDERS MANAGEMENT PAGE -->
+<div class="page" id="page-manage-orders">
+  <div class="card">
+    <h2>🧾 Customer Orders</h2>
+    <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:16px">
+      Update order status — customers get an email notification on every update.
+    </p>
+    <div class="agent-filters" style="margin-bottom:16px">
+      <button class="agent-filter active" onclick="filterOrders('all', this)">All Orders</button>
+      <button class="agent-filter" onclick="filterOrders('placed', this)">📦 Placed</button>
+      <button class="agent-filter" onclick="filterOrders('processing', this)">⚙️ Processing</button>
+      <button class="agent-filter" onclick="filterOrders('ready', this)">✅ Ready</button>
+      <button class="agent-filter" onclick="filterOrders('delivered', this)">🎉 Delivered</button>
+    </div>
+    <div id="manageOrdersList">
+      <div style="text-align:center;padding:40px;color:var(--text-muted)">⏳ Loading orders...</div>
+    </div>
+  </div>
+</div>
 
 <!-- SESSIONS PAGE -->
 <div class="page" id="page-sessions">
@@ -1030,6 +1051,7 @@ function showPage(page, clickedBtn) {
 if (page === "agents") loadAgentDashboard();
 if (page === "analytics") loadAnalytics();
   if (page === "sessions") loadSessions();
+  if (page === "manage-orders") loadManageOrders();
   if (page === "orders") loadPurchaseOrders();
   if (page === "store-settings") loadSettings();
 }
@@ -1843,6 +1865,125 @@ async function loadAnalytics() {
     }
 
   } catch(err) { console.error("Analytics error:", err); }
+}
+
+/* ===== ORDER MANAGEMENT ===== */
+let allOrders = [];
+let currentOrderFilter = "all";
+
+async function loadManageOrders() {
+  try {
+    const res = await fetch("/admin/all-orders", { headers: { Authorization: token } });
+    allOrders = await res.json();
+    renderOrders();
+  } catch(err) { console.error("Orders error:", err); }
+}
+
+function filterOrders(status, btn) {
+  currentOrderFilter = status;
+  document.querySelectorAll("#page-manage-orders .agent-filter").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  renderOrders();
+}
+
+function renderOrders() {
+  const filtered = currentOrderFilter === "all"
+    ? allOrders
+    : allOrders.filter(o => (o.status || "placed") === currentOrderFilter);
+
+  const el = document.getElementById("manageOrdersList");
+  if (!filtered.length) {
+    el.innerHTML = `<p style="color:var(--text-muted);text-align:center;padding:20px">No orders found</p>`;
+    return;
+  }
+
+  const statusConfig = {
+    placed:     { emoji: "📦", color: "var(--accent)",   label: "Placed" },
+    processing: { emoji: "⚙️", color: "var(--warning)",  label: "Processing" },
+    ready:      { emoji: "✅", color: "var(--success)",  label: "Ready" },
+    delivered:  { emoji: "🎉", color: "var(--info-text)", label: "Delivered" }
+  };
+
+  el.innerHTML = filtered.map(order => {
+    const status = order.status || "placed";
+    const cfg = statusConfig[status];
+    const items = Object.entries(order.cart || {});
+    const steps = ["placed", "processing", "ready", "delivered"];
+    const stepIdx = steps.indexOf(status);
+
+    return `
+      <div class="po-card" style="flex-direction:column;align-items:stretch">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+          <div>
+            <span style="font-size:0.8rem;color:var(--text-muted);font-family:monospace">
+              #${order._id.toString().slice(-8).toUpperCase()}
+            </span>
+            <span style="margin-left:10px;font-size:0.8rem;color:var(--text-muted)">${order.userEmail || "Guest"}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <strong style="color:var(--success)">₹${order.totalAmount || 0}</strong>
+            <span class="badge" style="background:${cfg.color}20;color:${cfg.color};border:1px solid ${cfg.color}40">
+              ${cfg.emoji} ${cfg.label}
+            </span>
+            ${order.flaggedAsFraud ? '<span class="badge badge-red">🚨 Fraud</span>' : ''}
+          </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div style="display:flex;align-items:center;gap:0;margin-bottom:14px">
+          ${steps.map((step, idx) => {
+            const isActive = idx === stepIdx;
+            const isDone = idx < stepIdx;
+            const sCfg = statusConfig[step];
+            return `
+              <div style="flex:1;text-align:center">
+                <div style="width:28px;height:28px;border-radius:50%;margin:0 auto;
+                  background:${isDone || isActive ? sCfg.color : 'var(--bg-tertiary)'};
+                  display:flex;align-items:center;justify-content:center;
+                  font-size:0.8rem;border:2px solid ${isDone || isActive ? sCfg.color : 'var(--border-color)'}">
+                  ${isDone ? '✓' : sCfg.emoji}
+                </div>
+                <div style="font-size:0.65rem;color:${isActive ? sCfg.color : 'var(--text-muted)'};
+                  font-weight:${isActive ? '700' : '400'};margin-top:4px">${sCfg.label}</div>
+              </div>
+              ${idx < steps.length - 1 ? `<div style="flex:0.3;height:2px;background:${idx < stepIdx ? 'var(--success)' : 'var(--border-color)'};margin-bottom:20px"></div>` : ''}
+            `;
+          }).join("")}
+        </div>
+
+        <!-- Items -->
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">
+          ${items.map(([key, qty]) => `
+            <span style="background:var(--accent-light);color:var(--accent);padding:3px 10px;border-radius:20px;font-size:0.78rem;font-weight:600">
+              ${order.itemNames?.[key] || key} × ${qty}
+            </span>`).join("")}
+        </div>
+
+        <!-- Update Status -->
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-size:0.82rem;color:var(--text-muted);font-weight:600">Update:</span>
+          ${steps.map(step => step !== status ? `
+            <button class="btn-sm" style="background:${statusConfig[step].color}20;color:${statusConfig[step].color};border:1px solid ${statusConfig[step].color}40;font-size:0.75rem"
+              onclick="updateOrderStatus('${order._id}', '${step}')">
+              ${statusConfig[step].emoji} ${statusConfig[step].label}
+            </button>` : '').join("")}
+          <span style="font-size:0.75rem;color:var(--text-muted);margin-left:auto">${order.time || new Date(order.createdAt).toLocaleString()}</span>
+        </div>
+      </div>`;
+  }).join("");
+}
+
+async function updateOrderStatus(orderId, status) {
+  try {
+    const res = await fetch("/admin/order-status", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: token },
+      body: JSON.stringify({ orderId, status })
+    });
+    const data = await res.json();
+    showToast(data.message + " 📧 Customer notified!");
+    loadManageOrders();
+  } catch(err) { showToast("Failed to update order", "error"); }
 }
 
 /* ===== SESSION MANAGEMENT ===== */

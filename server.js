@@ -367,7 +367,8 @@ const OrderSchema = new mongoose.Schema({
   totalAmount: Number,
   paymentId: String,
   paymentStatus: { type: String, default: "pending" },
-  flaggedAsFraud: { type: Boolean, default: false },
+ flaggedAsFraud: { type: Boolean, default: false },
+  status: { type: String, default: "placed", enum: ["placed", "processing", "ready", "delivered"] },
   time: String,
   createdAt: { type: Date, default: Date.now }
 });
@@ -1141,7 +1142,9 @@ app.post("/verify-payment", auth("customer"), async (req, res) => {
 ========================= */
 app.get("/my-orders", auth("customer"), async (req, res) => {
   try {
-    const orders = await Order.find({ userId: req.user.id }).sort({ createdAt: -1 }).limit(20);
+    const orders = await Order.find({ userId: req.user.id })
+      .sort({ createdAt: -1 }).limit(20)
+      .select("cart itemNames totalItems totalAmount paymentStatus status time createdAt flaggedAsFraud");
     res.json(orders);
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
@@ -1506,6 +1509,55 @@ app.get("/admin/analytics", auth("admin"), async (req, res) => {
     console.error("Analytics error:", err.message);
     res.status(500).json({ message: "Server error" });
   }
+});
+
+/* =========================
+   ORDER STATUS
+========================= */
+app.post("/admin/order-status", auth("admin"), async (req, res) => {
+  try {
+    const { orderId, status } = req.body;
+    const validStatuses = ["placed", "processing", "ready", "delivered"];
+    if (!validStatuses.includes(status)) return res.status(400).json({ message: "Invalid status" });
+    const order = await Order.findOne({ _id: orderId, storeId: req.user.storeId });
+    if (!order) return res.status(404).json({ message: "Order not found" });
+    await Order.updateOne({ _id: orderId }, { $set: { status } });
+    await logAudit(req, req.user.email, "admin", "ORDER_STATUS_UPDATED", "success", `Order ${orderId} → ${status}`);
+
+    // Notify customer by email
+    if (order.userEmail) {
+      const statusEmoji = { placed: "📦", processing: "⚙️", ready: "✅", delivered: "🎉" };
+      const statusMsg = { placed: "Your order has been placed!", processing: "Your order is being processed.", ready: "Your order is ready for pickup/delivery!", delivered: "Your order has been delivered. Enjoy!" };
+      await emailTransporter.sendMail({
+        from: `"ShelfSense AI 🛍️" <${process.env.ALERT_EMAIL}>`,
+        to: order.userEmail,
+        subject: `${statusEmoji[status]} Order Update — ${status.charAt(0).toUpperCase() + status.slice(1)}`,
+        html: `
+          <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto">
+            <div style="background:#6366f1;padding:20px;border-radius:10px 10px 0 0">
+              <h1 style="color:white;margin:0;font-size:1.2rem">${statusEmoji[status]} ShelfSense AI — Order Update</h1>
+            </div>
+            <div style="background:#f8fafc;padding:24px;border-radius:0 0 10px 10px;border:1px solid #e2e8f0">
+              <p style="color:#1e293b;font-size:1rem">${statusMsg[status]}</p>
+              <div style="background:#eef2ff;border-radius:8px;padding:14px;margin:16px 0">
+                <p style="color:#6366f1;font-weight:700;margin:0">Order #${order._id.toString().slice(-8).toUpperCase()}</p>
+                <p style="color:#64748b;font-size:0.85rem;margin:6px 0 0">Status: <strong>${status.toUpperCase()}</strong></p>
+              </div>
+              <p style="color:#94a3b8;font-size:0.8rem">Thank you for shopping with ShelfSense AI!</p>
+            </div>
+          </div>`
+      }).catch(() => {});
+    }
+    res.json({ message: `Order status updated to ${status}` });
+  } catch(err) { res.status(500).json({ message: "Server error" }); }
+});
+
+app.get("/admin/all-orders", auth("admin"), async (req, res) => {
+  try {
+    const orders = await Order.find({ storeId: req.user.storeId })
+      .sort({ createdAt: -1 }).limit(50);
+    res.json(orders);
+  } catch(err) { res.status(500).json({ message: "Server error" }); }
 });
 
 /* =========================
