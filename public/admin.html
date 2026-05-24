@@ -413,7 +413,12 @@
           </table>
         </div>
         <br>
-        <button class="btn-danger" onclick="resetLogs()">🧹 Reset All Logs & Stocks</button>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
+  <button class="btn-danger" onclick="resetLogs()">🧹 Reset All Logs & Stocks</button>
+  <button class="btn-success" onclick="downloadStock()" style="display:flex;align-items:center;gap:6px">
+    📥 Download Stock List (Excel/CSV)
+  </button>
+</div>
       </div>
     </div>
 
@@ -1376,6 +1381,36 @@ async function findFranchiseForProduct(product, targetEl) {
   const results = await res.json();
   const el = targetEl || document.getElementById("franchiseResults");
   el.innerHTML = results.length === 0 ? `<p style='color:var(--text-muted)'>No nearby stores have ${product} in stock</p>` : results.map(f => `<div class="franchise-card"><div><h3>🏪 ${f.name}</h3><p>📍 ${f.address}</p><p style="color:var(--success);margin-top:4px">📦 ${f.stock} units</p></div><div class="distance-badge">📏 ${f.distance} km</div></div>`).join("");
+}
+
+/* ===== DOWNLOAD STOCK ===== */
+function downloadStock() {
+  const a = document.createElement("a");
+  a.href = "/admin/download-stock";
+  a.setAttribute("Authorization", token);
+
+  // We need to fetch with auth header and trigger download
+  fetch("/admin/download-stock", { headers: { Authorization: token } })
+    .then(res => {
+      if (!res.ok) throw new Error("Download failed");
+      const disposition = res.headers.get("Content-Disposition");
+      const filename = disposition
+        ? disposition.split("filename=")[1].replace(/"/g, "")
+        : "ShelfSense_Stock.csv";
+      return res.blob().then(blob => ({ blob, filename }));
+    })
+    .then(({ blob, filename }) => {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      showToast("✅ Stock list downloaded!");
+    })
+    .catch(err => showToast("Download failed: " + err.message, "error"));
 }
 
 /* ===== LOGOUT ===== */

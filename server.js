@@ -1789,6 +1789,85 @@ cron.schedule("0 */30 * * * *", async () => {
 });
 
 /* =========================
+   DOWNLOAD STOCK EXCEL
+========================= */
+app.get("/admin/download-stock", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const items = await Item.find({ storeId });
+    const pendingOrders = await PurchaseOrder.find({ storeId, status: { $in: ["pending", "sent"] } });
+    const pendingKeys = pendingOrders.map(o => o.itemKey);
+
+    // Build CSV content
+    const headers = [
+      "Item Name",
+      "Category",
+      "Current Stock",
+      "Min Stock Level",
+      "Availability Status",
+      "Stock Warning",
+      "Auto Reordered by Agent",
+      "Price (Rs.)",
+      "On Sale",
+      "Sale Discount (%)",
+      "Sale Price (Rs.)",
+      "Supplier",
+      "Expiry Date"
+    ];
+
+    const rows = items.map(item => {
+      const isOut = item.stock === 0;
+      const isLow = item.stock > 0 && item.stock <= item.minStockLevel;
+      const isHealthy = item.stock > item.minStockLevel;
+      const availability = isOut ? "OUT OF STOCK" : isLow ? "LOW STOCK" : "IN STOCK";
+      const warning = isOut ? "CRITICAL - Out of stock" : isLow ? "WARNING - Ending soon" : "OK";
+      const reordered = pendingKeys.includes(item.key) ? "YES - Reorder Pending" : "No";
+      const onSale = item.onSale ? "YES" : "No";
+      const salePercent = item.onSale ? item.salePercent : 0;
+      const salePrice = item.onSale ? item.salePrice : item.price;
+      const expiry = item.expiryDate ? new Date(item.expiryDate).toLocaleDateString("en-IN") : "N/A";
+
+      return [
+        item.name,
+        item.category || "general",
+        item.stock,
+        item.minStockLevel,
+        availability,
+        warning,
+        reordered,
+        item.price || 99,
+        onSale,
+        salePercent,
+        salePrice,
+        item.supplier || "N/A",
+        expiry
+      ];
+    });
+
+    // Convert to CSV
+    const csvLines = [
+      `ShelfSense AI - Stock Report for ${req.user.storeName || "Store"}`,
+      `Generated on: ${new Date().toLocaleString("en-IN")}`,
+      `Total Items: ${items.length}`,
+      "",
+      headers.join(","),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(","))
+    ];
+
+    const csvContent = csvLines.join("\n");
+    const filename = `ShelfSense_Stock_${new Date().toISOString().split("T")[0]}.csv`;
+
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.send(csvContent);
+
+  } catch (err) {
+    console.error("Download stock error:", err.message);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+/* =========================
    ERROR HANDLERS
 ========================= */
 app.use((err, req, res, next) => {
