@@ -418,10 +418,43 @@
     .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
     .empty-state .empty-icon { font-size: 3rem; margin-bottom: 12px; display: block; }
 
-    @media (max-width: 600px) {
-      .cart-sidebar { width: 100%; }
-      .product-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
-    }
+    @media (max-width: 768px) {
+  .shop-header { padding: 10px 14px; }
+  .shop-logo { font-size: 1rem; }
+  .header-actions { gap: 6px; }
+  .header-btn { padding: 5px 10px; font-size: 0.75rem; gap: 4px; }
+  .hero { padding: 24px 16px; }
+  .hero h1 { font-size: 1.4rem; }
+  .hero p { font-size: 0.85rem; margin-bottom: 14px; }
+  .search-bar input { padding: 10px 16px 10px 38px; font-size: 0.85rem; }
+  .main-tabs { padding: 0 12px; }
+  .main-tab { padding: 10px 14px; font-size: 0.8rem; }
+  .page { padding: 14px; }
+  .product-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+  .product-emoji-box { padding: 18px; font-size: 2.2rem; }
+  .product-info { padding: 10px; }
+  .product-name { font-size: 0.875rem; }
+  .product-price { font-size: 1rem; }
+  .btn-row { gap: 4px; }
+  .add-to-cart-btn, .buy-now-btn { font-size: 0.72rem; padding: 7px 4px; }
+  .cart-sidebar { width: 100%; }
+  .recommended-scroll { gap: 10px; }
+  .recommended-card { min-width: 120px; padding: 12px 8px; }
+  .wishlist-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .filter-tabs { gap: 6px; }
+  .filter-tab { padding: 5px 12px; font-size: 0.78rem; }
+  .modal-overlay { padding: 12px; }
+  .nearby-modal { max-width: 100%; }
+  #toast { right: 12px; left: 12px; max-width: unset; bottom: 70px; }
+  .settings-fab { bottom: 16px; right: 16px; }
+  .customer-profile-panel { width: calc(100vw - 32px); right: 16px; }
+}
+
+@media (max-width: 400px) {
+  .product-grid { grid-template-columns: 1fr 1fr; }
+  .header-btn span:not(.cart-count):not(#wishlistCount) { display: none; }
+  .shop-logo { font-size: 0.9rem; }
+}
     .customer-avatar {
   width: 34px; height: 34px; border-radius: 50%;
   background: linear-gradient(135deg, #6366f1, #a78bfa);

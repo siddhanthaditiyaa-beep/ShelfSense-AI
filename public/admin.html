@@ -75,7 +75,38 @@
     .card h2 { font-size: 0.95rem; font-weight: 600; color: var(--text-accent); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
 
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    @media (max-width: 768px) { .row { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) {
+  .row { grid-template-columns: 1fr; }
+  .topbar { padding: 0 10px; gap: 8px; }
+  .topbar-logo { font-size: 0.875rem; }
+  .content { padding: 14px; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .stat-card .number { font-size: 1.4rem; }
+  .agents-grid { grid-template-columns: 1fr; }
+  .agent-filters { gap: 6px; }
+  .agent-filter { padding: 4px 10px; font-size: 0.75rem; }
+  .settings-grid { grid-template-columns: 1fr; }
+  .planogram-grid { grid-template-columns: repeat(2, 1fr); }
+  .sub-plans { grid-template-columns: 1fr; }
+  .profile-panel { width: calc(100vw - 32px); left: 16px !important; }
+  .po-card { flex-direction: column; align-items: flex-start; }
+  table { font-size: 0.78rem; }
+  th, td { padding: 8px; }
+  .stock-edit { flex-wrap: wrap; }
+  .slot { width: 64px; height: 64px; font-size: 0.65rem; }
+  .settings-fab { bottom: 16px; right: 16px; width: 40px; height: 40px; font-size: 1rem; }
+  .settings-panel { right: 16px; bottom: 68px; width: 200px; }
+  #toast { right: 12px; left: 12px; max-width: unset; bottom: 70px; }
+  .sidebar { position: fixed; z-index: 300; height: 100vh; }
+  .main-area { flex-direction: column; }
+}
+
+@media (max-width: 480px) {
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .planogram-grid { grid-template-columns: repeat(2, 1fr); }
+  .modal-box { border-radius: 14px; }
+  .topbar-logo { display: none; }
+}
 
     table { width: 100%; border-collapse: collapse; }
     th { background: var(--bg-tertiary); color: var(--text-muted); padding: 10px 14px; text-align: left; font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
@@ -180,7 +211,6 @@
     .severity-info { border-left: 3px solid var(--success); }
 
     .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    @media (max-width: 768px) { .settings-grid { grid-template-columns: 1fr; } }
     .settings-group { margin-bottom: 16px; }
     .settings-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
     .settings-group input, .settings-group select { margin-bottom: 0; }
