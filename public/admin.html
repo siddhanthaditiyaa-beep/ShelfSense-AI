@@ -410,7 +410,7 @@
         <h2>📦 Current Inventory</h2>
         <div style="overflow-x:auto">
           <table>
-            <thead><tr><th>Item</th><th>Stock</th><th>Price</th><th>Status</th><th>Update Stock</th><th>Set Price</th><th>Sale</th><th>Delete</th></tr></thead>
+            <thead><tr><th>Item</th><th>Stock</th><th>Price</th><th>Status</th><th>Update Stock</th><th>Set Price</th><th>Alert At</th><th>Sale</th><th>Delete</th></tr></thead>
             <tbody id="inventoryTable"></tbody>
           </table>
         </div>
@@ -1120,6 +1120,13 @@ function renderInventoryTable(items) {
       <td><div class="stock-edit"><input type="number" id="edit_${item.key}" value="${item.stock}" min="0" style="width:70px"><button class="btn-primary btn-sm" onclick="updateStock('${item.key}')">Update</button></div></td>
       <td><div class="stock-edit"><input type="number" id="price_${item.key}" value="${item.price || 99}" min="0" step="1" style="width:80px"><button class="btn-success btn-sm" onclick="updatePrice('${item.key}')">Set</button></div></td>
       <td>
+        <div class="stock-edit">
+          <input type="number" id="threshold_${item.key}" value="${item.minStockLevel || 3}" min="1" max="100" style="width:60px" title="Alert when stock falls below this">
+          <button class="btn-warning btn-sm" onclick="updateThreshold('${item.key}')">Set</button>
+        </div>
+        <div style="font-size:0.72rem;color:var(--text-muted);margin-top:3px">Current: ${item.minStockLevel || 3} units</div>
+      </td>
+      <td>
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
           <input type="number" id="sale_${item.key}" value="${item.salePercent || 0}" min="0" max="90" style="width:60px" placeholder="%">
           <button class="btn-warning btn-sm" onclick="toggleSale('${item.key}', ${!item.onSale})">${item.onSale ? '🔥 On Sale' : 'Set Sale'}</button>
@@ -1284,6 +1291,19 @@ async function updatePrice(key) {
   if (isNaN(price) || price < 0) return showToast("Invalid price", "error");
   const res = await fetch("/admin/update-price", { method: "POST", headers: { "Content-Type": "application/json", Authorization: token }, body: JSON.stringify({ key, price }) });
   showToast((await res.json()).message); loadAdmin();
+}
+
+async function updateThreshold(key) {
+  const min = parseInt(document.getElementById("threshold_" + key).value);
+  if (isNaN(min) || min < 1) return showToast("Enter a valid threshold (1-100)", "warning");
+  const res = await fetch("/admin/update-threshold", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: token },
+    body: JSON.stringify({ key, minStockLevel: min })
+  });
+  const data = await res.json();
+  showToast(data.message);
+  loadAdmin();
 }
 
 async function toggleSale(key, onSale) {

@@ -1182,6 +1182,17 @@ app.post("/admin/update-price", auth("admin"), async (req, res) => {
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
+app.post("/admin/update-threshold", auth("admin"), async (req, res) => {
+  try {
+    const { key, minStockLevel } = req.body;
+    const storeId = req.user.storeId;
+    const min = parseInt(minStockLevel);
+    if (isNaN(min) || min < 1 || min > 100) return res.status(400).json({ message: "Threshold must be between 1 and 100" });
+    await Item.updateOne({ key, storeId }, { $set: { minStockLevel: min } });
+    res.json({ message: `Alert threshold set to ${min} units` });
+  } catch(err) { res.status(500).json({ message: "Server error" }); }
+});
+
 app.post("/admin/update-sale", auth("admin"), async (req, res) => {
   try {
     const { key, onSale, salePercent } = req.body;
