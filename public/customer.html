@@ -741,17 +741,26 @@
         </div>
       </div>
       <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px">
-        ${[
-          {emoji:"🥉",name:"Bronze",pts:"0+",color:"#cd7f32"},
-          {emoji:"🥈",name:"Silver",pts:"200+",color:"#94a3b8"},
-          {emoji:"🥇",name:"Gold",pts:"500+",color:"#f59e0b"},
-          {emoji:"💎",name:"Platinum",pts:"1000+",color:"#22d3ee"}
-        ].map(t => `
-          <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg-input);border-radius:8px">
-            <span style="font-size:1.2rem">${t.emoji}</span>
-            <span style="font-weight:600;color:${t.color}">${t.name}</span>
-            <span style="margin-left:auto;font-size:0.8rem;color:var(--text-muted)">${t.pts} points</span>
-          </div>`).join("")}
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg-input);border-radius:8px">
+          <span style="font-size:1.2rem">🥉</span>
+          <span style="font-weight:600;color:#cd7f32">Bronze</span>
+          <span style="margin-left:auto;font-size:0.8rem;color:var(--text-muted)">0+ points</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg-input);border-radius:8px">
+          <span style="font-size:1.2rem">🥈</span>
+          <span style="font-weight:600;color:#94a3b8">Silver</span>
+          <span style="margin-left:auto;font-size:0.8rem;color:var(--text-muted)">200+ points</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg-input);border-radius:8px">
+          <span style="font-size:1.2rem">🥇</span>
+          <span style="font-weight:600;color:#f59e0b">Gold</span>
+          <span style="margin-left:auto;font-size:0.8rem;color:var(--text-muted)">500+ points</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg-input);border-radius:8px">
+          <span style="font-size:1.2rem">💎</span>
+          <span style="font-weight:600;color:#22d3ee">Platinum</span>
+          <span style="margin-left:auto;font-size:0.8rem;color:var(--text-muted)">1000+ points</span>
+        </div>
       </div>
     </div>
 
