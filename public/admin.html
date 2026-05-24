@@ -322,6 +322,17 @@
   transition: all 0.2s; background: var(--bg-input); margin-bottom: 14px;
 }
 .bulk-upload-area:hover { border-color: var(--accent); background: var(--accent-light); }
+.session-card {
+  background: var(--bg-input); border: 1px solid var(--border-color);
+  border-radius: 12px; padding: 16px; margin-bottom: 10px;
+  display: flex; align-items: center; gap: 14px; transition: all 0.2s;
+}
+.session-card:hover { border-color: var(--accent); }
+.session-card.current { border-color: var(--success); background: var(--success-bg); }
+.session-icon { font-size: 2rem; flex-shrink: 0; }
+.session-info { flex: 1; }
+.session-info h3 { font-size: 0.875rem; font-weight: 700; color: var(--text-primary); margin-bottom: 3px; }
+.session-info p { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
 .bulk-result-row { display: flex; align-items: center; justify-content: space-between;
   padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; font-size: 0.85rem; }
 .bulk-result-row.updated { background: var(--success-bg); color: var(--success-text); }
@@ -371,7 +382,8 @@
       <div class="sidebar-divider"></div>
       <div class="sidebar-section-label">System</div>
       <button class="sidebar-item" data-page="logs" onclick="showPage('logs', this)"><span class="sidebar-emoji">📝</span> Logs</button>
-      <button class="sidebar-item" data-page="store-settings" onclick="showPage('store-settings', this)"><span class="sidebar-emoji">⚙️</span> Store Settings</button>
+      <button class="sidebar-item" data-page="sessions" onclick="showPage('sessions', this)"><span class="sidebar-emoji">🔑</span> Sessions</button>
+<button class="sidebar-item" data-page="store-settings" onclick="showPage('store-settings', this)"><span class="sidebar-emoji">⚙️</span> Store Settings</button>
     </div>
     <div class="sidebar-bottom">
       <div class="sidebar-user" id="sidebarUserBtn" onclick="toggleProfilePanel()">
@@ -645,6 +657,42 @@
         <div class="card"><h2>🤖 Agent Actions</h2><div id="forecastingLogs">Loading...</div></div>
       </div>
     </div>
+
+<!-- SESSIONS PAGE -->
+<div class="page" id="page-sessions">
+  <div class="card">
+    <h2>🔑 Active Login Sessions</h2>
+    <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:16px">
+      These are all devices currently logged into your ShelfSense AI account. Revoke any session you don't recognize.
+    </p>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+      <span style="font-size:0.85rem;color:var(--text-muted)" id="sessionCount">Loading sessions...</span>
+      <button class="btn-danger btn-sm" onclick="revokeAllSessions()">🚫 Revoke All Other Sessions</button>
+    </div>
+    <div id="sessionsList">
+      <div style="text-align:center;padding:40px;color:var(--text-muted)">⏳ Loading...</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📋 Session History (Last 20)</h2>
+    <div id="sessionHistory" style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th>Device</th>
+            <th>Browser</th>
+            <th>IP Address</th>
+            <th>Status</th>
+            <th>Login Time</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="sessionHistoryTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
     <!-- STORE SETTINGS PAGE -->
     <div class="page" id="page-store-settings">
@@ -980,7 +1028,8 @@ function showPage(page, clickedBtn) {
   if (page === "shelf-scan") { loadRecentScans(); loadMLUrl(); }
   if (page === "planogram") loadPlanogram();
 if (page === "agents") loadAgentDashboard();
-  if (page === "analytics") loadAnalytics();
+if (page === "analytics") loadAnalytics();
+  if (page === "sessions") loadSessions();
   if (page === "orders") loadPurchaseOrders();
   if (page === "store-settings") loadSettings();
 }
@@ -1794,6 +1843,91 @@ async function loadAnalytics() {
     }
 
   } catch(err) { console.error("Analytics error:", err); }
+}
+
+/* ===== SESSION MANAGEMENT ===== */
+async function loadSessions() {
+  try {
+    const res = await fetch("/admin/sessions", { headers: { Authorization: token } });
+    const sessions = await res.json();
+
+    const active = sessions.filter(s => s.isActive);
+    document.getElementById("sessionCount").innerText = `${active.length} active session${active.length !== 1 ? 's' : ''}`;
+
+    // Active session cards
+    const listEl = document.getElementById("sessionsList");
+    if (!active.length) {
+      listEl.innerHTML = `<p style="color:var(--text-muted)">No active sessions found.</p>`;
+    } else {
+      listEl.innerHTML = active.map(s => `
+        <div class="session-card ${s.isCurrent ? 'current' : ''}">
+          <div class="session-icon">${s.device?.includes("Mobile") ? "📱" : "💻"}</div>
+          <div class="session-info">
+            <h3>${s.device || "Unknown Device"} — ${s.browser || "Unknown Browser"}
+              ${s.isCurrent ? '<span class="badge badge-green" style="margin-left:8px;font-size:0.7rem">Current Session</span>' : ''}
+            </h3>
+            <p>🌐 IP: ${s.ip}</p>
+            <p>🕐 Logged in: ${new Date(s.createdAt).toLocaleString()}</p>
+          </div>
+          ${!s.isCurrent ? `
+            <button class="btn-danger btn-sm" onclick="revokeSession('${s._id}')">
+              🚫 Revoke
+            </button>` : `<span style="font-size:0.78rem;color:var(--success-text);font-weight:600">✅ You</span>`}
+        </div>`).join("");
+    }
+
+    // Session history table
+    const tbody = document.getElementById("sessionHistoryTable");
+    if (!sessions.length) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">No session history</td></tr>`;
+    } else {
+      tbody.innerHTML = sessions.map(s => `
+        <tr>
+          <td>${s.device || "Unknown"}</td>
+          <td>${s.browser || "Unknown"}</td>
+          <td><code style="font-size:0.78rem">${s.ip}</code></td>
+          <td>
+            <span class="badge ${s.isCurrent ? 'badge-green' : s.isActive ? 'badge-blue' : 'badge-yellow'}">
+              ${s.isCurrent ? '✅ Current' : s.isActive ? '🟢 Active' : '⚫ Ended'}
+            </span>
+          </td>
+          <td style="font-size:0.78rem;color:var(--text-muted)">${new Date(s.createdAt).toLocaleString()}</td>
+          <td>
+            ${s.isActive && !s.isCurrent
+              ? `<button class="btn-danger btn-sm" onclick="revokeSession('${s._id}')">Revoke</button>`
+              : `<span style="color:var(--text-muted);font-size:0.78rem">${s.isCurrent ? 'Current' : 'Ended'}</span>`}
+          </td>
+        </tr>`).join("");
+    }
+
+  } catch(err) { console.error("Sessions error:", err); }
+}
+
+async function revokeSession(sessionId) {
+  if (!confirm("Revoke this session? That device will be logged out immediately.")) return;
+  try {
+    const res = await fetch("/admin/sessions/revoke", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: token },
+      body: JSON.stringify({ sessionId })
+    });
+    const data = await res.json();
+    showToast(data.message);
+    loadSessions();
+  } catch(err) { showToast("Failed to revoke session", "error"); }
+}
+
+async function revokeAllSessions() {
+  if (!confirm("Revoke ALL other sessions? Only your current session will remain active.")) return;
+  try {
+    const res = await fetch("/admin/sessions/revoke-all", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: token }
+    });
+    const data = await res.json();
+    showToast(data.message, "success");
+    loadSessions();
+  } catch(err) { showToast("Failed to revoke sessions", "error"); }
 }
 
 /* ===== 2FA TOGGLE ===== */

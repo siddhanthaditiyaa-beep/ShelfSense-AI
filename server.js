@@ -466,6 +466,21 @@ const WishlistNotificationSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
+const SessionLogSchema = new mongoose.Schema({
+  storeId: { type: mongoose.Schema.Types.ObjectId, ref: "Store" },
+  userId: String,
+  userEmail: String,
+  role: String,
+  token: String,
+  ip: String,
+  userAgent: String,
+  device: String,
+  browser: String,
+  isActive: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now },
+  lastSeen: { type: Date, default: Date.now }
+});
+
 /* =========================
    MODELS
 ========================= */
@@ -484,6 +499,7 @@ const SystemSettings = mongoose.model("SystemSettings", SystemSettingsSchema);
 const AuditLog = mongoose.model("AuditLog", AuditLogSchema);
 const FraudLog = mongoose.model("FraudLog", FraudLogSchema);
 const WishlistNotification = mongoose.model("WishlistNotification", WishlistNotificationSchema);
+const SessionLog = mongoose.model("SessionLog", SessionLogSchema);
 
 /* =========================
    HELPERS
@@ -522,6 +538,31 @@ function calculateDistance(lat1, lng1, lat2, lng2) {
     Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
     Math.sin(dLng/2) * Math.sin(dLng/2);
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function parseUserAgent(ua) {
+  const browser =
+    ua.includes("Chrome") && !ua.includes("Edg") ? "Chrome" :
+    ua.includes("Firefox") ? "Firefox" :
+    ua.includes("Safari") && !ua.includes("Chrome") ? "Safari" :
+    ua.includes("Edg") ? "Edge" :
+    ua.includes("Opera") ? "Opera" : "Unknown";
+  const device =
+    ua.includes("Mobile") ? "📱 Mobile" :
+    ua.includes("Tablet") ? "📱 Tablet" : "💻 Desktop";
+  return { browser, device };
+}
+
+async function createSession(req, userEmail, role, token, storeId = null) {
+  try {
+    const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "unknown";
+    const ua = req.headers["user-agent"] || "unknown";
+    const { browser, device } = parseUserAgent(ua);
+    await SessionLog.create({
+      storeId, userId: userEmail, userEmail, role, token,
+      ip, userAgent: ua, device, browser, isActive: true
+    });
+  } catch(err) { console.error("Session log error:", err.message); }
 }
 
 /* NEW: Audit Logger */
@@ -781,6 +822,7 @@ if (store.twoFactorEnabled) {
   return res.json({ requireOTP: true, email: store.ownerEmail });
 }
 const token = jwt.sign({ id: store._id, role: "admin", email: store.ownerEmail, fname: store.ownerName, storeId: store._id, storeName: store.name, plan: store.plan }, process.env.JWT_SECRET, { expiresIn: "24h" });
+await createSession(req, store.ownerEmail, "admin", token, store._id);
 res.json({ token, role: "admin", fname: store.ownerName, storeName: store.name, plan: store.plan });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
@@ -837,6 +879,7 @@ if (user.twoFactorEnabled) {
   return res.json({ requireOTP: true, email: user.email });
 }
 const token = jwt.sign({ id: user._id, role: user.role, email: user.email, fname: user.fname }, process.env.JWT_SECRET, { expiresIn: "24h" });
+await createSession(req, user.email, user.role, token);
 res.json({ token, role: user.role, fname: user.fname });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
@@ -850,6 +893,7 @@ app.post("/logout", async (req, res) => {
     if (authHeader) {
       const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : authHeader;
       blacklistToken(token);
+      await SessionLog.updateOne({ token }, { $set: { isActive: false } }).catch(() => {});
       try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         await logAudit(req, decoded.email, decoded.role, "LOGOUT");
@@ -1462,6 +1506,55 @@ app.get("/admin/analytics", auth("admin"), async (req, res) => {
     console.error("Analytics error:", err.message);
     res.status(500).json({ message: "Server error" });
   }
+});
+
+/* =========================
+   SESSION MANAGEMENT
+========================= */
+app.get("/admin/sessions", auth("admin"), async (req, res) => {
+  try {
+    const sessions = await SessionLog.find({ userEmail: req.user.email })
+      .sort({ createdAt: -1 }).limit(20);
+    const currentToken = req.token;
+    res.json(sessions.map(s => ({
+      _id: s._id,
+      ip: s.ip,
+      device: s.device,
+      browser: s.browser,
+      isActive: s.isActive,
+      isCurrent: s.token === currentToken,
+      createdAt: s.createdAt,
+      lastSeen: s.lastSeen
+    })));
+  } catch(err) { res.status(500).json({ message: "Server error" }); }
+});
+
+app.post("/admin/sessions/revoke", auth("admin"), async (req, res) => {
+  try {
+    const { sessionId } = req.body;
+    const session = await SessionLog.findById(sessionId);
+    if (!session) return res.status(404).json({ message: "Session not found" });
+    if (session.userEmail !== req.user.email) return res.status(403).json({ message: "Forbidden" });
+    blacklistToken(session.token);
+    await SessionLog.updateOne({ _id: sessionId }, { $set: { isActive: false } });
+    await logAudit(req, req.user.email, "admin", "SESSION_REVOKED");
+    res.json({ message: "Session revoked successfully" });
+  } catch(err) { res.status(500).json({ message: "Server error" }); }
+});
+
+app.post("/admin/sessions/revoke-all", auth("admin"), async (req, res) => {
+  try {
+    const currentToken = req.token;
+    const sessions = await SessionLog.find({ userEmail: req.user.email, isActive: true });
+    for (const s of sessions) {
+      if (s.token !== currentToken) {
+        blacklistToken(s.token);
+        await SessionLog.updateOne({ _id: s._id }, { $set: { isActive: false } });
+      }
+    }
+    await logAudit(req, req.user.email, "admin", "ALL_SESSIONS_REVOKED");
+    res.json({ message: "All other sessions revoked" });
+  } catch(err) { res.status(500).json({ message: "Server error" }); }
 });
 
 /* =========================
