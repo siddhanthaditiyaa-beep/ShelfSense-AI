@@ -1867,43 +1867,6 @@ app.get("/admin/download-stock", auth("admin"), async (req, res) => {
   }
 });
 
-/* TEMP - DELETE AFTER USE */
-app.get("/fix-all-accounts", async (req, res) => {
-  try {
-    const results = [];
-    const hashedTest = await bcrypt.hash("test123", 12);
-    const testStore = await Store.findOne({ ownerEmail: "test@test.com" });
-    if (testStore) {
-      testStore.password = hashedTest;
-      testStore.loginAttempts = 0;
-      testStore.lockUntil = null;
-      await testStore.save();
-      results.push("test store unlocked");
-    } else {
-      const store = await Store.create({
-        name: "Test Store", ownerName: "Peter",
-        ownerEmail: "test@test.com",
-        password: hashedTest, plan: "pro",
-        alertEmail: "test@test.com"
-      });
-      await seedStoreInventory(store._id);
-      results.push("test store CREATED fresh with inventory");
-    }
-    const hashedSuper = await bcrypt.hash("superadmin123", 12);
-    const superAdmin = await User.findOne({ email: "superadmin@shelfsense.ai" });
-    if (superAdmin) {
-      superAdmin.password = hashedSuper;
-      superAdmin.loginAttempts = 0;
-      superAdmin.lockUntil = null;
-      await superAdmin.save();
-      results.push("superadmin unlocked");
-    }
-    await Store.updateMany({}, { $set: { loginAttempts: 0, lockUntil: null } });
-    await User.updateMany({}, { $set: { loginAttempts: 0, lockUntil: null } });
-    res.json({ success: true, results });
-  } catch(err) { res.json({ error: err.message }); }
-});
-
 /* =========================
    ERROR HANDLERS
 ========================= */
