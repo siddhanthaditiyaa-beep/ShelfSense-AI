@@ -1154,6 +1154,51 @@ app.post("/verify-payment", auth("customer"), async (req, res) => {
 });
 
 /* =========================
+   CUSTOMER ANALYTICS
+========================= */
+app.get("/customer/analytics", auth("customer"), async (req, res) => {
+  try {
+    const orders = await Order.find({ userId: req.user.id }).sort({ createdAt: -1 });
+    if (!orders.length) return res.json({ totalSpent: 0, totalOrders: 0, topProduct: null, avgOrderValue: 0, spendingByDay: [], productBreakdown: [] });
+
+    const totalSpent = orders.reduce((s, o) => s + (o.totalAmount || 0), 0);
+    const totalOrders = orders.length;
+    const avgOrderValue = Math.round(totalSpent / totalOrders);
+
+    // Product breakdown
+    const productQty = {};
+    const productNames = {};
+    orders.forEach(o => {
+      Object.entries(o.cart || {}).forEach(([key, qty]) => {
+        productQty[key] = (productQty[key] || 0) + qty;
+        if (o.itemNames?.[key]) productNames[key] = o.itemNames[key];
+      });
+    });
+    const productBreakdown = Object.entries(productQty)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 6)
+      .map(([key, qty]) => ({ name: productNames[key] || key, qty }));
+    const topProduct = productBreakdown[0]?.name || null;
+
+    // Spending last 7 days
+    const last7 = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - (6 - i));
+      return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
+    });
+    const spendingByDay = last7.map(date => {
+      const dayOrders = orders.filter(o => {
+        const d = new Date(o.createdAt);
+        return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short" }) === date;
+      });
+      return { date, amount: dayOrders.reduce((s, o) => s + (o.totalAmount || 0), 0) };
+    });
+
+    res.json({ totalSpent, totalOrders, avgOrderValue, topProduct, productBreakdown, spendingByDay });
+  } catch(err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* =========================
    ORDER HISTORY
 ========================= */
 app.get("/my-orders", auth("customer"), async (req, res) => {

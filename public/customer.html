@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="style.css">
   <script src="theme.js"></script>
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body { display: flex; flex-direction: column; min-height: 100vh; }
 
@@ -628,6 +629,7 @@
   <button class="main-tab" data-tab="wishlist" onclick="showMainTab('wishlist', this)">❤️ Wishlist</button>
   <button class="main-tab" data-tab="orders" onclick="showMainTab('orders', this)">📦 Order History</button>
   <button class="main-tab" data-tab="loyalty" onclick="showMainTab('loyalty', this)">⭐ Loyalty</button>
+  <button class="main-tab" data-tab="analytics" onclick="showMainTab('analytics', this)">📊 My Analytics</button>
 </div>
 
 <!-- SHOP PAGE -->
@@ -775,6 +777,45 @@
   </div>
 </div>
 
+<!-- ANALYTICS PAGE -->
+<div class="page" id="page-analytics">
+  <div style="max-width:700px;margin:0 auto">
+
+    <!-- Stat Cards -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:20px" id="analyticsStatCards">
+      <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:16px;text-align:center">
+        <div style="font-size:1.8rem;font-weight:800;color:var(--success)" id="aStatSpent">-</div>
+        <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px">Total Spent</div>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:16px;text-align:center">
+        <div style="font-size:1.8rem;font-weight:800;color:var(--accent)" id="aStatOrders">-</div>
+        <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px">Total Orders</div>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:16px;text-align:center">
+        <div style="font-size:1.8rem;font-weight:800;color:var(--warning)" id="aStatAvg">-</div>
+        <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px">Avg Order</div>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:16px;text-align:center">
+        <div style="font-size:1.1rem;font-weight:800;color:var(--accent)" id="aStatTop">-</div>
+        <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px">Top Product</div>
+      </div>
+    </div>
+
+    <!-- Spending Chart -->
+    <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:14px;padding:20px;margin-bottom:20px">
+      <div style="font-size:0.95rem;font-weight:700;color:var(--text-primary);margin-bottom:16px">📈 Spending Last 7 Days</div>
+      <canvas id="customerSpendingChart" height="140"></canvas>
+    </div>
+
+    <!-- Product Breakdown -->
+    <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:14px;padding:20px">
+      <div style="font-size:0.95rem;font-weight:700;color:var(--text-primary);margin-bottom:16px">🛍️ Most Purchased Products</div>
+      <div id="productBreakdownList"></div>
+    </div>
+
+  </div>
+</div>
+
 <!-- CART SIDEBAR -->
 <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
 <div class="cart-sidebar" id="cartSidebar">
@@ -894,6 +935,7 @@ function showMainTab(tab, btn) {
 if (tab === "orders") loadOrders();
   if (tab === "wishlist") renderWishlist();
   if (tab === "loyalty") loadLoyalty();
+  if (tab === "analytics") loadCustomerAnalytics();
 }
 
 /* ===== CART TABS ===== */
@@ -1631,6 +1673,71 @@ async function toggleCustomer2FA() {
     if (toggleEl) toggleEl.innerText = data.enabled ? "✅" : "⬜";
     showToast(data.message);
   } catch(err) { showToast("Failed to update 2FA", "error"); }
+}
+
+/* ===== CUSTOMER ANALYTICS ===== */
+let customerSpendingChart;
+
+async function loadCustomerAnalytics() {
+  try {
+    const res = await fetch("/customer/analytics", { headers: { Authorization: token } });
+    const data = await res.json();
+
+    document.getElementById("aStatSpent").innerText = `₹${(data.totalSpent || 0).toLocaleString("en-IN")}`;
+    document.getElementById("aStatOrders").innerText = data.totalOrders || 0;
+    document.getElementById("aStatAvg").innerText = `₹${data.avgOrderValue || 0}`;
+    document.getElementById("aStatTop").innerText = data.topProduct || "N/A";
+
+    // Spending chart
+    const isDark = document.documentElement.getAttribute("data-theme") !== "light";
+    const gridColor = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)";
+    const tickColor = "#94a3b8";
+
+    if (customerSpendingChart) customerSpendingChart.destroy();
+    customerSpendingChart = new Chart(
+      document.getElementById("customerSpendingChart").getContext("2d"), {
+      type: "line",
+      data: {
+        labels: data.spendingByDay.map(d => d.date),
+        datasets: [{
+          label: "Spent (₹)",
+          data: data.spendingByDay.map(d => d.amount),
+          borderColor: "#6366f1",
+          backgroundColor: "rgba(99,102,241,0.1)",
+          fill: true, tension: 0.4, borderWidth: 2,
+          pointRadius: 4, pointBackgroundColor: "#6366f1"
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { color: tickColor }, grid: { color: gridColor } },
+          x: { ticks: { color: tickColor }, grid: { display: false } }
+        }
+      }
+    });
+
+    // Product breakdown bars
+    const listEl = document.getElementById("productBreakdownList");
+    if (!data.productBreakdown.length) {
+      listEl.innerHTML = `<p style="color:var(--text-muted);text-align:center;padding:20px">No purchase data yet. Start shopping! 🛍️</p>`;
+      return;
+    }
+    const maxQty = data.productBreakdown[0].qty;
+    const colors = ["#6366f1","#22c55e","#f59e0b","#ef4444","#a78bfa","#22d3ee"];
+    listEl.innerHTML = data.productBreakdown.map((p, i) => `
+      <div style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+          <span style="font-size:0.85rem;font-weight:600;color:var(--text-primary)">${p.name}</span>
+          <span style="font-size:0.82rem;color:var(--text-muted);font-weight:600">${p.qty} units</span>
+        </div>
+        <div style="height:8px;background:var(--bg-tertiary);border-radius:4px;overflow:hidden">
+          <div style="height:100%;width:${Math.round((p.qty/maxQty)*100)}%;background:${colors[i % colors.length]};border-radius:4px;transition:width 0.8s ease"></div>
+        </div>
+      </div>`).join("");
+
+  } catch(err) { console.error("Customer analytics error:", err); }
 }
 
 /* ===== LOYALTY POINTS ===== */
