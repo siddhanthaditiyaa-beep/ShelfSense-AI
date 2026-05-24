@@ -316,6 +316,17 @@
     .shortcut-item:last-child { border-bottom: none; }
     .shortcut-item span { color: var(--text-primary); }
     kbd { background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 6px; padding: 3px 8px; font-size: 0.75rem; font-family: monospace; color: var(--text-primary); margin-right: 4px; }
+.bulk-upload-area {
+  border: 2px dashed var(--border-color); border-radius: 12px;
+  padding: 28px; text-align: center; cursor: pointer;
+  transition: all 0.2s; background: var(--bg-input); margin-bottom: 14px;
+}
+.bulk-upload-area:hover { border-color: var(--accent); background: var(--accent-light); }
+.bulk-result-row { display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; font-size: 0.85rem; }
+.bulk-result-row.updated { background: var(--success-bg); color: var(--success-text); }
+.bulk-result-row.skipped { background: var(--warning-bg); color: var(--warning-text); }
+.bulk-result-row.notfound { background: var(--danger-bg); color: var(--danger-text); } 
   </style>
 </head>
 <body>
@@ -421,6 +432,36 @@
     📥 Download Stock List (Excel/CSV)
   </button>
 </div>
+      </div>
+
+      <div class="card" style="margin-top:0">
+        <h2>📤 Bulk Stock Update via CSV</h2>
+        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:16px">
+          Upload a CSV file with <strong>key</strong> and <strong>stock</strong> columns to update multiple items at once.
+          <a href="#" onclick="downloadBulkTemplate(); return false;" style="color:var(--accent);font-weight:600;margin-left:6px">📥 Download Template</a>
+        </p>
+        <div class="bulk-upload-area" onclick="document.getElementById('bulkFileInput').click()">
+          <div style="font-size:2.5rem;margin-bottom:8px">📂</div>
+          <p style="font-weight:600;color:var(--text-primary)">Click to upload CSV file</p>
+          <p style="font-size:0.8rem;color:var(--text-muted);margin-top:4px">Format: key, stock (e.g. chocolates, 25)</p>
+        </div>
+        <input type="file" id="bulkFileInput" accept=".csv" style="display:none" onchange="handleBulkCSV(event)">
+        <div id="bulkPreview" style="display:none;margin-bottom:14px">
+          <div style="font-size:0.85rem;font-weight:600;color:var(--text-primary);margin-bottom:8px">📋 Preview (<span id="bulkCount">0</span> items found):</div>
+          <div style="max-height:200px;overflow-y:auto;border:1px solid var(--border-color);border-radius:10px;padding:10px">
+            <table style="width:100%;font-size:0.82rem">
+              <thead><tr><th style="text-align:left;padding:4px 8px;color:var(--text-muted)">Product Key</th><th style="text-align:left;padding:4px 8px;color:var(--text-muted)">New Stock</th></tr></thead>
+              <tbody id="bulkPreviewTable"></tbody>
+            </table>
+          </div>
+          <button class="btn-primary" onclick="submitBulkUpdate()" style="margin-top:12px;width:100%">
+            🚀 Apply Bulk Update
+          </button>
+        </div>
+        <div id="bulkResults" style="display:none">
+          <div style="font-size:0.85rem;font-weight:600;color:var(--text-primary);margin-bottom:8px" id="bulkResultTitle"></div>
+          <div id="bulkResultsList"></div>
+        </div>
       </div>
     </div>
 
@@ -1291,6 +1332,111 @@ async function updatePrice(key) {
   if (isNaN(price) || price < 0) return showToast("Invalid price", "error");
   const res = await fetch("/admin/update-price", { method: "POST", headers: { "Content-Type": "application/json", Authorization: token }, body: JSON.stringify({ key, price }) });
   showToast((await res.json()).message); loadAdmin();
+}
+
+/* ===== BULK STOCK UPDATE ===== */
+let bulkUpdateData = [];
+
+function downloadBulkTemplate() {
+  const items = document.querySelectorAll("#inventoryTable tr");
+  const rows = ["key,stock,name"];
+  items.forEach(row => {
+    const cells = row.querySelectorAll("td");
+    if (cells.length > 0) {
+      const name = cells[0].querySelector("strong")?.innerText || "";
+      const stock = cells[1]?.innerText || "0";
+      const key = name.toLowerCase().replace(/\s+/g, "-");
+      rows.push(`${key},${stock},${name}`);
+    }
+  });
+  if (rows.length === 1) {
+    rows.push("chocolates,15,Chocolates");
+    rows.push("biscuits,20,Biscuits");
+    rows.push("chips,18,Chips");
+    rows.push("juice,12,Juice");
+  }
+  const blob = new Blob([rows.join("\n")], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "ShelfSense_BulkUpdate_Template.csv";
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+  showToast("✅ Template downloaded! Edit the stock column and re-upload.");
+}
+
+function handleBulkCSV(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!file.name.endsWith(".csv")) { showToast("Please upload a .csv file", "error"); return; }
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const lines = e.target.result.split("\n").map(l => l.trim()).filter(Boolean);
+    if (lines.length < 2) { showToast("CSV must have at least 2 rows (header + data)", "error"); return; }
+
+    const headers = lines[0].toLowerCase().split(",").map(h => h.trim());
+    const keyIdx = headers.indexOf("key");
+    const stockIdx = headers.indexOf("stock");
+
+    if (keyIdx === -1 || stockIdx === -1) {
+      showToast("CSV must have 'key' and 'stock' columns", "error"); return;
+    }
+
+    bulkUpdateData = [];
+    const tbody = document.getElementById("bulkPreviewTable");
+    tbody.innerHTML = "";
+
+    for (let i = 1; i < lines.length; i++) {
+      const cols = lines[i].split(",").map(c => c.trim().replace(/"/g, ""));
+      const key = cols[keyIdx]?.toLowerCase().replace(/\s+/g, "-");
+      const stock = parseInt(cols[stockIdx]);
+      if (!key || isNaN(stock)) continue;
+      bulkUpdateData.push({ key, stock });
+      tbody.innerHTML += `<tr>
+        <td style="padding:4px 8px;color:var(--text-primary)">${key}</td>
+        <td style="padding:4px 8px;color:var(--accent);font-weight:700">${stock} units</td>
+      </tr>`;
+    }
+
+    document.getElementById("bulkCount").innerText = bulkUpdateData.length;
+    document.getElementById("bulkPreview").style.display = "block";
+    document.getElementById("bulkResults").style.display = "none";
+    showToast(`✅ ${bulkUpdateData.length} items found in CSV`);
+  };
+  reader.readAsText(file);
+  event.target.value = "";
+}
+
+async function submitBulkUpdate() {
+  if (!bulkUpdateData.length) { showToast("No data to update", "warning"); return; }
+  const btn = document.querySelector("#bulkPreview .btn-primary");
+  btn.disabled = true; btn.innerText = "⏳ Updating...";
+
+  try {
+    const res = await fetch("/admin/bulk-update-stock", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: token },
+      body: JSON.stringify({ updates: bulkUpdateData })
+    });
+    const data = await res.json();
+
+    document.getElementById("bulkResultTitle").innerText = data.message;
+    const listEl = document.getElementById("bulkResultsList");
+    listEl.innerHTML = data.results.map(r => `
+      <div class="bulk-result-row ${r.status === 'updated' ? 'updated' : r.status === 'not found' ? 'notfound' : 'skipped'}">
+        <span><strong>${r.name || r.key}</strong></span>
+        <span>${r.status === 'updated' ? `✅ Updated to ${r.stock} units` : r.status === 'not found' ? '❌ Product not found' : '⚠️ Skipped'}</span>
+      </div>`).join("");
+
+    document.getElementById("bulkPreview").style.display = "none";
+    document.getElementById("bulkResults").style.display = "block";
+    bulkUpdateData = [];
+    loadAdmin();
+    showToast(data.message, "success");
+  } catch(err) {
+    showToast("Bulk update failed", "error");
+  }
+  btn.disabled = false; btn.innerText = "🚀 Apply Bulk Update";
 }
 
 async function updateThreshold(key) {

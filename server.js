@@ -1182,6 +1182,33 @@ app.post("/admin/update-price", auth("admin"), async (req, res) => {
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
+/* =========================
+   BULK STOCK UPDATE
+========================= */
+app.post("/admin/bulk-update-stock", auth("admin"), async (req, res) => {
+  try {
+    const { updates } = req.body;
+    if (!updates || !Array.isArray(updates)) return res.status(400).json({ message: "Invalid data" });
+    const storeId = req.user.storeId;
+    const results = [];
+    for (const row of updates) {
+      const key = row.key?.toLowerCase().trim().replace(/\s+/g, "-");
+      const stock = parseInt(row.stock);
+      if (!key || isNaN(stock) || stock < 0) { results.push({ key, status: "skipped" }); continue; }
+      const item = await Item.findOne({ storeId, key });
+      if (!item) { results.push({ key, status: "not found" }); continue; }
+      await Item.updateOne({ key, storeId }, { $set: { stock } });
+      results.push({ key, name: item.name, stock, status: "updated" });
+    }
+    const updated = results.filter(r => r.status === "updated").length;
+    await logAudit(req, req.user.email, "admin", "BULK_STOCK_UPDATE", "success", `${updated} items updated`);
+    res.json({ message: `✅ ${updated} items updated successfully`, results });
+  } catch(err) {
+    console.error("Bulk update error:", err.message);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 app.post("/admin/update-threshold", auth("admin"), async (req, res) => {
   try {
     const { key, minStockLevel } = req.body;
