@@ -1361,6 +1361,72 @@ app.post("/admin/ml-url", auth("admin"), async (req, res) => {
 });
 
 /* =========================
+   SALES ANALYTICS
+========================= */
+app.get("/admin/analytics", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const orders = await Order.find({ storeId }).sort({ createdAt: -1 });
+
+    // Total stats
+    const totalRevenue = orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+    const totalOrders = orders.length;
+    const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+
+    // Best selling products
+    const productQty = {};
+    const productNames = {};
+    orders.forEach(order => {
+      Object.entries(order.cart || {}).forEach(([key, qty]) => {
+        productQty[key] = (productQty[key] || 0) + qty;
+        if (order.itemNames?.[key]) productNames[key] = order.itemNames[key];
+      });
+    });
+    const bestSellers = Object.entries(productQty)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 8)
+      .map(([key, qty]) => ({ name: productNames[key] || key, qty }));
+    const topProduct = bestSellers[0]?.name || "N/A";
+
+    // Revenue and orders by day (last 14 days)
+    const last14 = Array.from({ length: 14 }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - (13 - i));
+      return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
+    });
+
+    const revenueByDay = last14.map(date => {
+      const dayOrders = orders.filter(o => {
+        const d = new Date(o.createdAt);
+        return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short" }) === date;
+      });
+      return { date, revenue: dayOrders.reduce((s, o) => s + (o.totalAmount || 0), 0) };
+    });
+
+    const ordersByDay = last14.map(date => {
+      const count = orders.filter(o => {
+        const d = new Date(o.createdAt);
+        return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short" }) === date;
+      }).length;
+      return { date, count };
+    });
+
+    // Sales by day of week (0=Sun to 6=Sat)
+    const salesByDay = [0,1,2,3,4,5,6].map(day =>
+      orders.filter(o => new Date(o.createdAt).getDay() === day).length
+    );
+
+    // Recent 10 orders
+    const recentOrders = orders.slice(0, 10);
+
+    res.json({ totalRevenue, totalOrders, avgOrderValue, topProduct, bestSellers, revenueByDay, ordersByDay, salesByDay, recentOrders });
+  } catch(err) {
+    console.error("Analytics error:", err.message);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+/* =========================
    2FA ROUTES
 ========================= */
 app.post("/admin/toggle-2fa", auth("admin"), async (req, res) => {

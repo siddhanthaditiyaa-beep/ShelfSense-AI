@@ -328,6 +328,7 @@
     <button class="topbar-nav-item active" data-page="overview" onclick="showPage('overview', this)">Overview</button>
     <button class="topbar-nav-item" data-page="inventory" onclick="showPage('inventory', this)">Inventory</button>
     <button class="topbar-nav-item" data-page="agents" onclick="showPage('agents', this)">Agents</button>
+<button class="topbar-nav-item" data-page="analytics" onclick="showPage('analytics', this)">Analytics</button>
     <button class="topbar-nav-item" data-page="shelf-scan" onclick="showPage('shelf-scan', this)">Shelf Scan</button>
     <button class="topbar-nav-item" data-page="planogram" onclick="showPage('planogram', this)">Planogram</button>
     <button class="topbar-nav-item" data-page="franchise" onclick="showPage('franchise', this)">Franchises</button>
@@ -349,6 +350,7 @@
       <button class="sidebar-item active" data-page="overview" onclick="showPage('overview', this)"><span class="sidebar-emoji">📊</span> Overview</button>
       <button class="sidebar-item" data-page="inventory" onclick="showPage('inventory', this)"><span class="sidebar-emoji">📦</span> Inventory</button>
       <button class="sidebar-item" data-page="agents" onclick="showPage('agents', this)"><span class="sidebar-emoji">🤖</span> AI Agents</button>
+<button class="sidebar-item" data-page="analytics" onclick="showPage('analytics', this)"><span class="sidebar-emoji">📊</span> Sales Analytics</button>
       <button class="sidebar-item" data-page="shelf-scan" onclick="showPage('shelf-scan', this)"><span class="sidebar-emoji">🔍</span> Shelf Scan</button>
       <button class="sidebar-item" data-page="planogram" onclick="showPage('planogram', this)"><span class="sidebar-emoji">🗺️</span> Planogram</button>
       <div class="sidebar-divider"></div>
@@ -421,6 +423,57 @@
 </div>
       </div>
     </div>
+
+<!-- SALES ANALYTICS PAGE -->
+<div class="page" id="page-analytics">
+  <div class="stats-row" id="analyticsStats">
+    <div class="stat-card"><div class="number" id="statRevenue" style="color:var(--success)">-</div><div class="label">Total Revenue (₹)</div></div>
+    <div class="stat-card"><div class="number" id="statOrders" style="color:var(--accent)">-</div><div class="label">Total Orders</div></div>
+    <div class="stat-card"><div class="number" id="statAvgOrder" style="color:var(--warning)">-</div><div class="label">Avg Order Value (₹)</div></div>
+    <div class="stat-card"><div class="number" id="statTopProduct" style="color:var(--secondary,#a78bfa);font-size:1.1rem">-</div><div class="label">Best Seller</div></div>
+  </div>
+
+  <div class="row">
+    <div class="card">
+      <h2>📈 Revenue Over Time</h2>
+      <canvas id="revenueChart" height="160"></canvas>
+    </div>
+    <div class="card">
+      <h2>📦 Orders Over Time</h2>
+      <canvas id="ordersChart" height="160"></canvas>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="card">
+      <h2>🏆 Best Selling Products</h2>
+      <canvas id="bestSellersChart" height="180"></canvas>
+    </div>
+    <div class="card">
+      <h2>🗓️ Sales by Day of Week</h2>
+      <canvas id="dayOfWeekChart" height="180"></canvas>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🧾 Recent Orders</h2>
+    <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Customer</th>
+            <th>Items</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody id="analyticsOrdersTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
     <!-- AI AGENTS PAGE -->
     <div class="page" id="page-agents">
@@ -885,7 +938,8 @@ function showPage(page, clickedBtn) {
   if (page === "franchise") loadAllFranchises();
   if (page === "shelf-scan") { loadRecentScans(); loadMLUrl(); }
   if (page === "planogram") loadPlanogram();
-  if (page === "agents") loadAgentDashboard();
+if (page === "agents") loadAgentDashboard();
+  if (page === "analytics") loadAnalytics();
   if (page === "orders") loadPurchaseOrders();
   if (page === "store-settings") loadSettings();
 }
@@ -1461,6 +1515,120 @@ document.addEventListener("click", function(e) {
     panel.classList.remove("open");
   }
 });
+
+/* ===== SALES ANALYTICS ===== */
+let revenueChart, ordersChart, bestSellersChart, dayChart;
+
+async function loadAnalytics() {
+  try {
+    const res = await fetch("/admin/analytics", { headers: { Authorization: token } });
+    if (!res.ok) return;
+    const data = await res.json();
+
+    // Stats
+    document.getElementById("statRevenue").innerText = `₹${data.totalRevenue.toLocaleString("en-IN")}`;
+    document.getElementById("statOrders").innerText = data.totalOrders;
+    document.getElementById("statAvgOrder").innerText = `₹${Math.round(data.avgOrderValue).toLocaleString("en-IN")}`;
+    document.getElementById("statTopProduct").innerText = data.topProduct || "N/A";
+
+    const isDark = document.documentElement.getAttribute("data-theme") !== "light";
+    const gridColor = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)";
+    const tickColor = "#94a3b8";
+
+    const commonOptions = {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { color: tickColor }, grid: { color: gridColor } },
+        x: { ticks: { color: tickColor }, grid: { display: false } }
+      }
+    };
+
+    // Revenue chart
+    if (revenueChart) revenueChart.destroy();
+    revenueChart = new Chart(document.getElementById("revenueChart").getContext("2d"), {
+      type: "line",
+      data: {
+        labels: data.revenueByDay.map(d => d.date),
+        datasets: [{
+          label: "Revenue", data: data.revenueByDay.map(d => d.revenue),
+          borderColor: "#22c55e", backgroundColor: "rgba(34,197,94,0.1)",
+          fill: true, tension: 0.4, borderWidth: 2, pointRadius: 4,
+          pointBackgroundColor: "#22c55e"
+        }]
+      },
+      options: commonOptions
+    });
+
+    // Orders chart
+    if (ordersChart) ordersChart.destroy();
+    ordersChart = new Chart(document.getElementById("ordersChart").getContext("2d"), {
+      type: "bar",
+      data: {
+        labels: data.ordersByDay.map(d => d.date),
+        datasets: [{
+          label: "Orders", data: data.ordersByDay.map(d => d.count),
+          backgroundColor: "rgba(99,102,241,0.7)", borderRadius: 6
+        }]
+      },
+      options: commonOptions
+    });
+
+    // Best sellers chart
+    if (bestSellersChart) bestSellersChart.destroy();
+    bestSellersChart = new Chart(document.getElementById("bestSellersChart").getContext("2d"), {
+      type: "bar",
+      data: {
+        labels: data.bestSellers.map(p => p.name),
+        datasets: [{
+          label: "Units Sold", data: data.bestSellers.map(p => p.qty),
+          backgroundColor: ["#6366f1","#22c55e","#f59e0b","#ef4444","#a78bfa","#22d3ee","#f97316","#ec4899"],
+          borderRadius: 6
+        }]
+      },
+      options: { ...commonOptions, indexAxis: "y" }
+    });
+
+    // Day of week chart
+    if (dayChart) dayChart.destroy();
+    dayChart = new Chart(document.getElementById("dayOfWeekChart").getContext("2d"), {
+      type: "radar",
+      data: {
+        labels: ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],
+        datasets: [{
+          label: "Orders",
+          data: data.salesByDay,
+          borderColor: "#a78bfa",
+          backgroundColor: "rgba(167,139,250,0.2)",
+          pointBackgroundColor: "#a78bfa",
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { r: { ticks: { color: tickColor }, grid: { color: gridColor }, pointLabels: { color: tickColor } } }
+      }
+    });
+
+    // Recent orders table
+    const tbody = document.getElementById("analyticsOrdersTable");
+    if (!data.recentOrders.length) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">No orders yet</td></tr>`;
+    } else {
+      tbody.innerHTML = data.recentOrders.map(order => `
+        <tr>
+          <td><code style="font-size:0.78rem">#${order._id.toString().slice(-8).toUpperCase()}</code></td>
+          <td>${order.userEmail || "Guest"}</td>
+          <td>${order.totalItems || 0} items</td>
+          <td><strong style="color:var(--success)">₹${order.totalAmount || 0}</strong></td>
+          <td><span class="badge ${order.flaggedAsFraud ? 'badge-red' : 'badge-green'}">${order.flaggedAsFraud ? '🚨 Flagged' : '✅ Paid'}</span></td>
+          <td style="color:var(--text-muted);font-size:0.8rem">${order.time || new Date(order.createdAt).toLocaleString()}</td>
+        </tr>`).join("");
+    }
+
+  } catch(err) { console.error("Analytics error:", err); }
+}
 
 /* ===== 2FA TOGGLE ===== */
 async function load2FAStatus() {
