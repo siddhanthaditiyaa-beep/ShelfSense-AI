@@ -579,6 +579,7 @@
   <button class="main-tab active" data-tab="shop" onclick="showMainTab('shop', this)">🏪 Shop</button>
   <button class="main-tab" data-tab="wishlist" onclick="showMainTab('wishlist', this)">❤️ Wishlist</button>
   <button class="main-tab" data-tab="orders" onclick="showMainTab('orders', this)">📦 Order History</button>
+  <button class="main-tab" data-tab="loyalty" onclick="showMainTab('loyalty', this)">⭐ Loyalty</button>
 </div>
 
 <!-- SHOP PAGE -->
@@ -612,6 +613,62 @@
 <div class="page" id="page-orders">
   <div class="section-title">📦 Your Order History</div>
   <div id="orderHistory"><div class="loading"><span class="loading-spinner">⏳</span></div></div>
+</div>
+
+<!-- LOYALTY PAGE -->
+<div class="page" id="page-loyalty">
+  <div style="max-width:600px;margin:0 auto">
+
+    <!-- Points Card -->
+    <div id="loyaltyCard" style="background:linear-gradient(135deg,#6366f1,#a78bfa);border-radius:20px;padding:28px;margin-bottom:20px;color:white;text-align:center;position:relative;overflow:hidden">
+      <div style="position:absolute;top:-20px;right:-20px;width:120px;height:120px;background:rgba(255,255,255,0.1);border-radius:50%"></div>
+      <div style="position:absolute;bottom:-30px;left:-10px;width:80px;height:80px;background:rgba(255,255,255,0.08);border-radius:50%"></div>
+      <div id="loyaltyTierEmoji" style="font-size:3rem;margin-bottom:8px">🥉</div>
+      <div id="loyaltyTierName" style="font-size:0.9rem;font-weight:600;opacity:0.85;margin-bottom:4px">Bronze Member</div>
+      <div id="loyaltyPoints" style="font-size:3rem;font-weight:800;line-height:1">0</div>
+      <div style="font-size:0.9rem;opacity:0.8;margin-top:4px">Loyalty Points</div>
+      <div id="loyaltyProgress" style="margin-top:16px"></div>
+    </div>
+
+    <!-- How it works -->
+    <div class="card" style="margin-bottom:16px">
+      <h2>ℹ️ How Loyalty Points Work</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px">
+        <div style="background:var(--bg-input);border-radius:10px;padding:14px;text-align:center">
+          <div style="font-size:1.5rem;margin-bottom:6px">🛍️</div>
+          <div style="font-size:0.82rem;font-weight:700;color:var(--text-primary)">Earn Points</div>
+          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px">1 point for every ₹10 spent</div>
+        </div>
+        <div style="background:var(--bg-input);border-radius:10px;padding:14px;text-align:center">
+          <div style="font-size:1.5rem;margin-bottom:6px">🏆</div>
+          <div style="font-size:0.82rem;font-weight:700;color:var(--text-primary)">Unlock Tiers</div>
+          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px">Bronze → Silver → Gold → Platinum</div>
+        </div>
+      </div>
+      <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px">
+        ${[
+          {emoji:"🥉",name:"Bronze",pts:"0+",color:"#cd7f32"},
+          {emoji:"🥈",name:"Silver",pts:"200+",color:"#94a3b8"},
+          {emoji:"🥇",name:"Gold",pts:"500+",color:"#f59e0b"},
+          {emoji:"💎",name:"Platinum",pts:"1000+",color:"#22d3ee"}
+        ].map(t => `
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg-input);border-radius:8px">
+            <span style="font-size:1.2rem">${t.emoji}</span>
+            <span style="font-weight:600;color:${t.color}">${t.name}</span>
+            <span style="margin-left:auto;font-size:0.8rem;color:var(--text-muted)">${t.pts} points</span>
+          </div>`).join("")}
+      </div>
+    </div>
+
+    <!-- Points History -->
+    <div class="card">
+      <h2>📜 Points History</h2>
+      <div id="loyaltyHistory">
+        <div style="text-align:center;padding:20px;color:var(--text-muted)">⏳ Loading...</div>
+      </div>
+    </div>
+
+  </div>
 </div>
 
 <!-- CART SIDEBAR -->
@@ -726,8 +783,9 @@ function showMainTab(tab, btn) {
   document.querySelectorAll(".main-tab").forEach(t => t.classList.remove("active"));
   document.getElementById("page-" + tab).classList.add("active");
   if (btn && btn.classList.contains("main-tab")) btn.classList.add("active");
-  if (tab === "orders") loadOrders();
+if (tab === "orders") loadOrders();
   if (tab === "wishlist") renderWishlist();
+  if (tab === "loyalty") loadLoyalty();
 }
 
 /* ===== CART TABS ===== */
@@ -1382,6 +1440,58 @@ async function toggleCustomer2FA() {
     if (toggleEl) toggleEl.innerText = data.enabled ? "✅" : "⬜";
     showToast(data.message);
   } catch(err) { showToast("Failed to update 2FA", "error"); }
+}
+
+/* ===== LOYALTY POINTS ===== */
+async function loadLoyalty() {
+  try {
+    const res = await fetch("/customer/loyalty", { headers: { Authorization: token } });
+    const data = await res.json();
+
+    // Update card
+    document.getElementById("loyaltyTierEmoji").innerText = data.tier.emoji;
+    document.getElementById("loyaltyTierName").innerText = `${data.tier.name} Member`;
+    document.getElementById("loyaltyPoints").innerText = data.points.toLocaleString("en-IN");
+
+    // Progress to next tier
+    const progressEl = document.getElementById("loyaltyProgress");
+    if (data.tier.next) {
+      const total = data.tier.name === "Bronze" ? 200 : data.tier.name === "Silver" ? 300 : 500;
+      const earned = total - data.tier.pointsToNext;
+      const pct = Math.min((earned / total) * 100, 100);
+      progressEl.innerHTML = `
+        <div style="font-size:0.8rem;opacity:0.8;margin-bottom:6px">
+          ${data.tier.pointsToNext} more points to ${data.tier.next} ${data.tier.name === "Silver" ? "🥇" : data.tier.name === "Bronze" ? "🥈" : "💎"}
+        </div>
+        <div style="background:rgba(255,255,255,0.2);border-radius:10px;height:8px;overflow:hidden">
+          <div style="background:white;height:100%;border-radius:10px;width:${pct}%;transition:width 1s ease"></div>
+        </div>`;
+    } else {
+      progressEl.innerHTML = `<div style="font-size:0.85rem;opacity:0.9;font-weight:600">🏆 Maximum tier reached! You're Platinum!</div>`;
+    }
+
+    // Points history
+    const historyEl = document.getElementById("loyaltyHistory");
+    if (!data.pointsHistory.length) {
+      historyEl.innerHTML = `<p style="color:var(--text-muted);text-align:center;padding:20px">No points earned yet. Start shopping! 🛍️</p>`;
+    } else {
+      historyEl.innerHTML = data.pointsHistory.map(h => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-color)">
+          <div>
+            <div style="font-size:0.85rem;font-weight:600;color:var(--text-primary)">Order #${h.orderId}</div>
+            <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px">${h.date} • ₹${h.amount} spent</div>
+          </div>
+          <div style="font-size:1rem;font-weight:700;color:var(--success)">+${h.points} pts</div>
+        </div>`).join("");
+      historyEl.innerHTML += `
+        <div style="margin-top:12px;padding:10px;background:var(--accent-light);border-radius:8px;text-align:center">
+          <span style="font-size:0.82rem;color:var(--accent);font-weight:600">
+            Total earned: ${data.totalEarned.toLocaleString("en-IN")} points 🎉
+          </span>
+        </div>`;
+    }
+
+  } catch(err) { console.error("Loyalty error:", err); }
 }
 
 /* ===== INIT ===== */

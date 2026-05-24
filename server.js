@@ -323,7 +323,9 @@ const UserSchema = new mongoose.Schema({
   password: String,
   googleId: String,
   avatar: String,
-  wishlist: { type: [String], default: [] },
+ wishlist: { type: [String], default: [] },
+  loyaltyPoints: { type: Number, default: 0 },
+  totalPointsEarned: { type: Number, default: 0 },
   loginAttempts: { type: Number, default: 0 },
   lockUntil: Date,
   resetToken: String,
@@ -1078,10 +1080,20 @@ app.post("/checkout", auth("customer"), async (req, res) => {
       await FraudLog.create({ userId: req.user.id, userEmail: req.user.email, reason: `Unusually high order: ₹${totalAmount}`, ip });
     }
 
+// Award loyalty points — 1 point per ₹10 spent
+    const pointsEarned = Math.floor(totalAmount / 10);
+    if (pointsEarned > 0) {
+      await User.updateOne(
+        { _id: req.user.id },
+        { $inc: { loyaltyPoints: pointsEarned, totalPointsEarned: pointsEarned } }
+      );
+    }
+
     await Order.create({
       storeId, userId: req.user.id, userEmail: req.user.email,
       cart: adjusted, itemNames, totalItems, totalAmount,
       paymentStatus: "paid", flaggedAsFraud,
+      pointsEarned,
       time: new Date().toLocaleString()
     });
 
@@ -1131,7 +1143,14 @@ app.post("/verify-payment", auth("customer"), async (req, res) => {
       if (qty > item.stock) notices.push(`${item.name}: only ${item.stock} available`);
       await Item.updateOne({ key, storeId: item.storeId }, { $inc: { stock: -allowed }, $push: { salesHistory: { $each: [allowed], $slice: -30 } } });
     }
-    await Order.create({ storeId, userId: req.user.id, userEmail: req.user.email, cart: adjusted, itemNames, totalItems, totalAmount, paymentId: razorpay_payment_id, paymentStatus: "paid", time: new Date().toLocaleString() });
+    const pointsEarned = Math.floor(totalAmount / 10);
+    if (pointsEarned > 0) {
+      await User.updateOne(
+        { _id: req.user.id },
+        { $inc: { loyaltyPoints: pointsEarned, totalPointsEarned: pointsEarned } }
+      );
+    }
+    await Order.create({ storeId, userId: req.user.id, userEmail: req.user.email, cart: adjusted, itemNames, totalItems, totalAmount, paymentId: razorpay_payment_id, paymentStatus: "paid", pointsEarned, time: new Date().toLocaleString() });
     await logAudit(req, req.user.email, "customer", "PAYMENT_SUCCESS", "success", `₹${totalAmount}`);
     res.json({ message: "Payment successful!", paymentId: razorpay_payment_id, notices });
   } catch (err) { res.status(500).json({ message: "Payment verification error" }); }
@@ -1509,6 +1528,52 @@ app.get("/admin/analytics", auth("admin"), async (req, res) => {
     console.error("Analytics error:", err.message);
     res.status(500).json({ message: "Server error" });
   }
+});
+
+/* =========================
+   LOYALTY POINTS
+========================= */
+app.get("/customer/loyalty", auth("customer"), async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("loyaltyPoints totalPointsEarned fname email");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    const orders = await Order.find({ userId: req.user.id }).sort({ createdAt: -1 }).limit(10);
+    const pointsHistory = orders.map(o => ({
+      orderId: o._id.toString().slice(-8).toUpperCase(),
+      points: o.pointsEarned || 0,
+      amount: o.totalAmount,
+      date: o.time || new Date(o.createdAt).toLocaleString()
+    }));
+    res.json({
+      points: user.loyaltyPoints || 0,
+      totalEarned: user.totalPointsEarned || 0,
+      tier: getLoyaltyTier(user.loyaltyPoints || 0),
+      pointsHistory
+    });
+  } catch(err) { res.status(500).json({ message: "Server error" }); }
+});
+
+function getLoyaltyTier(points) {
+  if (points >= 1000) return { name: "Platinum", emoji: "💎", color: "#22d3ee", next: null, pointsToNext: 0 };
+  if (points >= 500) return { name: "Gold", emoji: "🥇", color: "#f59e0b", next: "Platinum", pointsToNext: 1000 - points };
+  if (points >= 200) return { name: "Silver", emoji: "🥈", color: "#94a3b8", next: "Gold", pointsToNext: 500 - points };
+  return { name: "Bronze", emoji: "🥉", color: "#cd7f32", next: "Silver", pointsToNext: 200 - points };
+}
+
+app.get("/admin/loyalty-leaderboard", auth("admin"), async (req, res) => {
+  try {
+    const customers = await User.find({ role: "customer", loyaltyPoints: { $gt: 0 } })
+      .sort({ loyaltyPoints: -1 }).limit(10)
+      .select("fname lname email loyaltyPoints totalPointsEarned");
+    res.json(customers.map((c, i) => ({
+      rank: i + 1,
+      name: `${c.fname || ""} ${c.lname || ""}`.trim() || c.email,
+      email: c.email,
+      points: c.loyaltyPoints,
+      totalEarned: c.totalPointsEarned,
+      tier: getLoyaltyTier(c.loyaltyPoints)
+    })));
+  } catch(err) { res.status(500).json({ message: "Server error" }); }
 });
 
 /* =========================

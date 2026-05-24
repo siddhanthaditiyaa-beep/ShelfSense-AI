@@ -509,6 +509,13 @@
     </div>
   </div>
 
+<div class="card">
+    <h2>⭐ Loyalty Leaderboard — Top Customers</h2>
+    <div id="loyaltyLeaderboard">
+      <div style="text-align:center;padding:20px;color:var(--text-muted)">⏳ Loading...</div>
+    </div>
+  </div>
+
   <div class="card">
     <h2>🧾 Recent Orders</h2>
     <div style="overflow-x:auto">
@@ -1863,6 +1870,29 @@ async function loadAnalytics() {
           <td style="color:var(--text-muted);font-size:0.8rem">${order.time || new Date(order.createdAt).toLocaleString()}</td>
         </tr>`).join("");
     }
+
+  // Loyalty leaderboard
+    try {
+      const lRes = await fetch("/admin/loyalty-leaderboard", { headers: { Authorization: token } });
+      const leaders = await lRes.json();
+      const lEl = document.getElementById("loyaltyLeaderboard");
+      if (!leaders.length) {
+        lEl.innerHTML = `<p style="color:var(--text-muted)">No loyalty data yet. Customers earn points when they shop.</p>`;
+      } else {
+        lEl.innerHTML = `<table style="width:100%">
+          <thead><tr><th>Rank</th><th>Customer</th><th>Tier</th><th>Points</th><th>Total Earned</th></tr></thead>
+          <tbody>${leaders.map(l => `
+            <tr>
+              <td><strong style="color:var(--accent)">#${l.rank}</strong></td>
+              <td><div style="font-weight:600">${l.name}</div><div style="font-size:0.75rem;color:var(--text-muted)">${l.email}</div></td>
+              <td><span style="color:${l.tier.color};font-weight:700">${l.tier.emoji} ${l.tier.name}</span></td>
+              <td><strong style="color:var(--success)">${l.points.toLocaleString("en-IN")}</strong></td>
+              <td style="color:var(--text-muted)">${l.totalEarned.toLocaleString("en-IN")}</td>
+            </tr>`).join("")}
+          </tbody>
+        </table>`;
+      }
+    } catch(e) {}
 
   } catch(err) { console.error("Analytics error:", err); }
 }
