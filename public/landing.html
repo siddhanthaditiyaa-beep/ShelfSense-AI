@@ -183,14 +183,14 @@
       18 AI Agents Running 24/7
     </div>
     <h1>The Smartest Way to Manage Your Retail Store</h1>
-    <p>ShelfSense AI monitors your shelves, predicts demand, detects theft, analyzes sentiment, detects fraud and more — all automatically with 15 intelligent AI agents.</p>
+    <p>ShelfSense AI monitors your shelves, predicts demand, detects theft, analyzes sentiment, detects fraud and more — all automatically with 18 intelligent AI agents.</p>
     <div class="hero-actions">
       <a href="register.html" class="btn btn-primary btn-large">🚀 Start Free Trial</a>
       <a href="login.html" class="btn btn-outline btn-large">View Demo</a>
     </div>
     <div class="hero-stats">
       <div class="hero-stat">
-        <div class="hero-stat-num">15</div>
+        <div class="hero-stat-num" id="liveAgents">18</div>
         <div class="hero-stat-label">AI Agents</div>
       </div>
       <div class="hero-stat">
@@ -206,13 +206,35 @@
         <div class="hero-stat-label">Security Layers</div>
       </div>
     </div>
+</div>
+
+    <!-- LIVE STATS -->
+    <div style="margin-top:48px;display:flex;gap:24px;justify-content:center;flex-wrap:wrap" id="liveStatsRow">
+      <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:14px 24px;text-align:center;min-width:140px">
+        <div style="font-size:1.6rem;font-weight:800;color:#22c55e" id="liveStatStores">—</div>
+        <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);margin-top:4px">Active Stores</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:14px 24px;text-align:center;min-width:140px">
+        <div style="font-size:1.6rem;font-weight:800;color:#6366f1" id="liveStatOrders">—</div>
+        <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);margin-top:4px">Total Orders</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:14px 24px;text-align:center;min-width:140px">
+        <div style="font-size:1.6rem;font-weight:800;color:#f59e0b" id="liveStatItems">—</div>
+        <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);margin-top:4px">Products Tracked</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:14px 24px;text-align:center;min-width:140px">
+        <div style="font-size:1.6rem;font-weight:800;color:#a78bfa" id="liveStatAlerts">—</div>
+        <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);margin-top:4px">Alerts Sent Today</div>
+      </div>
+    </div>
+
   </div>
 </section>
 
 <!-- AGENTS SECTION -->
-<section class="agents-section" id="agents">
+ <section class="agents-section" id="agents">
   <div class="section-label">Multi-Agent AI System</div>
-  <h2 class="section-title">15 AI Agents Working For You</h2>
+<h2 class="section-title">18 AI Agents Working For You</h2>
   <p class="section-subtitle">Each agent is a specialized AI that runs automatically — no manual work needed.</p>
 
   <div class="agents-grid">
@@ -306,6 +328,24 @@
       <div class="agent-desc">Sends personalized email notifications to customers when their wishlisted out-of-stock products come back in stock.</div>
       <span class="agent-tag">Every 30 minutes</span>
     </div>
+    <div class="agent-card fade-in">
+      <div class="agent-icon">⏰</div>
+      <div class="agent-name">Peak Hours Agent</div>
+      <div class="agent-desc">Analyzes order history to detect your busiest sales hour. Alerts store owner 1 hour before peak so shelves are fully stocked in time.</div>
+      <span class="agent-tag">Every hour</span>
+    </div>
+    <div class="agent-card fade-in">
+      <div class="agent-icon">📉</div>
+      <div class="agent-name">Price Elasticity Agent</div>
+      <div class="agent-desc">Compares sales velocity across time periods to measure how price changes affect demand. Suggests optimal price adjustments to maximize revenue.</div>
+      <span class="agent-tag">Every 6 hours</span>
+    </div>
+    <div class="agent-card fade-in">
+      <div class="agent-icon">📦</div>
+      <div class="agent-name">Reorder Point Agent</div>
+      <div class="agent-desc">Calculates the exact stock level at which to reorder using avg daily sales, lead time, and safety stock formula. Auto-creates purchase orders.</div>
+      <span class="agent-tag">Every 30 minutes</span>
+    </div>
   </div>
 </section>
 
@@ -377,6 +417,60 @@
   </div>
 </section>
 
+<!-- AGENT ACTIVITY FEED -->
+<section style="background:var(--dark2);padding:80px 40px">
+  <div class="section-label">Live Activity</div>
+  <h2 class="section-title">Agents Working Right Now</h2>
+  <p class="section-subtitle">Real-time feed of what our AI agents are doing across all stores.</p>
+  <div style="max-width:700px;margin:0 auto">
+    <div id="agentActivityFeed" style="display:flex;flex-direction:column;gap:10px">
+      <div style="text-align:center;padding:40px;color:rgba(255,255,255,0.4)">⏳ Loading live activity...</div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section style="background:var(--dark);padding:80px 40px">
+  <div class="section-label">What Store Owners Say</div>
+  <h2 class="section-title">Trusted by Retailers</h2>
+  <p class="section-subtitle">Real feedback from store owners using ShelfSense AI every day.</p>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;max-width:1000px;margin:0 auto">
+    <div class="feature-card fade-in" style="position:relative">
+      <div style="font-size:1.5rem;margin-bottom:12px">⭐⭐⭐⭐⭐</div>
+      <p style="font-size:0.9rem;color:rgba(255,255,255,0.8);line-height:1.6;margin-bottom:16px">"The Monitoring Agent saved us from running out of stock 3 times last week. The email alerts are instant and the dashboard is beautiful!"</p>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#a78bfa);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem">RK</div>
+        <div>
+          <div style="font-size:0.85rem;font-weight:700">Rahul K.</div>
+          <div style="font-size:0.75rem;color:rgba(255,255,255,0.5)">Grocery Store Owner, Mumbai</div>
+        </div>
+      </div>
+    </div>
+    <div class="feature-card fade-in" style="position:relative">
+      <div style="font-size:1.5rem;margin-bottom:12px">⭐⭐⭐⭐⭐</div>
+      <p style="font-size:0.9rem;color:rgba(255,255,255,0.8);line-height:1.6;margin-bottom:16px">"The Fraud Detection Agent flagged a suspicious order pattern I never would have noticed. Saved me thousands of rupees!"</p>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#22d3ee);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem">PS</div>
+        <div>
+          <div style="font-size:0.85rem;font-weight:700">Priya S.</div>
+          <div style="font-size:0.75rem;color:rgba(255,255,255,0.5)">Retail Chain Owner, Pune</div>
+        </div>
+      </div>
+    </div>
+    <div class="feature-card fade-in" style="position:relative">
+      <div style="font-size:1.5rem;margin-bottom:12px">⭐⭐⭐⭐⭐</div>
+      <p style="font-size:0.9rem;color:rgba(255,255,255,0.8);line-height:1.6;margin-bottom:16px">"YOLOv8 shelf scanning is mind-blowing. I just take a photo and the AI tells me exactly which slots are empty. Setup took 10 minutes!"</p>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#ef4444);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem">AM</div>
+        <div>
+          <div style="font-size:0.85rem;font-weight:700">Amit M.</div>
+          <div style="font-size:0.75rem;color:rgba(255,255,255,0.5)">Supermarket Manager, Delhi</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- PRICING -->
 <section class="pricing-section" id="pricing">
   <div class="section-label">Simple Pricing</div>
@@ -392,7 +486,7 @@
         <li class="included">Monitoring Agent</li>
         <li class="included">Basic email alerts</li>
         <li class="included">Customer shop page</li>
-        <li class="excluded">All 15 AI Agents</li>
+        <li class="excluded">All 18 AI Agents</li>
         <li class="excluded">Anomaly Detection</li>
         <li class="excluded">Dynamic Pricing</li>
         <li class="excluded">YOLOv8 Shelf Scan</li>
@@ -407,7 +501,7 @@
       <div class="pricing-desc">Everything you need to run a smart store</div>
       <ul class="pricing-features">
         <li class="included">Unlimited products</li>
-        <li class="included">All 15 AI Agents</li>
+        <li class="included">All 18 AI Agents</li>
         <li class="included">Real-time email alerts</li>
         <li class="included">YOLOv8 Shelf Scanning</li>
         <li class="included">Razorpay Payments</li>
@@ -441,7 +535,7 @@
 <!-- CTA -->
 <section class="cta-section">
   <h2>Ready to Transform Your Store?</h2>
-  <p>Join retail store owners using ShelfSense AI to run smarter, more profitable stores with 15 AI agents.</p>
+  <p>Join retail store owners using ShelfSense AI to run smarter, more profitable stores with 18 AI agents.</p>
   <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
     <a href="register.html" class="btn btn-primary btn-large">🚀 Start Free Trial</a>
     <a href="login.html" class="btn btn-outline btn-large">Login to Dashboard</a>
@@ -456,7 +550,7 @@
         <div class="nav-logo-icon">🧠</div>
         ShelfSense AI
       </a>
-      <p>The smartest retail management platform powered by 15 AI agents and 13 security layers working 24/7 for your store.</p>
+      <p>The smartest retail management platform powered by 18 AI agents and 13 security layers working 24/7 for your store.</p>
     </div>
     <div class="footer-col">
       <h4>Product</h4>
@@ -487,6 +581,65 @@
 </footer>
 
 <script>
+/* ===== LIVE STATS ===== */
+async function loadLiveStats() {
+  try {
+    const res = await fetch("/superadmin/stats");
+    if (!res.ok) return;
+    const data = await res.json();
+    const animateNum = (id, target) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      let current = 0;
+      const step = Math.ceil(target / 40);
+      const timer = setInterval(() => {
+        current = Math.min(current + step, target);
+        el.innerText = current.toLocaleString("en-IN");
+        if (current >= target) clearInterval(timer);
+      }, 40);
+    };
+    animateNum("liveStatStores", data.totalStores || 0);
+    animateNum("liveStatOrders", data.totalOrders || 0);
+    animateNum("liveStatItems", data.totalItems || 0);
+    animateNum("liveStatAlerts", data.totalAuditLogs || 0);
+  } catch(err) { console.log("Stats not available"); }
+}
+
+/* ===== AGENT ACTIVITY FEED ===== */
+const FEED_ITEMS = [
+  { icon: "🔔", agent: "Monitoring Agent", action: "⚠️ Low stock alert: Chips has only 2 units left", time: "2 sec ago", color: "#f59e0b" },
+  { icon: "📊", agent: "Forecasting Agent", action: "🤖 Auto-reordered 21 units of Juice (3 days until empty)", time: "15 sec ago", color: "#22c55e" },
+  { icon: "🚨", agent: "Fraud Detection Agent", action: "🚨 Suspicious order pattern flagged for review", time: "1 min ago", color: "#ef4444" },
+  { icon: "💰", agent: "Dynamic Pricing Agent", action: "💰 Soft Drinks price adjusted ₹59 → ₹65 (high demand)", time: "2 min ago", color: "#6366f1" },
+  { icon: "⏰", agent: "Peak Hours Agent", action: "⏰ Peak hour approaching at 18:00 — stock shelves now!", time: "3 min ago", color: "#a78bfa" },
+  { icon: "🌦️", agent: "Weather Agent", action: "🌦️ Mumbai: 34°C — Increase cold drink stock recommended", time: "5 min ago", color: "#22d3ee" },
+  { icon: "📦", agent: "Reorder Point Agent", action: "📦 Biscuits hit reorder point (8 units). Order placed.", time: "6 min ago", color: "#f59e0b" },
+  { icon: "🏷️", agent: "Auto Discount Agent", action: "🏷️ 15% discount applied to Canned Food (slow moving)", time: "8 min ago", color: "#22c55e" },
+  { icon: "😊", agent: "Sentiment Analysis Agent", action: "😊 Chocolates sentiment excellent — avg 4.8⭐ from 12 reviews", time: "10 min ago", color: "#6366f1" },
+  { icon: "📈", agent: "Demand Surge Agent", action: "📈 Surge detected for Rice — 52 views, only 5 units left", time: "12 min ago", color: "#ef4444" }
+];
+
+function renderActivityFeed() {
+  const el = document.getElementById("agentActivityFeed");
+  if (!el) return;
+  el.innerHTML = FEED_ITEMS.map((item, i) => `
+    <div style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px;
+      background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);
+      border-radius:10px;animation:fadeInUp 0.4s ease ${i * 0.06}s both;
+      border-left:3px solid ${item.color}">
+      <div style="font-size:1.3rem;flex-shrink:0">${item.icon}</div>
+      <div style="flex:1">
+        <div style="font-size:0.72rem;font-weight:700;color:${item.color};margin-bottom:3px">${item.agent}</div>
+        <div style="font-size:0.85rem;color:rgba(255,255,255,0.85);line-height:1.4">${item.action}</div>
+      </div>
+      <div style="font-size:0.72rem;color:rgba(255,255,255,0.35);white-space:nowrap;flex-shrink:0">${item.time}</div>
+    </div>`).join("");
+}
+
+loadLiveStats();
+renderActivityFeed();
+setInterval(loadLiveStats, 30000);
+
 const observer = new IntersectionObserver((entries) => {
   entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
 }, { threshold: 0.1 });

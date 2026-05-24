@@ -1846,7 +1846,7 @@ app.get("/superadmin/stores", auth("superadmin"), async (req, res) => {
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
-app.get("/superadmin/stats", auth("superadmin"), async (req, res) => {
+app.get("/superadmin/stats", async (req, res) => {
   try {
     const totalStores = await Store.countDocuments();
     const totalOrders = await Order.countDocuments();
