@@ -114,6 +114,32 @@
     @keyframes spin { to { transform: rotate(360deg); } }
 
     @media (max-width: 480px) { .register-card { padding: 24px 20px; } .navbar { padding: 0 20px; } }
+  /* PASSWORD STRENGTH METER */
+.pw-wrapper { position: relative; }
+.pw-wrapper input { padding-right: 44px; }
+.pw-toggle {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer; font-size: 1.1rem;
+  padding: 4px; color: rgba(255,255,255,0.5); line-height: 1;
+}
+.pw-toggle:hover { color: rgba(255,255,255,0.9); }
+.strength-bar {
+  height: 4px; border-radius: 2px; margin-top: 8px;
+  background: rgba(255,255,255,0.1); overflow: hidden;
+}
+.strength-fill {
+  height: 100%; border-radius: 2px;
+  transition: width 0.3s ease, background 0.3s ease;
+  width: 0%;
+}
+.strength-text {
+  font-size: 0.75rem; margin-top: 4px; font-weight: 600;
+  min-height: 16px;
+}
+.strength-hints {
+  font-size: 0.72rem; color: rgba(255,255,255,0.4);
+  margin-top: 4px; line-height: 1.5;
+}  
   </style>
 </head>
 <body>
@@ -173,9 +199,19 @@
       </div>
 
       <div class="form-group">
-        <label>Password *</label>
-        <input type="password" id="password" placeholder="Minimum 6 characters">
-      </div>
+  <label>Password *</label>
+  <div class="pw-wrapper">
+    <input type="password" id="password" placeholder="Minimum 6 characters" oninput="checkStrength(this.value)">
+    <button type="button" class="pw-toggle" onclick="togglePw()">
+      <span id="pwEye">👁️</span>
+    </button>
+  </div>
+  <div class="strength-bar">
+    <div class="strength-fill" id="strengthFill"></div>
+  </div>
+  <div class="strength-text" id="strengthText"></div>
+  <div class="strength-hints" id="strengthHints"></div>
+</div>
 
       <div class="form-group">
         <label>Choose Your Plan</label>
@@ -240,6 +276,70 @@
 </div>
 
 <script>
+  /* ===== PASSWORD STRENGTH METER ===== */
+function togglePw() {
+  const input = document.getElementById("password");
+  const eye = document.getElementById("pwEye");
+  if (input.type === "password") { input.type = "text"; eye.innerText = "🙈"; }
+  else { input.type = "password"; eye.innerText = "👁️"; }
+}
+
+function checkStrength(password) {
+  const fill = document.getElementById("strengthFill");
+  const text = document.getElementById("strengthText");
+  const hints = document.getElementById("strengthHints");
+
+  if (!password) {
+    fill.style.width = "0%";
+    text.innerText = "";
+    hints.innerText = "";
+    return;
+  }
+
+  // Check criteria
+  const hasLength = password.length >= 8;
+  const hasUpper = /[A-Z]/.test(password);
+  const hasLower = /[a-z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+  const isLong = password.length >= 12;
+
+  const score = [hasLength, hasUpper, hasLower, hasNumber, hasSpecial, isLong]
+    .filter(Boolean).length;
+
+  const missing = [];
+  if (!hasLength) missing.push("8+ characters");
+  if (!hasUpper) missing.push("uppercase letter");
+  if (!hasLower) missing.push("lowercase letter");
+  if (!hasNumber) missing.push("number");
+  if (!hasSpecial) missing.push("special character (!@#$...)");
+
+  if (score <= 2) {
+    fill.style.width = "25%";
+    fill.style.background = "#ef4444";
+    text.innerText = "Weak";
+    text.style.color = "#ef4444";
+  } else if (score === 3) {
+    fill.style.width = "50%";
+    fill.style.background = "#f59e0b";
+    text.innerText = "Fair";
+    text.style.color = "#f59e0b";
+  } else if (score === 4) {
+    fill.style.width = "75%";
+    fill.style.background = "#3b82f6";
+    text.innerText = "Good";
+    text.style.color = "#3b82f6";
+  } else {
+    fill.style.width = "100%";
+    fill.style.background = "#22c55e";
+    text.innerText = "Strong 💪";
+    text.style.color = "#22c55e";
+  }
+
+  hints.innerText = missing.length > 0
+    ? "Add: " + missing.join(", ")
+    : "✅ Great password!";
+}
 let selectedPlan = "free";
 
 function selectPlan(plan, el) {
@@ -272,10 +372,16 @@ async function register() {
   }
 
   if (password.length < 6) {
-    errorEl.innerText = "Password must be at least 6 characters";
-    errorEl.style.display = "block";
-    return;
-  }
+  errorEl.innerText = "Password must be at least 6 characters";
+  errorEl.style.display = "block";
+  return;
+}
+const strengthEl = document.getElementById("strengthText");
+if (strengthEl.innerText === "Weak") {
+  errorEl.innerText = "⚠️ Please choose a stronger password for your account security";
+  errorEl.style.display = "block";
+  return;
+}
 
   btn.disabled = true;
   btn.innerHTML = '<span class="loading-spinner"></span>Creating your store...';
