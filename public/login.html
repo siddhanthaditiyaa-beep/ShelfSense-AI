@@ -120,6 +120,12 @@
       border-radius: 8px; padding: 12px; color: #ef4444;
       font-size: 0.85rem; margin-bottom: 16px; display: none; text-align: center;
     }
+    .countdown-msg {
+      background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3);
+      border-radius: 8px; padding: 12px; color: #f59e0b;
+      font-size: 0.875rem; margin-bottom: 16px; display: none;
+      text-align: center; font-weight: 600;
+    }
     .demo-box {
       background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2);
       border-radius: 10px; padding: 14px; margin-top: 16px; font-size: 0.8rem;
@@ -211,6 +217,7 @@
       </div>
 
       <div class="error-msg" id="errorMsg"></div>
+      <div class="countdown-msg" id="countdownMsg">⏱️ Try again in <span id="countdownTimer">15:00</span></div>
 
       <!-- STORE OWNER LOGIN -->
       <div id="storeForm">
@@ -291,7 +298,7 @@
         <button class="submit-btn" id="customerLoginBtn" onclick="loginCustomer()">
           Login to My Account
         </button>
-        </div>
+      </div>
 
     </div>
 
@@ -325,8 +332,10 @@
   if (existingToken && existingRole === "customer") window.location.href = "customer.html";
 
   const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get("tab") === "customer") switchTab("customer");
 
   let currentTab = "store";
+  let countdownInterval = null;
 
   function togglePassword(inputId, eyeId) {
     const input = document.getElementById(inputId);
@@ -342,6 +351,7 @@
     document.getElementById("storeForm").style.display = tab === "store" ? "block" : "none";
     document.getElementById("customerForm").style.display = tab === "customer" ? "block" : "none";
     document.getElementById("errorMsg").style.display = "none";
+    document.getElementById("countdownMsg").style.display = "none";
     if (tab === "customer") {
       document.getElementById("pageSubtitle").innerText = "Shop at ShelfSense stores";
       document.getElementById("registerLink").innerHTML = `
@@ -360,9 +370,7 @@
   }
 
   function loginWithGoogle() { window.location.href = "/auth/google"; }
-  function loginCustomerWithGoogle() {
-  window.location.href = "/auth/google?type=customer";
-}
+  function loginCustomerWithGoogle() { window.location.href = "/auth/google?type=customer"; }
 
   function fillDemo(email, password) {
     document.getElementById("storeEmail").value = email;
@@ -371,13 +379,67 @@
     document.getElementById("storePassword").type = "password";
   }
 
+  /* ===== COUNTDOWN TIMER ===== */
+  function startCountdown(message) {
+    let minutes = 15;
+    const match = message.match(/(\d+)\s*minute/);
+    if (match) minutes = parseInt(match[1]);
+    let seconds = minutes * 60;
+
+    const countdownEl = document.getElementById("countdownMsg");
+    const timerEl = document.getElementById("countdownTimer");
+    const errorEl = document.getElementById("errorMsg");
+
+    countdownEl.style.display = "block";
+    errorEl.style.display = "none";
+
+    if (countdownInterval) clearInterval(countdownInterval);
+
+    countdownInterval = setInterval(() => {
+      seconds--;
+      const m = Math.floor(seconds / 60);
+      const s = seconds % 60;
+      timerEl.innerText = `${m}:${s.toString().padStart(2, "0")}`;
+
+      if (seconds <= 0) {
+        clearInterval(countdownInterval);
+        countdownEl.style.display = "none";
+        errorEl.style.background = "rgba(34,197,94,0.1)";
+        errorEl.style.border = "1px solid rgba(34,197,94,0.3)";
+        errorEl.style.color = "#22c55e";
+        errorEl.innerText = "✅ You can try again now!";
+        errorEl.style.display = "block";
+        setTimeout(() => {
+          errorEl.style.display = "none";
+          errorEl.style.background = "rgba(239,68,68,0.1)";
+          errorEl.style.border = "1px solid rgba(239,68,68,0.3)";
+          errorEl.style.color = "#ef4444";
+        }, 3000);
+      }
+    }, 1000);
+  }
+
+  function showError(message) {
+    const errorEl = document.getElementById("errorMsg");
+    errorEl.innerText = message;
+    errorEl.style.background = "rgba(239,68,68,0.1)";
+    errorEl.style.border = "1px solid rgba(239,68,68,0.3)";
+    errorEl.style.color = "#ef4444";
+    errorEl.style.display = "block";
+    if (message.includes("minutes") || message.includes("locked") || message.includes("many")) {
+      startCountdown(message);
+    }
+  }
+
+  /* ===== STORE LOGIN ===== */
   async function loginStore() {
     const email = document.getElementById("storeEmail").value.trim();
     const password = document.getElementById("storePassword").value;
     const errorEl = document.getElementById("errorMsg");
     const btn = document.getElementById("storeLoginBtn");
     errorEl.style.display = "none";
-    if (!email || !password) { errorEl.innerText = "Please enter email and password"; errorEl.style.display = "block"; return; }
+    document.getElementById("countdownMsg").style.display = "none";
+    if (!email || !password) { showError("Please enter email and password"); return; }
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span>Logging in...';
     try {
@@ -392,6 +454,7 @@
         localStorage.setItem("storeName", data.storeName || "My Store");
         window.location.href = "admin.html"; return;
       }
+      // Try superadmin login
       const res2 = await fetch("/login", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: email, password })
@@ -402,23 +465,22 @@
         localStorage.setItem("role", "superadmin");
         window.location.href = "superadmin.html"; return;
       }
-      errorEl.innerText = data.message || "Invalid credentials. Please check your email and password.";
-      errorEl.style.display = "block";
+      showError(data.message || "Invalid credentials. Please check your email and password.");
     } catch (err) {
-      errorEl.innerText = "Server error. Make sure the server is running.";
-      errorEl.style.display = "block";
+      showError("Server error. Make sure the server is running.");
     }
     btn.disabled = false;
     btn.innerHTML = "Login to Dashboard";
   }
 
+  /* ===== CUSTOMER LOGIN ===== */
   async function loginCustomer() {
     const username = document.getElementById("customerUsername").value.trim();
     const password = document.getElementById("customerPassword").value;
-    const errorEl = document.getElementById("errorMsg");
     const btn = document.getElementById("customerLoginBtn");
-    errorEl.style.display = "none";
-    if (!username || !password) { errorEl.innerText = "Please enter email and password"; errorEl.style.display = "block"; return; }
+    document.getElementById("errorMsg").style.display = "none";
+    document.getElementById("countdownMsg").style.display = "none";
+    if (!username || !password) { showError("Please enter email and password"); return; }
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span>Logging in...';
     try {
@@ -428,8 +490,7 @@
       });
       const data = await res.json();
       if (!res.ok) {
-        errorEl.innerText = data.message || "Invalid credentials";
-        errorEl.style.display = "block";
+        showError(data.message || "Invalid credentials");
         btn.disabled = false;
         btn.innerHTML = "Login to My Account";
         return;
@@ -438,13 +499,13 @@
       localStorage.setItem("role", data.role);
       window.location.href = "customer.html";
     } catch (err) {
-      errorEl.innerText = "Server error. Please try again.";
-      errorEl.style.display = "block";
+      showError("Server error. Please try again.");
       btn.disabled = false;
       btn.innerHTML = "Login to My Account";
     }
   }
 
+  /* ===== FORGOT PASSWORD ===== */
   function openForgotPassword() {
     const email = document.getElementById("storeEmail").value;
     if (email) document.getElementById("forgotEmail").value = email;
@@ -458,33 +519,25 @@
   }
 
   async function submitForgotPassword() {
-  const email = document.getElementById("forgotEmail").value.trim();
-  const errorEl = document.getElementById("forgotError");
-  const successEl = document.getElementById("forgotSuccess");
-  errorEl.style.display = "none";
-  successEl.style.display = "none";
-
-  if (!email) {
-    errorEl.innerText = "Please enter your email address";
-    errorEl.style.display = "block";
-    return;
+    const email = document.getElementById("forgotEmail").value.trim();
+    const errorEl = document.getElementById("forgotError");
+    const successEl = document.getElementById("forgotSuccess");
+    errorEl.style.display = "none";
+    successEl.style.display = "none";
+    if (!email) { errorEl.innerText = "Please enter your email address"; errorEl.style.display = "block"; return; }
+    try {
+      await fetch("/forgot-password", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+      });
+      successEl.innerText = "✅ If this email is registered, a reset link has been sent. Check your inbox!";
+      successEl.style.display = "block";
+      document.getElementById("forgotEmail").value = "";
+    } catch (err) {
+      errorEl.innerText = "Server error. Please try again.";
+      errorEl.style.display = "block";
+    }
   }
-
-  try {
-    const res = await fetch("/forgot-password", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email })
-    });
-    const data = await res.json();
-    successEl.innerText = "✅ If this email is registered, a reset link has been sent. Check your inbox!";
-    successEl.style.display = "block";
-    document.getElementById("forgotEmail").value = "";
-  } catch (err) {
-    errorEl.innerText = "Server error. Please try again.";
-    errorEl.style.display = "block";
-  }
-}
 
   document.getElementById("forgotModal").addEventListener("click", function(e) {
     if (e.target === this) closeForgotPassword();
