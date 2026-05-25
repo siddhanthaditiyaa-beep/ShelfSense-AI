@@ -439,10 +439,13 @@
           </table>
         </div>
         <br>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
+       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
   <button class="btn-danger" onclick="resetLogs()">🧹 Reset All Logs & Stocks</button>
   <button class="btn-success" onclick="downloadStock()" style="display:flex;align-items:center;gap:6px">
     📥 Download Stock List (Excel/CSV)
+  </button>
+  <button style="background:#25D366;color:white;border:none;padding:10px 20px;border-radius:8px;font-weight:600;font-size:0.875rem;cursor:pointer;display:flex;align-items:center;gap:6px" onclick="sendToWhatsApp()">
+    📲 Send Low Stock to WhatsApp
   </button>
 </div>
       </div>
@@ -1527,6 +1530,23 @@ async function submitBulkUpdate() {
     showToast("Bulk update failed", "error");
   }
   btn.disabled = false; btn.innerText = "🚀 Apply Bulk Update";
+}
+
+/* ===== WHATSAPP EXPORT ===== */
+function sendToWhatsApp() {
+  const rows = document.querySelectorAll("#inventoryTable tr");
+  const lowStock = [];
+  rows.forEach(row => {
+    const cells = row.querySelectorAll("td");
+    if (cells.length > 0) {
+      const name = cells[0].querySelector("strong")?.innerText || "";
+      const stock = parseInt(cells[1]?.innerText || "0");
+      if (stock <= 3) lowStock.push(`• ${name}: ${stock === 0 ? "OUT OF STOCK ❌" : `Only ${stock} left ⚠️`}`);
+    }
+  });
+  if (!lowStock.length) { showToast("✅ No low stock items right now!"); return; }
+  const msg = `🧠 *ShelfSense AI — Low Stock Alert*\n\n${lowStock.join("\n")}\n\n_Generated: ${new Date().toLocaleString("en-IN")}_`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
 }
 
 async function updateThreshold(key) {
