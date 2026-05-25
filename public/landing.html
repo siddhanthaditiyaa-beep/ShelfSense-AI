@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#6366f1">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ShelfSense AI — Smart Retail Management Platform</title>
@@ -614,6 +616,9 @@
   <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
     <a href="register.html" class="btn btn-primary btn-large">🚀 Start Free Trial</a>
     <a href="login.html" class="btn btn-outline btn-large">Login to Dashboard</a>
+    <button id="pwaInstallBtn" class="btn btn-outline btn-large" style="display:none" onclick="installPWA()">
+      📱 Install App
+    </button>
   </div>
 </section>
 
@@ -732,6 +737,48 @@ window.addEventListener('scroll', () => {
   const navbar = document.querySelector('.navbar');
   navbar.style.background = window.scrollY > 50 ? 'rgba(15,15,35,0.98)' : 'rgba(15,15,35,0.9)';
 });
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('✅ ShelfSense SW registered:', reg.scope))
+      .catch(err => console.log('SW registration failed:', err));
+  });
+}
+</script>
+
+<script>
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('pwaInstallBtn').style.display = 'inline-flex';
+});
+
+function installPWA() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(choice => {
+    if (choice.outcome === 'accepted') {
+      document.getElementById('pwaInstallBtn').style.display = 'none';
+      console.log('PWA installed!');
+    }
+    deferredPrompt = null;
+  });
+}
+
+window.addEventListener('appinstalled', () => {
+  document.getElementById('pwaInstallBtn').style.display = 'none';
+  console.log('ShelfSense AI installed as PWA!');
+});
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
 </script>
 
 </body>

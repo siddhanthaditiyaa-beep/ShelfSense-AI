@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#6366f1">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard | ShelfSense AI</title>
@@ -3218,6 +3220,16 @@ loadMLUrl();
 load2FAStatus();
 setInterval(loadAdmin, 15000);
 setInterval(() => { if (currentPage === "agents") loadAgentDashboard(); }, 30000);
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('✅ ShelfSense SW registered:', reg.scope))
+      .catch(err => console.log('SW registration failed:', err));
+  });
+}
 </script>
 
 </body>
