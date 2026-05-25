@@ -683,6 +683,32 @@
 }
 .lang-btn.active { background: var(--accent); color: white; }
 .lang-btn:hover:not(.active) { color: var(--text-primary); background: var(--bg-tertiary); }
+.flash-sale-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: linear-gradient(135deg, #ef4444, #f97316);
+  color: white; padding: 3px 10px; border-radius: 20px;
+  font-size: 0.72rem; font-weight: 700; margin-bottom: 6px;
+  animation: flashPulse 1.5s ease-in-out infinite;
+}
+@keyframes flashPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.03); }
+}
+.countdown-timer {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 0.78rem; font-weight: 800;
+  color: white;
+}
+.countdown-block {
+  background: rgba(0,0,0,0.25);
+  border-radius: 4px; padding: 1px 5px;
+  font-family: monospace;
+}
+.countdown-sep { opacity: 0.7; font-weight: 400; }
+.sale-ending-soon {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  animation: flashPulse 0.8s ease-in-out infinite !important;
+}
 </style>
 </head>
 <body>
@@ -1112,6 +1138,52 @@
 <div id="toast"></div>
 
 <script>
+/* ===== FLASH SALE COUNTDOWN ===== */
+let countdownIntervals = {};
+
+function startCountdowns() {
+  // Clear existing intervals
+  Object.values(countdownIntervals).forEach(i => clearInterval(i));
+  countdownIntervals = {};
+
+  Object.entries(allProducts).forEach(([key, item]) => {
+    if (!item.onSale || !item.saleEndsAt) return;
+    const endsAt = new Date(item.saleEndsAt).getTime();
+    if (endsAt <= Date.now()) return;
+
+    countdownIntervals[key] = setInterval(() => {
+      const now = Date.now();
+      const msLeft = endsAt - now;
+
+      if (msLeft <= 0) {
+        clearInterval(countdownIntervals[key]);
+        // Sale ended — reload products
+        loadProducts();
+        return;
+      }
+
+      const h = Math.floor(msLeft / (1000 * 60 * 60));
+      const m = Math.floor((msLeft % (1000 * 60 * 60)) / (1000 * 60));
+      const s = Math.floor((msLeft % (1000 * 60)) / 1000);
+
+      const hEl = document.getElementById(`cd_h_${key}`);
+      const mEl = document.getElementById(`cd_m_${key}`);
+      const sEl = document.getElementById(`cd_s_${key}`);
+      const badgeEl = document.getElementById(`flashBadge_${key}`);
+
+      if (hEl) hEl.innerText = String(h).padStart(2, "0");
+      if (mEl) mEl.innerText = String(m).padStart(2, "0");
+      if (sEl) sEl.innerText = String(s).padStart(2, "0");
+
+      // Pulse faster when ending soon (< 1 hour)
+      if (badgeEl && msLeft < 60 * 60 * 1000) {
+        badgeEl.classList.add("sale-ending-soon");
+      }
+
+    }, 1000);
+  });
+}
+
 /* ===== TRANSLATIONS (must be first) ===== */
 const TRANSLATIONS = {
   en: {
@@ -1224,6 +1296,8 @@ function t(key) {
   return TRANSLATIONS[currentLanguage]?.[key] || TRANSLATIONS["en"][key] || key;
 }
 
+  
+
 /* ===== AUTH — Handle Google OAuth token + role check ===== */
 const urlParams = new URLSearchParams(window.location.search);
 const oauthToken = urlParams.get("token");
@@ -1308,6 +1382,7 @@ async function loadProducts() {
     myRatings = await rRes.json();
     renderProducts();
     renderRecommended();
+    startCountdowns();
   } catch (err) {
     document.getElementById("productGrid").innerHTML =
       `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--danger-text)">❌ Failed to load. Refresh page.</div>`;
@@ -1379,6 +1454,11 @@ function renderProducts() {
       : item.stock <= 3
       ? `<span class="stock-badge" style="background:var(--warning-bg);color:var(--warning-text)">⚠️ ${t("low-stock")} ${item.stock} ${t("low-stock-suffix")}</span>`
       : `<span class="stock-badge" style="background:var(--success-bg);color:var(--success-text)">✅ ${t("in-stock")}</span>`;
+   const hasCountdown = item.onSale && item.saleEndsAt && new Date(item.saleEndsAt) > new Date();
+    const endsAt = hasCountdown ? new Date(item.saleEndsAt).getTime() : null;
+    const msLeft = endsAt ? endsAt - Date.now() : 0;
+    const endingSoon = msLeft > 0 && msLeft < 60 * 60 * 1000;
+
     return `
       <div class="product-card ${item.stock === 0 ? 'out-of-stock' : ''} ${isWishlisted ? 'wishlisted' : ''}"
            style="animation-delay:${idx * 0.05}s" onclick="openProductModal('${key}')">
@@ -1389,6 +1469,17 @@ function renderProducts() {
         </div>
         <div class="product-info">
           <div class="product-name">${item.name}</div>
+          ${hasCountdown ? `
+            <div class="flash-sale-badge ${endingSoon ? 'sale-ending-soon' : ''}" id="flashBadge_${key}">
+              ⚡ FLASH SALE &nbsp;
+              <span class="countdown-timer" id="countdown_${key}">
+                <span class="countdown-block" id="cd_h_${key}">00</span>
+                <span class="countdown-sep">:</span>
+                <span class="countdown-block" id="cd_m_${key}">00</span>
+                <span class="countdown-sep">:</span>
+                <span class="countdown-block" id="cd_s_${key}">00</span>
+              </span>
+            </div>` : ""}
           <div class="product-price">
             ${item.onSale
               ? `<span style="text-decoration:line-through;color:var(--text-muted);font-size:0.85rem">₹${item.price}</span>

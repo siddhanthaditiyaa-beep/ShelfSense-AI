@@ -355,7 +355,8 @@ const ItemSchema = new mongoose.Schema({
   expiryDate: { type: Date, default: null },
   category: { type: String, default: "general" },
   supplier: { type: String, default: "" },
-  minStockLevel: { type: Number, default: 3 }
+  minStockLevel: { type: Number, default: 3 },
+  saleEndsAt: { type: Date, default: null }
 });
 
 const OrderSchema = new mongoose.Schema({
@@ -1160,10 +1161,11 @@ app.get("/shop-items", auth("customer"), async (req, res) => {
     const items = await Item.find(query);
     const view = {};
    items.forEach(i => {
-      view[i.key] = {
+view[i.key] = {
         name: i.name, stock: i.stock, price: i.price || 99,
         onSale: i.onSale || false, salePercent: i.salePercent || 0,
         salePrice: i.salePrice || i.price || 99,
+        saleEndsAt: i.saleEndsAt || null,
         canBuy: i.stock > 0, warning: i.stock <= 3 ? i.stock : null,
         avgRating: i.avgRating || 0, totalRatings: i.totalRatings || 0,
         sentimentScore: i.sentimentScore || 0,
@@ -1625,14 +1627,17 @@ app.post("/admin/update-threshold", auth("admin"), async (req, res) => {
 
 app.post("/admin/update-sale", auth("admin"), async (req, res) => {
   try {
-    const { key, onSale, salePercent } = req.body;
+    const { key, onSale, salePercent, saleHours } = req.body;
     const storeId = req.user.storeId;
     const item = await Item.findOne({ key, storeId });
     if (!item) return res.status(404).json({ message: "Item not found" });
     const pct = parseFloat(salePercent) || 0;
     const salePrice = onSale ? Math.round(item.price * (1 - pct / 100)) : item.price;
-    await Item.updateOne({ key, storeId }, { $set: { onSale, salePercent: pct, salePrice } });
-    res.json({ message: onSale ? `Sale set: ${pct}% off` : "Sale removed" });
+    const saleEndsAt = onSale && saleHours
+      ? new Date(Date.now() + parseFloat(saleHours) * 60 * 60 * 1000)
+      : null;
+    await Item.updateOne({ key, storeId }, { $set: { onSale, salePercent: pct, salePrice, saleEndsAt } });
+    res.json({ message: onSale ? `Flash sale set: ${pct}% off for ${saleHours || "unlimited"} hours` : "Sale removed" });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 

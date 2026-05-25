@@ -1611,7 +1611,8 @@ function renderInventoryTable(items) {
       </td>
       <td>
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-          <input type="number" id="sale_${item.key}" value="${item.salePercent || 0}" min="0" max="90" style="width:60px" placeholder="%">
+         <input type="number" id="sale_${item.key}" value="${item.salePercent || 0}" min="0" max="90" style="width:60px" placeholder="%">
+          <input type="number" id="saleHours_${item.key}" value="24" min="1" max="168" style="width:52px" placeholder="hrs" title="Sale duration in hours">
           <button class="btn-warning btn-sm" onclick="toggleSale('${item.key}', ${!item.onSale})">${item.onSale ? '🔥 On Sale' : 'Set Sale'}</button>
           ${item.onSale ? `<button class="btn-danger btn-sm" onclick="toggleSale('${item.key}', false)">Remove</button>` : ''}
         </div>
@@ -1913,8 +1914,9 @@ async function updateThreshold(key) {
 
 async function toggleSale(key, onSale) {
   const salePercent = parseFloat(document.getElementById("sale_" + key).value) || 0;
+  const saleHours = parseFloat(document.getElementById("saleHours_" + key)?.value) || 24;
   if (onSale && (salePercent <= 0 || salePercent >= 100)) return showToast("Enter a valid sale % (1-99)", "warning");
-  const res = await fetch("/admin/update-sale", { method: "POST", headers: { "Content-Type": "application/json", Authorization: token }, body: JSON.stringify({ key, onSale, salePercent }) });
+  const res = await fetch("/admin/update-sale", { method: "POST", headers: { "Content-Type": "application/json", Authorization: token }, body: JSON.stringify({ key, onSale, salePercent, saleHours: onSale ? saleHours : null }) });
   showToast((await res.json()).message); loadAdmin();
 }
 
