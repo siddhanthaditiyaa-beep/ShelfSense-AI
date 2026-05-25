@@ -2142,6 +2142,80 @@ app.get("/admin/export-pdf", auth("admin"), async (req, res) => {
 });
 
 /* =========================
+   REVENUE FORECASTING
+========================= */
+app.get("/admin/revenue-forecast", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const orders = await Order.find({ storeId }).sort({ createdAt: 1 });
+
+    if (orders.length < 3) return res.json({ forecast: [], message: "Not enough data" });
+
+    // Build daily revenue map for last 30 days
+    const last30 = Array.from({ length: 30 }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - (29 - i));
+      return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
+    });
+
+    const dailyRevenue = last30.map(date => {
+      const dayOrders = orders.filter(o => {
+        const d = new Date(o.createdAt);
+        return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short" }) === date;
+      });
+      return dayOrders.reduce((s, o) => s + (o.totalAmount || 0), 0);
+    });
+
+    // Linear regression on last 30 days
+    const n = dailyRevenue.length;
+    const xMean = (n - 1) / 2;
+    const yMean = dailyRevenue.reduce((a, b) => a + b, 0) / n;
+    let num = 0, den = 0;
+    dailyRevenue.forEach((y, x) => {
+      num += (x - xMean) * (y - yMean);
+      den += (x - xMean) ** 2;
+    });
+    const slope = den !== 0 ? num / den : 0;
+    const intercept = yMean - slope * xMean;
+
+    // Predict next 7 days
+    const forecast = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() + i + 1);
+      const date = d.toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
+      const predicted = Math.max(0, Math.round(intercept + slope * (n + i)));
+      // Add weekend boost
+      const isWeekend = [0, 6].includes(d.getDay());
+      const adjusted = isWeekend ? Math.round(predicted * 1.2) : predicted;
+      return { date, predicted: adjusted, isWeekend };
+    });
+
+    // Moving average for confidence band
+    const recentAvg = dailyRevenue.slice(-7).reduce((a, b) => a + b, 0) / 7;
+    const variance = dailyRevenue.slice(-7).reduce((a, b) => a + Math.pow(b - recentAvg, 2), 0) / 7;
+    const stdDev = Math.sqrt(variance);
+
+    const totalForecast = forecast.reduce((a, b) => a + b.predicted, 0);
+    const trend = slope > 50 ? "📈 Growing" : slope < -50 ? "📉 Declining" : "➡️ Stable";
+    const trendColor = slope > 50 ? "#22c55e" : slope < -50 ? "#ef4444" : "#f59e0b";
+
+    res.json({
+      historical: last30.map((date, i) => ({ date, revenue: dailyRevenue[i] })),
+      forecast,
+      totalForecast,
+      trend,
+      trendColor,
+      stdDev: Math.round(stdDev),
+      recentAvg: Math.round(recentAvg),
+      slope: Math.round(slope)
+    });
+  } catch(err) {
+    console.error("Forecast error:", err.message);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+/* =========================
    INVENTORY HEALTH SCORE
 ========================= */
 app.get("/admin/inventory-health", auth("admin"), async (req, res) => {

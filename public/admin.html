@@ -739,6 +739,20 @@
     <div class="stat-card"><div class="number" id="statTopProduct" style="color:var(--secondary,#a78bfa);font-size:1.1rem">-</div><div class="label">Best Seller</div></div>
   </div>
 
+<!-- REVENUE FORECAST CARD -->
+  <div class="card" style="margin-bottom:20px;background:linear-gradient(135deg,var(--bg-card),var(--bg-secondary))">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+      <h2 style="margin-bottom:0">🔮 Revenue Forecast — Next 7 Days</h2>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span id="forecastTrend" style="font-size:0.82rem;font-weight:700;padding:4px 12px;border-radius:20px;background:var(--success-bg);color:var(--success-text)">Loading...</span>
+        <span style="font-size:0.78rem;color:var(--text-muted)" id="forecastAvg"></span>
+      </div>
+    </div>
+    <canvas id="forecastChart" height="120"></canvas>
+    <div id="forecastCards" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:16px"></div>
+    <div id="forecastSummary" style="margin-top:14px;padding:12px;background:var(--bg-input);border-radius:10px;font-size:0.82rem;color:var(--text-secondary)"></div>
+  </div>
+
   <div class="row">
     <div class="card">
       <h2>📈 Revenue Over Time</h2>
@@ -2158,6 +2172,7 @@ let revenueChart, ordersChart, bestSellersChart, dayChart;
 
 async function loadAnalytics() {
   try {
+    loadRevenueForecast();
     const res = await fetch("/admin/analytics", { headers: { Authorization: token } });
     if (!res.ok) return;
     const data = await res.json();
@@ -2826,6 +2841,117 @@ async function toggle2FA() {
     if (toggleEl) toggleEl.innerText = data.enabled ? "✅" : "⬜";
     showToast(data.message);
   } catch(err) { showToast("Failed to update 2FA", "error"); }
+}
+
+/* ===== REVENUE FORECASTING ===== */
+let forecastChart;
+
+async function loadRevenueForecast() {
+  try {
+    const res = await fetch("/admin/revenue-forecast", { headers: { Authorization: token } });
+    const data = await res.json();
+
+    if (!data.forecast?.length) {
+      document.getElementById("forecastSummary").innerText = "Not enough order data yet. Place some orders to see forecasts!";
+      return;
+    }
+
+    // Update trend badge
+    const trendEl = document.getElementById("forecastTrend");
+    trendEl.innerText = data.trend;
+    trendEl.style.background = data.trendColor + "20";
+    trendEl.style.color = data.trendColor;
+
+    document.getElementById("forecastAvg").innerText = `Avg daily: ₹${data.recentAvg.toLocaleString("en-IN")}`;
+
+    const isDark = document.documentElement.getAttribute("data-theme") !== "light";
+    const gridColor = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)";
+    const tickColor = "#94a3b8";
+
+    // Combined chart — historical + forecast
+    const allLabels = [
+      ...data.historical.slice(-14).map(d => d.date),
+      ...data.forecast.map(d => d.date)
+    ];
+    const historicalData = [
+      ...data.historical.slice(-14).map(d => d.revenue),
+      ...Array(7).fill(null)
+    ];
+    const forecastData = [
+      ...Array(14).fill(null),
+      ...data.forecast.map(d => d.predicted)
+    ];
+
+    if (forecastChart) forecastChart.destroy();
+    forecastChart = new Chart(document.getElementById("forecastChart").getContext("2d"), {
+      type: "line",
+      data: {
+        labels: allLabels,
+        datasets: [
+          {
+            label: "Actual Revenue",
+            data: historicalData,
+            borderColor: "#6366f1",
+            backgroundColor: "rgba(99,102,241,0.1)",
+            fill: true, tension: 0.4, borderWidth: 2,
+            pointRadius: 3, pointBackgroundColor: "#6366f1"
+          },
+          {
+            label: "Predicted Revenue",
+            data: forecastData,
+            borderColor: "#22c55e",
+            backgroundColor: "rgba(34,197,94,0.1)",
+            fill: true, tension: 0.4, borderWidth: 2,
+            borderDash: [6, 3],
+            pointRadius: 4, pointBackgroundColor: "#22c55e",
+            pointStyle: "star"
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            display: true,
+            labels: { color: tickColor, usePointStyle: true, font: { size: 11 } }
+          },
+          tooltip: {
+            callbacks: {
+              label: ctx => `₹${(ctx.parsed.y || 0).toLocaleString("en-IN")}`
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { color: tickColor, callback: v => `₹${v.toLocaleString("en-IN")}` },
+            grid: { color: gridColor }
+          },
+          x: { ticks: { color: tickColor, maxRotation: 45 }, grid: { display: false } }
+        }
+      }
+    });
+
+    // Day-by-day forecast cards
+    document.getElementById("forecastCards").innerHTML = data.forecast.map(d => `
+      <div style="background:${d.isWeekend ? 'rgba(34,197,94,0.1)' : 'var(--bg-input)'};
+        border:1px solid ${d.isWeekend ? 'var(--success)' : 'var(--border-color)'};
+        border-radius:10px;padding:8px;text-align:center">
+        <div style="font-size:0.65rem;color:var(--text-muted);margin-bottom:2px">${d.date}</div>
+        <div style="font-size:0.82rem;font-weight:800;color:${d.isWeekend ? 'var(--success)' : 'var(--accent)'}">
+          ₹${d.predicted.toLocaleString("en-IN")}
+        </div>
+        ${d.isWeekend ? `<div style="font-size:0.6rem;color:var(--success-text);margin-top:2px">Weekend 🔥</div>` : ""}
+      </div>`).join("");
+
+    // Summary
+    document.getElementById("forecastSummary").innerHTML = `
+      📊 <strong>7-Day Forecast:</strong> ₹${data.totalForecast.toLocaleString("en-IN")} total predicted revenue &nbsp;|&nbsp;
+      📈 <strong>Trend:</strong> ${data.slope > 0 ? `+₹${data.slope}` : `₹${data.slope}`}/day &nbsp;|&nbsp;
+      📉 <strong>Volatility:</strong> ±₹${data.stdDev.toLocaleString("en-IN")}/day
+    `;
+
+  } catch(err) { console.error("Forecast error:", err); }
 }
 
 /* ===== LIVE SECURITY DASHBOARD ===== */
