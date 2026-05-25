@@ -412,6 +412,20 @@
         <div class="stat-card"><div class="number" id="statHealthy" style="color:var(--success)">-</div><div class="label">Healthy</div></div>
         <div class="stat-card"><div class="number" id="statAgents" style="color:var(--accent)">18</div><div class="label">Active Agents</div></div>
       </div>
+      <!-- PERFORMANCE SCORE WIDGET -->
+      <div class="card" id="performanceWidget" style="background:linear-gradient(135deg,var(--bg-card),var(--bg-secondary));margin-bottom:0">
+        <h2>🏆 Store Performance Score</h2>
+        <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap">
+          <div style="text-align:center;min-width:100px">
+            <div id="perfGrade" style="font-size:4rem;font-weight:900;line-height:1">—</div>
+            <div id="perfScore" style="font-size:0.85rem;color:var(--text-muted);margin-top:4px">Loading...</div>
+          </div>
+          <div style="flex:1;min-width:200px">
+            <div id="perfMetrics" style="display:flex;flex-direction:column;gap:8px"></div>
+          </div>
+        </div>
+        <div id="perfSuggestion" style="margin-top:14px;padding:10px 14px;background:var(--bg-input);border-radius:10px;font-size:0.82rem;color:var(--text-secondary)"></div>
+      </div>
       <div class="card">
         <h2>📈 Stock Overview</h2>
         <canvas id="stockChart" height="100"></canvas>
@@ -1290,6 +1304,7 @@ async function loadAdmin() {
     renderOverviewLogs(data.monitoring, data.forecasting);
     renderLogs(data.monitoring, "monitoringLogs", "monitoring");
     renderLogs(data.forecasting, "forecastingLogs", "forecasting");
+    loadPerformanceScore();
   } catch(err) { console.error("loadAdmin error:", err); }
 }
 
@@ -2106,6 +2121,103 @@ async function updateOrderStatus(orderId, status) {
     showToast(data.message + " 📧 Customer notified!");
     loadManageOrders();
   } catch(err) { showToast("Failed to update order", "error"); }
+}
+
+/* =========================
+   STORE PERFORMANCE SCORE
+========================= */
+app.get("/admin/performance-score", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const now = new Date();
+    const last30 = new Date(now - 30 * 24 * 60 * 60 * 1000);
+    const last7 = new Date(now - 7 * 24 * 60 * 60 * 1000);
+
+    const [orders, recentOrders, fraudOrders, agentLogs, items, ratings] = await Promise.all([
+      Order.find({ storeId, createdAt: { $gte: last30 } }),
+      Order.find({ storeId, createdAt: { $gte: last7 } }),
+      Order.find({ storeId, flaggedAsFraud: true, createdAt: { $gte: last30 } }),
+      AgentLog.find({ storeId, createdAt: { $gte: last7 } }),
+      Item.find({ storeId }),
+      Rating.find({ storeId })
+    ]);
+
+    const metrics = [];
+    let totalScore = 0;
+
+    // 1. Revenue Score (25pts)
+    const totalRevenue = orders.reduce((s, o) => s + (o.totalAmount || 0), 0);
+    const revenueScore = Math.min(25, Math.round((totalRevenue / 10000) * 25));
+    metrics.push({ label: "Revenue (30 days)", value: `₹${totalRevenue.toLocaleString("en-IN")}`, score: revenueScore, max: 25, color: "#22c55e" });
+    totalScore += revenueScore;
+
+    // 2. Order Volume Score (20pts)
+    const orderScore = Math.min(20, recentOrders.length * 2);
+    metrics.push({ label: "Orders (7 days)", value: `${recentOrders.length} orders`, score: orderScore, max: 20, color: "#6366f1" });
+    totalScore += orderScore;
+
+    // 3. Fraud Rate Score (20pts)
+    const fraudRate = orders.length > 0 ? (fraudOrders.length / orders.length) * 100 : 0;
+    const fraudScore = Math.max(0, 20 - Math.round(fraudRate * 4));
+    metrics.push({ label: "Fraud Rate", value: `${fraudRate.toFixed(1)}%`, score: fraudScore, max: 20, color: "#ef4444" });
+    totalScore += fraudScore;
+
+    // 4. Agent Activity Score (20pts)
+    const agentScore = Math.min(20, Math.round(agentLogs.length / 5));
+    metrics.push({ label: "Agent Activity (7 days)", value: `${agentLogs.length} actions`, score: agentScore, max: 20, color: "#f59e0b" });
+    totalScore += agentScore;
+
+    // 5. Customer Satisfaction Score (15pts)
+    const avgRating = ratings.length > 0 ? ratings.reduce((s, r) => s + r.rating, 0) / ratings.length : 0;
+    const satScore = Math.round((avgRating / 5) * 15);
+    metrics.push({ label: "Customer Satisfaction", value: avgRating > 0 ? `${avgRating.toFixed(1)}⭐ avg` : "No ratings yet", score: satScore, max: 15, color: "#a78bfa" });
+    totalScore += satScore;
+
+    // Final grade
+    const grade = totalScore >= 90 ? "A+" : totalScore >= 80 ? "A" : totalScore >= 70 ? "B" : totalScore >= 55 ? "C" : totalScore >= 40 ? "D" : "F";
+    const gradeColor = totalScore >= 80 ? "#22c55e" : totalScore >= 60 ? "#f59e0b" : "#ef4444";
+    const suggestion =
+      totalScore >= 80 ? "🎉 Excellent store performance! Keep it up." :
+      totalScore >= 60 ? "👍 Good performance. Focus on increasing orders and reducing fraud." :
+      totalScore >= 40 ? "⚠️ Average performance. Check agent activity and customer satisfaction." :
+      "🚨 Poor performance. Review inventory, fraud flags, and agent alerts immediately.";
+
+    res.json({ totalScore, grade, gradeColor, suggestion, metrics });
+  } catch(err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* ===== STORE PERFORMANCE SCORE ===== */
+async function loadPerformanceScore() {
+  try {
+    const res = await fetch("/admin/performance-score", { headers: { Authorization: token } });
+    const data = await res.json();
+
+    const gradeEl = document.getElementById("perfGrade");
+    const scoreEl = document.getElementById("perfScore");
+    const metricsEl = document.getElementById("perfMetrics");
+    const suggEl = document.getElementById("perfSuggestion");
+
+    if (!gradeEl) return;
+
+    gradeEl.innerText = data.grade;
+    gradeEl.style.color = data.gradeColor;
+    scoreEl.innerText = `${data.totalScore}/100`;
+    scoreEl.style.color = data.gradeColor;
+
+    metricsEl.innerHTML = data.metrics.map(m => `
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:0.78rem;margin-bottom:3px">
+          <span style="color:var(--text-muted)">${m.label}</span>
+          <span style="color:var(--text-primary);font-weight:600">${m.value} <span style="color:var(--text-muted)">(${m.score}/${m.max})</span></span>
+        </div>
+        <div style="height:6px;background:var(--bg-tertiary);border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${Math.round((m.score/m.max)*100)}%;background:${m.color};border-radius:3px;transition:width 0.8s ease"></div>
+        </div>
+      </div>`).join("");
+
+    suggEl.innerText = data.suggestion;
+
+  } catch(err) { console.error("Performance score error:", err); }
 }
 
 /* ===== INVENTORY HEALTH SCORE ===== */
