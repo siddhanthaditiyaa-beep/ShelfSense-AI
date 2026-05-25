@@ -1237,6 +1237,71 @@ app.post("/verify-payment", auth("customer"), async (req, res) => {
 });
 
 /* =========================
+   SMART RECOMMENDATIONS
+========================= */
+app.get("/recommendations", auth("customer"), async (req, res) => {
+  try {
+    const { itemKey, storeId } = req.query;
+
+    // Get all orders for this store
+    const orders = await Order.find({ storeId: storeId || { $exists: true } }).limit(200);
+    if (orders.length < 3) return res.json([]);
+
+    // Build co-occurrence matrix
+    const coOccurrence = {};
+    orders.forEach(order => {
+      const keys = Object.keys(order.cart || {});
+      for (let i = 0; i < keys.length; i++) {
+        for (let j = 0; j < keys.length; j++) {
+          if (i === j) continue;
+          if (!coOccurrence[keys[i]]) coOccurrence[keys[i]] = {};
+          coOccurrence[keys[i]][keys[j]] = (coOccurrence[keys[i]][keys[j]] || 0) + 1;
+        }
+      }
+    });
+
+    // Get recommendations for this item
+    let recommendations = [];
+    if (itemKey && coOccurrence[itemKey]) {
+      recommendations = Object.entries(coOccurrence[itemKey])
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 4)
+        .map(([key]) => key);
+    } else {
+      // General recommendations — most popular items
+      const popularity = {};
+      orders.forEach(order => {
+        Object.keys(order.cart || {}).forEach(key => {
+          popularity[key] = (popularity[key] || 0) + 1;
+        });
+      });
+      recommendations = Object.entries(popularity)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 4)
+        .map(([key]) => key);
+    }
+
+    // Get item details
+    const query = storeId ? { storeId, key: { $in: recommendations } } : { key: { $in: recommendations } };
+    const items = await Item.find(query);
+    const result = recommendations
+      .filter(key => itemKey ? key !== itemKey : true)
+      .map(key => {
+        const item = items.find(i => i.key === key);
+        if (!item) return null;
+        return {
+          key: item.key, name: item.name, price: item.price,
+          onSale: item.onSale, salePrice: item.salePrice,
+          stock: item.stock, avgRating: item.avgRating || 0,
+          category: item.category || "general"
+        };
+      }).filter(Boolean);
+
+    res.json(result);
+  } catch(err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* =========================
    CUSTOMER ANALYTICS
 ========================= */
 app.get("/customer/analytics", auth("customer"), async (req, res) => {

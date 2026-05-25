@@ -567,6 +567,40 @@
   font-size: 0.82rem; color: var(--text-muted);
   margin-bottom: 14px; font-weight: 500;
 }
+.recommendations-section {
+  margin-bottom: 24px;
+  display: none;
+}
+.recommendations-section.visible { display: block; }
+.rec-section-title {
+  font-size: 0.95rem; font-weight: 700; color: var(--text-primary);
+  margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+}
+.rec-scroll {
+  display: flex; gap: 12px; overflow-x: auto;
+  padding-bottom: 8px; scrollbar-width: thin;
+}
+.rec-scroll::-webkit-scrollbar { height: 4px; }
+.rec-scroll::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
+.rec-product-card {
+  min-width: 150px; max-width: 150px;
+  background: var(--bg-card); border: 1px solid var(--border-color);
+  border-radius: 14px; overflow: hidden; cursor: pointer;
+  transition: all 0.3s; flex-shrink: 0;
+}
+.rec-product-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: var(--accent); }
+.rec-product-emoji { background: var(--accent-light); padding: 16px; text-align: center; font-size: 2rem; }
+.rec-product-info { padding: 10px; }
+.rec-product-name { font-size: 0.8rem; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+.rec-product-price { font-size: 0.85rem; font-weight: 700; color: var(--accent); margin-bottom: 6px; }
+.rec-product-btn {
+  width: 100%; padding: 6px; border-radius: 6px;
+  background: var(--accent); color: white; border: none;
+  font-size: 0.72rem; font-weight: 600; cursor: pointer;
+  transition: all 0.2s;
+}
+.rec-product-btn:hover { background: var(--accent-hover); }
+.rec-product-btn:disabled { background: var(--bg-tertiary); color: var(--text-muted); cursor: not-allowed; }
  </style>
 </head>
 <body>
@@ -637,6 +671,14 @@
   <div class="recommended-section" id="recommendedSection">
     <div class="section-title">⭐ Recommended for You</div>
     <div class="recommended-scroll" id="recommendedScroll"></div>
+  </div>
+  <!-- SMART RECOMMENDATIONS -->
+  <div class="recommendations-section" id="recommendationsSection">
+    <div class="rec-section-title">
+      <span>🤖</span> Recommended For You
+      <span style="font-size:0.72rem;color:var(--text-muted);font-weight:400;margin-left:4px">based on popular purchases</span>
+    </div>
+    <div class="rec-scroll" id="recommendationsScroll"></div>
   </div>
 <!-- ADVANCED FILTERS -->
   <div class="filter-section">
@@ -1740,6 +1782,52 @@ async function loadCustomerAnalytics() {
   } catch(err) { console.error("Customer analytics error:", err); }
 }
 
+/* ===== SMART RECOMMENDATIONS ===== */
+async function loadRecommendations(itemKey = null) {
+  try {
+    const storeId = Object.values(allProducts)[0]?.storeId || "";
+    let url = `/recommendations?`;
+    if (itemKey) url += `itemKey=${itemKey}&`;
+
+    const res = await fetch(url, { headers: { Authorization: token } });
+    const items = await res.json();
+
+    const section = document.getElementById("recommendationsSection");
+    const scroll = document.getElementById("recommendationsScroll");
+
+    if (!items.length) { section.classList.remove("visible"); return; }
+
+    section.classList.add("visible");
+    scroll.innerHTML = items.map(item => `
+      <div class="rec-product-card" onclick="openProductModal('${item.key}')">
+        <div class="rec-product-emoji">${EMOJIS[item.key] || EMOJIS.default}</div>
+        <div class="rec-product-info">
+          <div class="rec-product-name">${item.name}</div>
+          <div class="rec-product-price">
+            ${item.onSale
+              ? `<span style="text-decoration:line-through;color:var(--text-muted);font-size:0.72rem">₹${item.price}</span>
+                 <span style="color:var(--danger)"> ₹${item.salePrice}</span>`
+              : `₹${item.price}`}
+          </div>
+          ${item.avgRating > 0 ? `<div style="font-size:0.7rem;color:var(--warning);margin-bottom:6px">${"★".repeat(Math.round(item.avgRating))} ${item.avgRating.toFixed(1)}</div>` : ""}
+          <button class="rec-product-btn"
+            onclick="event.stopPropagation(); addToCart('${item.key}', '${item.name}')"
+            ${item.stock === 0 ? "disabled" : ""}>
+            ${item.stock === 0 ? "Out of Stock" : "🛒 Add"}
+          </button>
+        </div>
+      </div>`).join("");
+
+  } catch(err) { console.error("Recommendations error:", err); }
+}
+
+// Load recommendations when product modal opens
+const _originalOpenProductModal = openProductModal;
+openProductModal = function(key) {
+  _originalOpenProductModal(key);
+  loadRecommendations(key);
+};
+
 /* ===== LOYALTY POINTS ===== */
 async function loadLoyalty() {
   try {
@@ -1796,6 +1884,7 @@ async function loadLoyalty() {
 loadProducts();
 renderWishlist();
 loadCustomer2FAStatus();
+loadRecommendations();
 setInterval(async () => {
   try {
     const [pRes, rRes] = await Promise.all([
