@@ -322,6 +322,17 @@
   transition: all 0.2s; background: var(--bg-input); margin-bottom: 14px;
 }
 .bulk-upload-area:hover { border-color: var(--accent); background: var(--accent-light); }
+.heatmap-cell {
+  width: 36px; height: 36px; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.65rem; font-weight: 600; cursor: default;
+  transition: transform 0.15s; color: white; flex-shrink: 0;
+}
+.heatmap-cell:hover { transform: scale(1.2); z-index: 10; position: relative; }
+.heatmap-row { display: flex; align-items: center; gap: 4px; margin-bottom: 4px; }
+.heatmap-label { font-size: 0.72rem; color: var(--text-muted); width: 80px; flex-shrink: 0; font-weight: 600; }
+.heatmap-hour-labels { display: flex; gap: 4px; margin-left: 84px; margin-bottom: 4px; flex-wrap: nowrap; }
+.heatmap-hour-label { width: 36px; text-align: center; font-size: 0.6rem; color: var(--text-muted); flex-shrink: 0; }
 .session-card {
   background: var(--bg-input); border: 1px solid var(--border-color);
   border-radius: 12px; padding: 16px; margin-bottom: 10px;
@@ -376,6 +387,7 @@
 <button class="sidebar-item" data-page="analytics" onclick="showPage('analytics', this)"><span class="sidebar-emoji">📊</span> Sales Analytics</button>
 <button class="sidebar-item" data-page="health" onclick="showPage('health', this)"><span class="sidebar-emoji">💊</span> Inventory Health</button>
 <button class="sidebar-item" data-page="coupons" onclick="showPage('coupons', this)"><span class="sidebar-emoji">🎟️</span> Coupons</button>
+<button class="sidebar-item" data-page="heatmap" onclick="showPage('heatmap', this)"><span class="sidebar-emoji">🔥</span> Demand Heatmap</button>
       <button class="sidebar-item" data-page="shelf-scan" onclick="showPage('shelf-scan', this)"><span class="sidebar-emoji">🔍</span> Shelf Scan</button>
       <button class="sidebar-item" data-page="planogram" onclick="showPage('planogram', this)"><span class="sidebar-emoji">🗺️</span> Planogram</button>
       <div class="sidebar-divider"></div>
@@ -497,6 +509,30 @@
         </div>
       </div>
     </div>
+
+<!-- DEMAND HEATMAP PAGE -->
+<div class="page" id="page-heatmap">
+  <div class="card">
+    <h2>🔥 Demand Heatmap — Orders by Hour & Day</h2>
+    <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:20px">
+      Darker color = more orders. Use this to stock shelves before peak hours.
+    </p>
+    <div id="heatmapSummary" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:20px"></div>
+    <div style="overflow-x:auto">
+      <div id="heatmapGrid"></div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="card">
+      <h2>📊 Orders by Hour of Day</h2>
+      <canvas id="hourlyChart" height="180"></canvas>
+    </div>
+    <div class="card">
+      <h2>📅 Orders by Day of Week</h2>
+      <canvas id="dailyChart" height="180"></canvas>
+    </div>
+  </div>
+</div>
 
 <!-- COUPONS PAGE -->
 <div class="page" id="page-coupons">
@@ -1192,6 +1228,7 @@ if (page === "agents") loadAgentDashboard();
 if (page === "analytics") loadAnalytics();
   if (page === "health") loadInventoryHealth();
   if (page === "coupons") loadCoupons();
+  if (page === "heatmap") loadDemandHeatmap();
   if (page === "sessions") loadSessions();
   if (page === "manage-orders") loadManageOrders();
   if (page === "orders") loadPurchaseOrders();
@@ -2262,6 +2299,48 @@ app.post("/validate-coupon", auth("customer"), async (req, res) => {
 });
 
 /* =========================
+   DEMAND HEATMAP
+========================= */
+app.get("/admin/demand-heatmap", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const orders = await Order.find({ storeId }).sort({ createdAt: -1 }).limit(500);
+
+    // Build 7x24 matrix (days x hours)
+    const matrix = Array.from({ length: 7 }, () => Array(24).fill(0));
+    const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+
+    orders.forEach(order => {
+      const d = new Date(order.createdAt);
+      const day = d.getDay();
+      const hour = d.getHours();
+      matrix[day][hour]++;
+    });
+
+    // Find peak hour and day
+    let peakValue = 0, peakDay = 0, peakHour = 0;
+    matrix.forEach((dayArr, d) => {
+      dayArr.forEach((count, h) => {
+        if (count > peakValue) { peakValue = count; peakDay = d; peakHour = h; }
+      });
+    });
+
+    // Hourly totals
+    const hourlyTotals = Array(24).fill(0);
+    matrix.forEach(dayArr => dayArr.forEach((count, h) => { hourlyTotals[h] += count; }));
+
+    // Daily totals
+    const dailyTotals = matrix.map(dayArr => dayArr.reduce((a, b) => a + b, 0));
+
+    res.json({
+      matrix, days, hourlyTotals, dailyTotals,
+      peakDay: days[peakDay], peakHour, peakValue,
+      totalOrders: orders.length
+    });
+  } catch(err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* =========================
    PDF ANALYTICS REPORT
 ========================= */
 app.get("/admin/export-pdf", auth("admin"), async (req, res) => {
@@ -2476,6 +2555,129 @@ app.get("/admin/performance-score", auth("admin"), async (req, res) => {
     res.json({ totalScore, grade, gradeColor, suggestion, metrics });
   } catch(err) { res.status(500).json({ message: "Server error" }); }
 });
+
+/* ===== DEMAND HEATMAP ===== */
+let hourlyChart, dailyChart;
+
+async function loadDemandHeatmap() {
+  try {
+    const res = await fetch("/admin/demand-heatmap", { headers: { Authorization: token } });
+    const data = await res.json();
+
+    // Summary cards
+    document.getElementById("heatmapSummary").innerHTML = `
+      <div style="background:var(--accent-light);border:1px solid var(--accent);border-radius:10px;padding:12px 18px">
+        <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:2px">⏰ Peak Hour</div>
+        <div style="font-size:1.2rem;font-weight:800;color:var(--accent)">${data.peakHour}:00 – ${data.peakHour+1}:00</div>
+      </div>
+      <div style="background:var(--success-bg);border:1px solid var(--success);border-radius:10px;padding:12px 18px">
+        <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:2px">📅 Peak Day</div>
+        <div style="font-size:1.2rem;font-weight:800;color:var(--success)">${data.peakDay}</div>
+      </div>
+      <div style="background:var(--warning-bg);border:1px solid var(--warning);border-radius:10px;padding:12px 18px">
+        <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:2px">📦 Peak Orders</div>
+        <div style="font-size:1.2rem;font-weight:800;color:var(--warning)">${data.peakValue} orders</div>
+      </div>
+      <div style="background:var(--bg-input);border:1px solid var(--border-color);border-radius:10px;padding:12px 18px">
+        <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:2px">🛍️ Total Orders</div>
+        <div style="font-size:1.2rem;font-weight:800;color:var(--text-primary)">${data.totalOrders}</div>
+      </div>
+    `;
+
+    // Build heatmap grid
+    const maxVal = Math.max(...data.matrix.flat(), 1);
+    const grid = document.getElementById("heatmapGrid");
+
+    // Hour labels
+    let hoursHtml = `<div class="heatmap-hour-labels">`;
+    for (let h = 0; h < 24; h++) {
+      hoursHtml += `<div class="heatmap-hour-label">${h}h</div>`;
+    }
+    hoursHtml += `</div>`;
+
+    // Day rows
+    let rowsHtml = "";
+    data.days.forEach((day, d) => {
+      rowsHtml += `<div class="heatmap-row"><div class="heatmap-label">${day.slice(0,3)}</div>`;
+      for (let h = 0; h < 24; h++) {
+        const count = data.matrix[d][h];
+        const intensity = count / maxVal;
+        const alpha = Math.max(0.08, intensity);
+        const bg = count === 0
+          ? "rgba(99,102,241,0.05)"
+          : `rgba(99,102,241,${alpha.toFixed(2)})`;
+        const textColor = intensity > 0.5 ? "white" : intensity > 0.2 ? "rgba(99,102,241,0.9)" : "transparent";
+        rowsHtml += `<div class="heatmap-cell" style="background:${bg};color:${textColor}" title="${day} ${h}:00 — ${count} orders">${count > 0 ? count : ""}</div>`;
+      }
+      rowsHtml += `</div>`;
+    });
+
+    grid.innerHTML = hoursHtml + rowsHtml;
+
+    // Color legend
+    grid.innerHTML += `
+      <div style="display:flex;align-items:center;gap:8px;margin-top:12px">
+        <span style="font-size:0.72rem;color:var(--text-muted)">Low</span>
+        ${[0.1,0.3,0.5,0.7,0.9].map(v => `<div style="width:24px;height:14px;border-radius:3px;background:rgba(99,102,241,${v})"></div>`).join("")}
+        <span style="font-size:0.72rem;color:var(--text-muted)">High</span>
+      </div>`;
+
+    // Hourly chart
+    const isDark = document.documentElement.getAttribute("data-theme") !== "light";
+    const gridColor = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)";
+    const tickColor = "#94a3b8";
+
+    if (hourlyChart) hourlyChart.destroy();
+    hourlyChart = new Chart(document.getElementById("hourlyChart").getContext("2d"), {
+      type: "bar",
+      data: {
+        labels: Array.from({length:24}, (_, i) => `${i}:00`),
+        datasets: [{
+          label: "Orders",
+          data: data.hourlyTotals,
+          backgroundColor: data.hourlyTotals.map((v, i) =>
+            i === data.peakHour ? "#6366f1" : "rgba(99,102,241,0.4)"
+          ),
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { color: tickColor }, grid: { color: gridColor } },
+          x: { ticks: { color: tickColor, maxRotation: 45 }, grid: { display: false } }
+        }
+      }
+    });
+
+    // Daily chart
+    if (dailyChart) dailyChart.destroy();
+    dailyChart = new Chart(document.getElementById("dailyChart").getContext("2d"), {
+      type: "bar",
+      data: {
+        labels: data.days.map(d => d.slice(0,3)),
+        datasets: [{
+          label: "Orders",
+          data: data.dailyTotals,
+          backgroundColor: data.dailyTotals.map((v, i) =>
+            i === data.days.indexOf(data.peakDay) ? "#22c55e" : "rgba(34,197,94,0.4)"
+          ),
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { color: tickColor }, grid: { color: gridColor } },
+          x: { ticks: { color: tickColor }, grid: { display: false } }
+        }
+      }
+    });
+
+  } catch(err) { console.error("Heatmap error:", err); }
+}
 
 /* ===== COUPON SYSTEM ===== */
 async function loadCoupons() {
