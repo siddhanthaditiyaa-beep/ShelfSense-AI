@@ -215,7 +215,48 @@
   cursor: pointer; transition: all 0.2s; margin-top: 8px;
 }
 .back-to-login-btn:hover { border-color: rgba(255,255,255,0.3); color: white; }
-  </style>
+ <script>
+/* ===== DEVICE FINGERPRINTING ===== */
+async function generateFingerprint() {
+  try {
+    const components = [
+      navigator.userAgent,
+      navigator.language,
+      navigator.platform,
+      screen.width + "x" + screen.height,
+      screen.colorDepth,
+      new Date().getTimezoneOffset(),
+      navigator.hardwareConcurrency || "unknown",
+      navigator.maxTouchPoints || 0,
+      window.devicePixelRatio || 1,
+      Intl.DateTimeFormat().resolvedOptions().timeZone
+    ];
+
+    // Canvas fingerprint
+    try {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      ctx.textBaseline = "top";
+      ctx.font = "14px Arial";
+      ctx.fillStyle = "#6366f1";
+      ctx.fillText("ShelfSense🧠", 2, 2);
+      components.push(canvas.toDataURL());
+    } catch(e) {}
+
+    // Hash the components
+    const str = components.join("|||");
+    const encoder = new TextEncoder();
+    const data = encoder.encode(str);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hash = hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+    return hash.substring(0, 32);
+  } catch(err) {
+    return "fp-" + Math.random().toString(36).substring(2, 18);
+  }
+}
+</script>
+ </style>
 </head>
 <body>
 
@@ -501,9 +542,10 @@ let otpTimerInterval = null;
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span>Logging in...';
     try {
-    const res = await fetch("/login-store", {
+    const fingerprint = await generateFingerprint();
+      const res = await fetch("/login-store", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, website: document.querySelector('input[name="website"]')?.value || "" })
+        body: JSON.stringify({ email, password, website: document.querySelector('input[name="website"]')?.value || "", fingerprint })
       });
       const data = await res.json();
   if (res.ok) {
@@ -543,9 +585,10 @@ let otpTimerInterval = null;
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span>Logging in...';
     try {
-     const res = await fetch("/login", {
+     const fingerprint = await generateFingerprint();
+      const res = await fetch("/login", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password, website: document.querySelector('#customerForm input[name="website"]')?.value || "" })
+        body: JSON.stringify({ username, password, website: document.querySelector('#customerForm input[name="website"]')?.value || "", fingerprint })
       });
       const data = await res.json();
       if (!res.ok) {

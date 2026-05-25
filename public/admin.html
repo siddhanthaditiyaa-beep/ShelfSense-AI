@@ -2885,7 +2885,10 @@ async function loadSessions() {
               ${s.isCurrent ? '<span class="badge badge-green" style="margin-left:8px;font-size:0.7rem">Current Session</span>' : ''}
             </h3>
             <p>🌐 IP: ${s.ip}</p>
-            <p>🕐 Logged in: ${new Date(s.createdAt).toLocaleString()}</p>
+          ${s.country ? `<p>📍 ${s.city || ""}, ${s.country}</p>` : ""}
+          ${s.fingerprint ? `<p>🔑 Device ID: <code style="font-size:0.72rem">${s.fingerprint.substring(0,16)}...</code></p>` : ""}
+          <p>🕐 Logged in: ${new Date(s.createdAt).toLocaleString()}</p>
+          ${s.isNewDevice ? `<span class="badge badge-yellow" style="margin-top:4px">🆕 New Device</span>` : ""}
           </div>
           ${!s.isCurrent ? `
             <button class="btn-danger btn-sm" onclick="revokeSession('${s._id}')">
