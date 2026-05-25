@@ -493,6 +493,7 @@
       <button class="sidebar-item" data-page="logs" onclick="showPage('logs', this)"><span class="sidebar-emoji">📝</span> Logs</button>
       <button class="sidebar-item" data-page="manage-orders" onclick="showPage('manage-orders', this)"><span class="sidebar-emoji">🧾</span> Orders</button>
       <button class="sidebar-item" data-page="sessions" onclick="showPage('sessions', this)"><span class="sidebar-emoji">🔑</span> Sessions</button>
+<button class="sidebar-item" data-page="security" onclick="showPage('security', this)"><span class="sidebar-emoji">🛡️</span> Security</button>
 <button class="sidebar-item" data-page="store-settings" onclick="showPage('store-settings', this)"><span class="sidebar-emoji">⚙️</span> Store Settings</button>
     </div>
     <div class="sidebar-bottom">
@@ -976,6 +977,58 @@
   </div>
 </div>
 
+<!-- LIVE SECURITY DASHBOARD -->
+<div class="page" id="page-security">
+
+  <!-- Security Score Card -->
+  <div class="card" style="background:linear-gradient(135deg,var(--bg-card),var(--bg-secondary));margin-bottom:20px">
+    <h2>🛡️ Security Overview</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:16px" id="securityStats">
+      <div style="background:var(--success-bg);border:1px solid var(--success);border-radius:12px;padding:16px;text-align:center">
+        <div style="font-size:1.8rem;font-weight:800;color:var(--success)" id="secStatAudit">—</div>
+        <div style="font-size:0.75rem;color:var(--success-text);margin-top:4px">Audit Events</div>
+      </div>
+      <div style="background:var(--danger-bg);border:1px solid var(--danger);border-radius:12px;padding:16px;text-align:center">
+        <div style="font-size:1.8rem;font-weight:800;color:var(--danger)" id="secStatFraud">—</div>
+        <div style="font-size:0.75rem;color:var(--danger-text);margin-top:4px">Fraud Flags</div>
+      </div>
+      <div style="background:var(--warning-bg);border:1px solid var(--warning);border-radius:12px;padding:16px;text-align:center">
+        <div style="font-size:1.8rem;font-weight:800;color:var(--warning)" id="secStatHoneypot">—</div>
+        <div style="font-size:0.75rem;color:var(--warning-text);margin-top:4px">Bot Attempts</div>
+      </div>
+      <div style="background:var(--accent-light);border:1px solid var(--accent);border-radius:12px;padding:16px;text-align:center">
+        <div style="font-size:1.8rem;font-weight:800;color:var(--accent)" id="secStatSessions">—</div>
+        <div style="font-size:0.75rem;color:var(--accent);margin-top:4px">Active Sessions</div>
+      </div>
+    </div>
+    <div id="securityScoreBar" style="background:var(--bg-input);border-radius:10px;padding:14px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:0.82rem;font-weight:700;color:var(--text-primary)">🔒 Security Score</span>
+        <span style="font-size:0.82rem;font-weight:700" id="secScoreText">Calculating...</span>
+      </div>
+      <div style="height:10px;background:var(--bg-tertiary);border-radius:5px;overflow:hidden">
+        <div id="secScoreFill" style="height:100%;border-radius:5px;transition:width 1s ease;width:0%"></div>
+      </div>
+      <div style="font-size:0.75rem;color:var(--text-muted);margin-top:6px" id="secScoreHint"></div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+    <button class="agent-filter active" id="secTab-audit" onclick="loadSecurityTab('audit', this)">📋 Audit Log</button>
+    <button class="agent-filter" id="secTab-fraud" onclick="loadSecurityTab('fraud', this)">🚨 Fraud Log</button>
+    <button class="agent-filter" id="secTab-security" onclick="loadSecurityTab('security', this)">⚠️ Security Events</button>
+  </div>
+
+  <!-- Log Content -->
+  <div class="card">
+    <div id="securityLogContent">
+      <div style="text-align:center;padding:40px;color:var(--text-muted)">⏳ Loading security data...</div>
+    </div>
+  </div>
+
+</div>
+
     <!-- STORE SETTINGS PAGE -->
     <div class="page" id="page-store-settings">
       <div class="card">
@@ -1353,6 +1406,7 @@ if (page === "analytics") loadAnalytics();
   if (page === "coupons") loadCoupons();
   if (page === "heatmap") loadDemandHeatmap();
   if (page === "sessions") loadSessions();
+  if (page === "security") loadSecurityDashboard();
   if (page === "manage-orders") loadManageOrders();
   if (page === "orders") loadPurchaseOrders();
   if (page === "store-settings") loadSettings();
@@ -2772,6 +2826,146 @@ async function toggle2FA() {
     if (toggleEl) toggleEl.innerText = data.enabled ? "✅" : "⬜";
     showToast(data.message);
   } catch(err) { showToast("Failed to update 2FA", "error"); }
+}
+
+/* ===== LIVE SECURITY DASHBOARD ===== */
+async function loadSecurityDashboard() {
+  try {
+    const [auditRes, fraudRes, secRes, sessionRes] = await Promise.all([
+      fetch("/admin/audit-logs", { headers: { Authorization: token } }),
+      fetch("/admin/fraud-logs", { headers: { Authorization: token } }),
+      fetch("/admin/security-logs", { headers: { Authorization: token } }),
+      fetch("/admin/sessions", { headers: { Authorization: token } })
+    ]);
+
+    const auditLogs = auditRes.ok ? await auditRes.json() : [];
+    const fraudLogs = fraudRes.ok ? await fraudRes.json() : [];
+    const secLogs = secRes.ok ? await secRes.json() : [];
+    const sessions = sessionRes.ok ? await sessionRes.json() : [];
+
+    // Stats
+    document.getElementById("secStatAudit").innerText = auditLogs.length;
+    document.getElementById("secStatFraud").innerText = fraudLogs.length;
+    document.getElementById("secStatHoneypot").innerText = secLogs.filter(l => l.type === "HONEYPOT_TRIGGERED").length;
+    document.getElementById("secStatSessions").innerText = sessions.filter(s => s.isActive).length;
+
+    // Security Score calculation
+    const fraudPenalty = Math.min(fraudLogs.length * 5, 40);
+    const honeypotPenalty = Math.min(secLogs.filter(l => l.type === "HONEYPOT_TRIGGERED").length * 2, 20);
+    const score = Math.max(0, 100 - fraudPenalty - honeypotPenalty);
+    const color = score >= 80 ? "#22c55e" : score >= 60 ? "#f59e0b" : "#ef4444";
+    const label = score >= 80 ? "🟢 Good — Store is secure" : score >= 60 ? "🟡 Moderate — Review fraud flags" : "🔴 At Risk — Immediate action needed";
+
+    document.getElementById("secScoreText").innerText = `${score}/100`;
+    document.getElementById("secScoreText").style.color = color;
+    document.getElementById("secScoreFill").style.width = score + "%";
+    document.getElementById("secScoreFill").style.background = color;
+    document.getElementById("secScoreHint").innerText = label;
+
+    // Default tab
+    loadSecurityTab("audit", document.getElementById("secTab-audit"));
+
+  } catch(err) { console.error("Security dashboard error:", err); }
+}
+
+async function loadSecurityTab(tab, btn) {
+  document.querySelectorAll("[id^='secTab-']").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+
+  const el = document.getElementById("securityLogContent");
+  el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted)">⏳ Loading...</div>`;
+
+  try {
+    if (tab === "audit") {
+      const res = await fetch("/admin/audit-logs", { headers: { Authorization: token } });
+      const logs = await res.json();
+      if (!logs.length) { el.innerHTML = `<p style="color:var(--text-muted);text-align:center;padding:20px">No audit logs yet</p>`; return; }
+
+      const actionColors = {
+        "LOGIN_SUCCESS": "#22c55e", "LOGIN_FAILED": "#ef4444",
+        "LOGOUT": "#94a3b8", "2FA_ENABLED": "#6366f1",
+        "COUPON_CREATED": "#f59e0b", "ORDER_STATUS_UPDATED": "#22d3ee",
+        "FRAUD_DETECTED": "#ef4444", "NEW_DEVICE_LOGIN": "#f59e0b",
+        "PASSWORD_RESET_SUCCESS": "#a78bfa", "HONEYPOT_LOGIN": "#ef4444"
+      };
+
+      el.innerHTML = `<div style="overflow-x:auto"><table>
+        <thead><tr><th>Action</th><th>User</th><th>Role</th><th>Status</th><th>IP</th><th>Time</th></tr></thead>
+        <tbody>${logs.slice(0,50).map(l => `
+          <tr>
+            <td>
+              <span style="background:${actionColors[l.action] || "#6366f1"}20;color:${actionColors[l.action] || "#6366f1"};padding:3px 8px;border-radius:6px;font-size:0.75rem;font-weight:600">
+                ${l.action}
+              </span>
+            </td>
+            <td style="font-size:0.8rem">${l.userEmail || "—"}</td>
+            <td><span class="badge badge-blue" style="font-size:0.72rem">${l.role || "—"}</span></td>
+            <td>
+              <span class="badge ${l.status === 'success' ? 'badge-green' : l.status === 'failed' ? 'badge-red' : 'badge-yellow'}" style="font-size:0.72rem">
+                ${l.status || "success"}
+              </span>
+            </td>
+            <td><code style="font-size:0.72rem">${l.ip || "—"}</code></td>
+            <td style="font-size:0.75rem;color:var(--text-muted)">${new Date(l.createdAt).toLocaleString("en-IN")}</td>
+          </tr>`).join("")}
+        </tbody>
+      </table></div>`;
+
+    } else if (tab === "fraud") {
+      const res = await fetch("/admin/fraud-logs", { headers: { Authorization: token } });
+      const logs = await res.json();
+      if (!logs.length) { el.innerHTML = `<p style="color:var(--text-muted);text-align:center;padding:20px">✅ No fraud attempts detected</p>`; return; }
+
+      el.innerHTML = logs.map(l => `
+        <div style="background:var(--danger-bg);border:1px solid var(--danger);border-radius:12px;padding:16px;margin-bottom:10px;border-left:4px solid var(--danger)">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+            <div>
+              <div style="font-size:0.875rem;font-weight:700;color:var(--danger-text)">🚨 ${l.reason}</div>
+              <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px">
+                👤 ${l.userEmail || "Unknown"} &nbsp;|&nbsp;
+                🌐 ${l.ip || "Unknown IP"} &nbsp;|&nbsp;
+                ${l.amount ? `₹${l.amount}` : ""}
+              </div>
+            </div>
+            <div style="font-size:0.75rem;color:var(--text-muted)">${new Date(l.createdAt).toLocaleString("en-IN")}</div>
+          </div>
+        </div>`).join("");
+
+    } else if (tab === "security") {
+      const res = await fetch("/admin/security-logs", { headers: { Authorization: token } });
+      const logs = await res.json();
+      if (!logs.length) { el.innerHTML = `<p style="color:var(--text-muted);text-align:center;padding:20px">✅ No security events recorded</p>`; return; }
+
+      const typeColors = {
+        "HONEYPOT_TRIGGERED": "#ef4444",
+        "RATE_LIMIT_HIT": "#f59e0b",
+        "SUSPICIOUS_IP": "#f97316"
+      };
+      const typeEmoji = {
+        "HONEYPOT_TRIGGERED": "🍯",
+        "RATE_LIMIT_HIT": "⏱️",
+        "SUSPICIOUS_IP": "🚨"
+      };
+
+      el.innerHTML = logs.map(l => `
+        <div style="background:var(--warning-bg);border:1px solid var(--warning);border-radius:12px;padding:14px;margin-bottom:8px;border-left:4px solid ${typeColors[l.type] || "var(--warning)"}">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+            <div>
+              <div style="font-size:0.875rem;font-weight:700;color:var(--text-primary)">
+                ${typeEmoji[l.type] || "⚠️"} ${l.type?.replace(/_/g, " ")}
+              </div>
+              <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px">${l.message}</div>
+              <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px">
+                🌐 IP: <code>${l.ip || "Unknown"}</code> &nbsp;|&nbsp;
+                📍 Path: ${l.path || "—"}
+              </div>
+            </div>
+            <div style="font-size:0.75rem;color:var(--text-muted)">${new Date(l.time).toLocaleString("en-IN")}</div>
+          </div>
+        </div>`).join("");
+    }
+
+  } catch(err) { el.innerHTML = `<p style="color:var(--danger-text)">Failed to load security data</p>`; }
 }
 
 /* ===== AI CHATBOT ===== */
