@@ -2532,6 +2532,93 @@ app.get("/admin/security-logs", auth("admin"), async (req, res) => {
 });
 
 /* =========================
+   BUNDLE DEALS
+========================= */
+const BUNDLE_DEALS = [
+  {
+    id: "snack-pack",
+    name: "🍿 Snack Attack Bundle",
+    description: "The ultimate snacking combo — chips, biscuits and chocolate!",
+    emoji: "🍿",
+    items: ["chips", "biscuits", "chocolates"],
+    discountPercent: 10,
+    badge: "Most Popular"
+  },
+  {
+    id: "beverage-pack",
+    name: "🥤 Refreshment Bundle",
+    description: "Stay refreshed all day with our drinks combo!",
+    emoji: "🥤",
+    items: ["juice", "soft-drinks"],
+    discountPercent: 12,
+    badge: "Best Value"
+  },
+  {
+    id: "pantry-pack",
+    name: "🍚 Pantry Essentials Bundle",
+    description: "Stock your pantry with daily essentials at a great price!",
+    emoji: "🍚",
+    items: ["rice", "salt", "canned-food"],
+    discountPercent: 8,
+    badge: "Daily Essential"
+  },
+  {
+    id: "party-pack",
+    name: "🎉 Party Bundle",
+    description: "Everything you need for the perfect party spread!",
+    emoji: "🎉",
+    items: ["chips", "juice", "soft-drinks", "chocolates"],
+    discountPercent: 15,
+    badge: "🔥 Best Deal"
+  }
+];
+
+app.get("/bundle-deals", auth("customer"), async (req, res) => {
+  try {
+    const storeId = req.query.storeId;
+    const query = storeId ? { storeId, key: { $in: BUNDLE_DEALS.flatMap(b => b.items) } } : { key: { $in: BUNDLE_DEALS.flatMap(b => b.items) } };
+    const items = await Item.find(query);
+    const itemMap = {};
+    items.forEach(i => { itemMap[i.key] = i; });
+
+    const bundles = BUNDLE_DEALS.map(bundle => {
+      const bundleItems = bundle.items.map(key => {
+        const item = itemMap[key];
+        if (!item) return null;
+        return {
+          key: item.key,
+          name: item.name,
+          price: item.onSale ? item.salePrice : item.price,
+          originalPrice: item.price,
+          stock: item.stock,
+          onSale: item.onSale
+        };
+      }).filter(Boolean);
+
+      if (!bundleItems.length) return null;
+
+      const totalOriginal = bundleItems.reduce((s, i) => s + i.originalPrice, 0);
+      const totalDiscounted = Math.round(totalOriginal * (1 - bundle.discountPercent / 100));
+      const savings = totalOriginal - totalDiscounted;
+      const available = bundleItems.every(i => i.stock > 0);
+
+      return {
+        ...bundle,
+        items: bundleItems,
+        totalOriginal,
+        totalDiscounted,
+        savings,
+        available
+      };
+    }).filter(Boolean);
+
+    res.json(bundles);
+  } catch(err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+/* =========================
    NEARBY FRANCHISES
 ========================= */
 app.get("/nearby-franchises", auth("customer"), async (req, res) => {

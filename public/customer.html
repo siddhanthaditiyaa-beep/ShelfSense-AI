@@ -709,6 +709,60 @@
   background: linear-gradient(135deg, #ef4444, #dc2626) !important;
   animation: flashPulse 0.8s ease-in-out infinite !important;
 }
+.bundle-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+.bundle-card {
+  background: var(--bg-card); border: 1px solid var(--border-color);
+  border-radius: 20px; overflow: hidden; transition: all 0.3s;
+  animation: fadeInUp 0.4s ease both;
+}
+.bundle-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); border-color: var(--accent); }
+.bundle-card.unavailable { opacity: 0.6; }
+.bundle-header {
+  background: linear-gradient(135deg, var(--accent), var(--secondary, #a78bfa));
+  padding: 24px; text-align: center; position: relative;
+}
+.bundle-emoji { font-size: 3rem; margin-bottom: 8px; display: block; }
+.bundle-name { font-size: 1.05rem; font-weight: 800; color: white; margin-bottom: 4px; }
+.bundle-desc { font-size: 0.78rem; color: rgba(255,255,255,0.8); line-height: 1.4; }
+.bundle-badge {
+  position: absolute; top: 12px; right: 12px;
+  background: rgba(255,255,255,0.25); color: white;
+  padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700;
+}
+.bundle-body { padding: 18px; }
+.bundle-items { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.bundle-item-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 10px; background: var(--bg-input);
+  border-radius: 8px; font-size: 0.82rem;
+}
+.bundle-item-name { color: var(--text-primary); font-weight: 600; }
+.bundle-item-price { color: var(--accent); font-weight: 700; }
+.bundle-item-oos { color: var(--danger-text); font-size: 0.72rem; font-weight: 600; }
+.bundle-pricing {
+  background: var(--accent-light); border-radius: 12px;
+  padding: 14px; margin-bottom: 14px; text-align: center;
+}
+.bundle-original-price {
+  text-decoration: line-through; color: var(--text-muted);
+  font-size: 0.85rem; margin-bottom: 2px;
+}
+.bundle-final-price {
+  font-size: 1.5rem; font-weight: 800; color: var(--accent); margin-bottom: 4px;
+}
+.bundle-savings {
+  display: inline-block; background: var(--success-bg);
+  color: var(--success-text); padding: 3px 12px;
+  border-radius: 20px; font-size: 0.75rem; font-weight: 700;
+}
+.bundle-add-btn {
+  width: 100%; padding: 12px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), #a78bfa);
+  color: white; font-weight: 700; font-size: 0.9rem;
+  border: none; cursor: pointer; transition: all 0.2s;
+}
+.bundle-add-btn:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(99,102,241,0.4); }
+.bundle-add-btn:disabled { background: var(--bg-tertiary); color: var(--text-muted); cursor: not-allowed; transform: none; box-shadow: none; }
 </style>
 </head>
 <body>
@@ -778,6 +832,7 @@
   <button class="main-tab" data-tab="loyalty" onclick="showMainTab('loyalty', this)" id="tab-loyalty">⭐ Loyalty</button>
   <button class="main-tab" data-tab="analytics" onclick="showMainTab('analytics', this)" id="tab-analytics">📊 My Analytics</button>
   <button class="main-tab" data-tab="referral" onclick="showMainTab('referral', this)" id="tab-referral">🎁 Refer & Earn</button>
+  <button class="main-tab" data-tab="bundles" onclick="showMainTab('bundles', this)" id="tab-bundles">🛍️ Bundles</button>
 </div>
 
 <!-- SHOP PAGE -->
@@ -1041,6 +1096,28 @@
       <div id="productBreakdownList"></div>
     </div>
 
+  </div>
+</div>
+
+<!-- BUNDLE DEALS PAGE -->
+<div class="page" id="page-bundles">
+  <div style="text-align:center;margin-bottom:28px">
+    <div style="font-size:2.5rem;margin-bottom:8px">🛍️</div>
+    <h2 style="font-size:1.4rem;font-weight:800;color:var(--text-primary);margin-bottom:6px">Bundle Deals</h2>
+    <p style="color:var(--text-muted);font-size:0.9rem">Buy more, save more! Curated combos at special prices.</p>
+  </div>
+
+  <!-- Savings Banner -->
+  <div style="background:linear-gradient(135deg,#f59e0b20,#ef444420);border:1px solid #f59e0b40;border-radius:14px;padding:14px 20px;margin-bottom:24px;display:flex;align-items:center;gap:12px">
+    <span style="font-size:1.8rem">💡</span>
+    <div>
+      <div style="font-size:0.875rem;font-weight:700;color:var(--text-primary)">How Bundle Deals Work</div>
+      <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px">Add all items in a bundle to your cart at once and save up to 15%! Discount applied automatically.</div>
+    </div>
+  </div>
+
+  <div class="bundle-grid" id="bundleGrid">
+    <div class="loading" style="grid-column:1/-1"><span class="loading-spinner">⏳</span> Loading bundles...</div>
   </div>
 </div>
 
@@ -1315,6 +1392,7 @@ if (tab === "orders") loadOrders();
   if (tab === "loyalty") loadLoyalty();
   if (tab === "analytics") loadCustomerAnalytics();
   if (tab === "referral") loadReferral();
+  if (tab === "bundles") loadBundles();
 }
 
 /* ===== CART TABS ===== */
@@ -2481,6 +2559,79 @@ function startCountdowns() {
 
     }, 1000);
   });
+}
+
+/* ===== BUNDLE DEALS ===== */
+async function loadBundles() {
+  const grid = document.getElementById("bundleGrid");
+  try {
+    const res = await fetch("/bundle-deals", { headers: { Authorization: token } });
+    const bundles = await res.json();
+
+    if (!bundles.length) {
+      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><span class="empty-icon">🛍️</span><p>No bundles available right now</p></div>`;
+      return;
+    }
+
+    const gradients = [
+      "linear-gradient(135deg, #6366f1, #a78bfa)",
+      "linear-gradient(135deg, #22c55e, #22d3ee)",
+      "linear-gradient(135deg, #f59e0b, #ef4444)",
+      "linear-gradient(135deg, #ec4899, #a855f7)"
+    ];
+
+    grid.innerHTML = bundles.map((bundle, idx) => `
+      <div class="bundle-card ${!bundle.available ? 'unavailable' : ''}" style="animation-delay:${idx * 0.1}s">
+        <div class="bundle-header" style="background:${gradients[idx % gradients.length]}">
+          <span class="bundle-emoji">${bundle.emoji}</span>
+          <div class="bundle-name">${bundle.name}</div>
+          <div class="bundle-desc">${bundle.description}</div>
+          <div class="bundle-badge">${bundle.badge}</div>
+        </div>
+        <div class="bundle-body">
+          <div class="bundle-items">
+            ${bundle.items.map(item => `
+              <div class="bundle-item-row">
+                <span class="bundle-item-name">${EMOJIS[item.key] || "🛍️"} ${item.name}</span>
+                <span class="${item.stock > 0 ? 'bundle-item-price' : 'bundle-item-oos'}">
+                  ${item.stock > 0 ? `₹${item.price}` : "Out of Stock"}
+                </span>
+              </div>`).join("")}
+          </div>
+          <div class="bundle-pricing">
+            <div class="bundle-original-price">Total without bundle: ₹${bundle.totalOriginal}</div>
+            <div class="bundle-final-price">₹${bundle.totalDiscounted}</div>
+            <span class="bundle-savings">🎉 You save ₹${bundle.savings} (${bundle.discountPercent}% off)</span>
+          </div>
+          <button class="bundle-add-btn" ${!bundle.available ? 'disabled' : ''}
+            onclick="addBundleToCart(${JSON.stringify(bundle.items.map(i => ({key: i.key, name: i.name}))).replace(/"/g, '&quot;')}, '${bundle.name}')">
+            ${bundle.available ? `🛒 Add Bundle to Cart` : '❌ Some items out of stock'}
+          </button>
+        </div>
+      </div>`).join("");
+
+  } catch(err) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><span class="empty-icon">❌</span><p>Failed to load bundles</p></div>`;
+  }
+}
+
+function addBundleToCart(items, bundleName) {
+  let addedCount = 0;
+  items.forEach(item => {
+    if (allProducts[item.key] && allProducts[item.key].stock > 0) {
+      if (!cart[item.key]) cart[item.key] = 0;
+      cart[item.key] += 1;
+      addedCount++;
+    }
+  });
+  if (addedCount > 0) {
+    renderProducts();
+    updateCartUI();
+    showToast(`🛍️ ${bundleName} added to cart! (${addedCount} items)`, "success");
+    toggleCart();
+  } else {
+    showToast("No items available to add", "warning");
+  }
 }
 
 /* ===== MULTI-LANGUAGE FUNCTIONS ===== */
