@@ -670,6 +670,19 @@
   background: var(--danger-bg) !important;
   color: var(--danger-text) !important;
 }
+.lang-switcher {
+  display: flex; align-items: center; gap: 4px;
+  background: var(--bg-card); border: 1px solid var(--border-color);
+  border-radius: 8px; padding: 3px; flex-shrink: 0;
+}
+.lang-btn {
+  padding: 4px 8px; border-radius: 6px; font-size: 0.72rem;
+  font-weight: 700; cursor: pointer; border: none;
+  background: transparent; color: var(--text-muted);
+  transition: all 0.2s;
+}
+.lang-btn.active { background: var(--accent); color: white; }
+.lang-btn:hover:not(.active) { color: var(--text-primary); background: var(--bg-tertiary); }
 </style>
 </head>
 <body>
@@ -686,6 +699,11 @@
     <button class="header-btn cart-btn" onclick="toggleCart()">
       🛒 Cart <div class="cart-count" id="cartCount">0</div>
     </button>
+    <div class="lang-switcher">
+      <button class="lang-btn active" id="lang-en" onclick="setLanguage('en')">EN</button>
+      <button class="lang-btn" id="lang-hi" onclick="setLanguage('hi')">हि</button>
+      <button class="lang-btn" id="lang-mr" onclick="setLanguage('mr')">म</button>
+    </div>
     <div class="customer-avatar" id="customerAvatar" onclick="toggleCustomerProfile()">P</div>
 
 <div class="cpp-overlay" id="cppOverlay" onclick="toggleCustomerProfile()"></div>
@@ -718,8 +736,8 @@
 <!-- HERO -->
 <div class="hero">
   <div class="hero-greeting" id="heroGreeting">Welcome back!</div>
-  <h1>Fresh Products Daily 🛍️</h1>
-  <p>Quality groceries, best prices</p>
+  <h1 id="txt-hero-title">Fresh Products Daily 🛍️</h1>
+  <p id="txt-hero-sub">Quality groceries, best prices</p>
   <div class="search-bar">
     <span class="search-icon">🔍</span>
     <input type="text" id="searchInput" placeholder="Search products..." oninput="filterProducts()">
@@ -728,18 +746,18 @@
 
 <!-- MAIN TABS -->
 <div class="main-tabs">
-  <button class="main-tab active" data-tab="shop" onclick="showMainTab('shop', this)">🏪 Shop</button>
-  <button class="main-tab" data-tab="wishlist" onclick="showMainTab('wishlist', this)">❤️ Wishlist</button>
-  <button class="main-tab" data-tab="orders" onclick="showMainTab('orders', this)">📦 Order History</button>
-  <button class="main-tab" data-tab="loyalty" onclick="showMainTab('loyalty', this)">⭐ Loyalty</button>
-  <button class="main-tab" data-tab="analytics" onclick="showMainTab('analytics', this)">📊 My Analytics</button>
-  <button class="main-tab" data-tab="referral" onclick="showMainTab('referral', this)">🎁 Refer & Earn</button>
+ <button class="main-tab active" data-tab="shop" onclick="showMainTab('shop', this)" id="tab-shop">🏪 Shop</button>
+  <button class="main-tab" data-tab="wishlist" onclick="showMainTab('wishlist', this)" id="tab-wishlist">❤️ Wishlist</button>
+  <button class="main-tab" data-tab="orders" onclick="showMainTab('orders', this)" id="tab-orders">📦 Order History</button>
+  <button class="main-tab" data-tab="loyalty" onclick="showMainTab('loyalty', this)" id="tab-loyalty">⭐ Loyalty</button>
+  <button class="main-tab" data-tab="analytics" onclick="showMainTab('analytics', this)" id="tab-analytics">📊 My Analytics</button>
+  <button class="main-tab" data-tab="referral" onclick="showMainTab('referral', this)" id="tab-referral">🎁 Refer & Earn</button>
 </div>
 
 <!-- SHOP PAGE -->
 <div class="page active" id="page-shop">
   <div class="recommended-section" id="recommendedSection">
-    <div class="section-title">⭐ Recommended for You</div>
+    <div class="section-title" id="txt-recommended">⭐ Recommended for You</div>
     <div class="recommended-scroll" id="recommendedScroll"></div>
   </div>
   <!-- SMART RECOMMENDATIONS -->
@@ -753,7 +771,7 @@
 <!-- ADVANCED FILTERS -->
   <div class="filter-section">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <span style="font-size:0.9rem;font-weight:700;color:var(--text-primary)">🔍 Filter Products</span>
+      <span style="font-size:0.9rem;font-weight:700;color:var(--text-primary)" id="txt-filter">🔍 Filter Products</span>
       <button onclick="clearAllFilters()" style="font-size:0.75rem;padding:4px 10px;background:var(--bg-tertiary);color:var(--text-muted);border:1px solid var(--border-color);border-radius:6px">Clear All</button>
     </div>
 
@@ -814,13 +832,13 @@
 
 <!-- WISHLIST PAGE -->
 <div class="page" id="page-wishlist">
-  <div class="section-title">❤️ Your Wishlist</div>
+  <div class="section-title" id="txt-wishlist-title">❤️ Your Wishlist</div>
   <div class="wishlist-grid" id="wishlistGrid"></div>
 </div>
 
 <!-- ORDER HISTORY PAGE -->
 <div class="page" id="page-orders">
-  <div class="section-title">📦 Your Order History</div>
+  <div class="section-title" id="txt-orders-title">📦 Your Order History</div>
   <div id="orderHistory"><div class="loading"><span class="loading-spinner">⏳</span></div></div>
 </div>
 
@@ -1058,8 +1076,8 @@
       </div>
       <div id="couponMsg" style="font-size:0.78rem;font-weight:600;display:none"></div>
     </div>
-    <button class="pay-btn" id="payBtn" onclick="initiatePayment()" disabled>💳 Pay with Razorpay</button>
-    <button class="checkout-btn" id="checkoutBtn" onclick="checkout()" disabled>Place Order (Free / Test)</button>
+   <button class="pay-btn" id="payBtn" onclick="initiatePayment()" disabled id="txt-pay-btn">💳 Pay with Razorpay</button>
+    <button class="checkout-btn" id="checkoutBtn" onclick="checkout()" disabled id="txt-checkout-btn">Place Order (Free / Test)</button>
   </div>
 </div>
 
@@ -1244,11 +1262,11 @@ function renderProducts() {
     const stockPct = Math.min((item.stock / 15) * 100, 100);
     const stockColor = item.stock === 0 ? "var(--danger)" : item.stock <= 3 ? "var(--warning)" : "var(--success)";
     const isWishlisted = wishlist.includes(key);
-    let badge = item.stock === 0
-      ? `<span class="stock-badge" style="background:var(--danger-bg);color:var(--danger-text)">❌ Out of Stock</span>`
+   let badge = item.stock === 0
+      ? `<span class="stock-badge" style="background:var(--danger-bg);color:var(--danger-text)">❌ ${t("out-of-stock")}</span>`
       : item.stock <= 3
-      ? `<span class="stock-badge" style="background:var(--warning-bg);color:var(--warning-text)">⚠️ Only ${item.stock} left!</span>`
-      : `<span class="stock-badge" style="background:var(--success-bg);color:var(--success-text)">✅ In Stock</span>`;
+      ? `<span class="stock-badge" style="background:var(--warning-bg);color:var(--warning-text)">⚠️ ${t("low-stock")} ${item.stock} ${t("low-stock-suffix")}</span>`
+      : `<span class="stock-badge" style="background:var(--success-bg);color:var(--success-text)">✅ ${t("in-stock")}</span>`;
     return `
       <div class="product-card ${item.stock === 0 ? 'out-of-stock' : ''} ${isWishlisted ? 'wishlisted' : ''}"
            style="animation-delay:${idx * 0.05}s" onclick="openProductModal('${key}')">
@@ -1283,20 +1301,20 @@ function renderProducts() {
             </div>
             <div class="btn-row">
               <button class="add-to-cart-btn" onclick="event.stopPropagation(); addToCart('${key}', '${item.name}')">
-                🛒 ${qty > 0 ? `Add ${qty}` : 'Add'}
+                🛒 ${qty > 0 ? `${t("add-to-cart")} ${qty}` : t("add-to-cart")}
               </button>
               <button class="buy-now-btn" onclick="event.stopPropagation(); buyNow('${key}', '${item.name}', ${item.stock})">
-                ⚡ Buy Now
+                ${t("buy-now")}
               </button>
             </div>
             <button class="compare-btn ${compareList.includes(key) ? 'added' : ''}"
               onclick="event.stopPropagation(); toggleCompare('${key}')">
-              ${compareList.includes(key) ? '✅ Added to Compare' : '⚖️ Compare'}
+              ${compareList.includes(key) ? t("compare-added") : t("compare")}
             </button>
           ` : `
             <div class="out-of-stock-notice">Currently unavailable</div>
-            <button class="find-nearby-btn" onclick="event.stopPropagation(); findNearby('${key}', '${item.name}')">
-              📍 Find Nearby Store
+           <button class="find-nearby-btn" onclick="event.stopPropagation(); findNearby('${key}', '${item.name}')">
+              ${t("find-nearby")}
             </button>
           `}
         </div>
@@ -2261,11 +2279,190 @@ async function loadLoyalty() {
   } catch(err) { console.error("Loyalty error:", err); }
 }
 
+/* ===== MULTI-LANGUAGE SUPPORT ===== */
+const TRANSLATIONS = {
+  en: {
+    "hero-title": "Fresh Products Daily 🛍️",
+    "hero-sub": "Quality groceries, best prices",
+    "tab-shop": "🏪 Shop",
+    "tab-wishlist": "❤️ Wishlist",
+    "tab-orders": "📦 Order History",
+    "tab-loyalty": "⭐ Loyalty",
+    "tab-analytics": "📊 My Analytics",
+    "tab-referral": "🎁 Refer & Earn",
+    "recommended": "⭐ Recommended for You",
+    "filter": "🔍 Filter Products",
+    "wishlist-title": "❤️ Your Wishlist",
+    "orders-title": "📦 Your Order History",
+    "search-placeholder": "Search products...",
+    "in-stock": "In Stock",
+    "out-of-stock": "Out of Stock",
+    "low-stock": "Only",
+    "low-stock-suffix": "left!",
+    "add-to-cart": "Add",
+    "buy-now": "⚡ Buy Now",
+    "find-nearby": "📍 Find Nearby Store",
+    "compare": "⚖️ Compare",
+    "compare-added": "✅ Added to Compare",
+    "cart-empty": "Your cart is empty",
+    "pay-btn": "💳 Pay with Razorpay",
+    "checkout-btn": "Place Order (Free / Test)",
+    "loyalty-points": "Loyalty Points",
+    "refer-earn": "Refer & Earn",
+    "copy-link": "📋 Copy Link",
+    "share-whatsapp": "📲 Share on WhatsApp",
+    "greeting-morning": "Good morning",
+    "greeting-afternoon": "Good afternoon",
+    "greeting-evening": "Good evening"
+  },
+  hi: {
+    "hero-title": "ताज़े उत्पाद हर दिन 🛍️",
+    "hero-sub": "गुणवत्तापूर्ण किराना, सबसे अच्छे दाम",
+    "tab-shop": "🏪 दुकान",
+    "tab-wishlist": "❤️ इच्छा सूची",
+    "tab-orders": "📦 ऑर्डर इतिहास",
+    "tab-loyalty": "⭐ लॉयल्टी",
+    "tab-analytics": "📊 मेरा विश्लेषण",
+    "tab-referral": "🎁 रेफर करें और कमाएं",
+    "recommended": "⭐ आपके लिए अनुशंसित",
+    "filter": "🔍 उत्पाद फ़िल्टर करें",
+    "wishlist-title": "❤️ आपकी इच्छा सूची",
+    "orders-title": "📦 आपका ऑर्डर इतिहास",
+    "search-placeholder": "उत्पाद खोजें...",
+    "in-stock": "स्टॉक में है",
+    "out-of-stock": "स्टॉक में नहीं",
+    "low-stock": "केवल",
+    "low-stock-suffix": "बचे हैं!",
+    "add-to-cart": "जोड़ें",
+    "buy-now": "⚡ अभी खरीदें",
+    "find-nearby": "📍 नज़दीकी स्टोर खोजें",
+    "compare": "⚖️ तुलना करें",
+    "compare-added": "✅ तुलना में जोड़ा",
+    "cart-empty": "आपकी कार्ट खाली है",
+    "pay-btn": "💳 Razorpay से भुगतान करें",
+    "checkout-btn": "ऑर्डर दें (निःशुल्क / परीक्षण)",
+    "loyalty-points": "लॉयल्टी पॉइंट्स",
+    "refer-earn": "रेफर करें और कमाएं",
+    "copy-link": "📋 लिंक कॉपी करें",
+    "share-whatsapp": "📲 WhatsApp पर शेयर करें",
+    "greeting-morning": "सुप्रभात",
+    "greeting-afternoon": "नमस्कार",
+    "greeting-evening": "शुभ संध्या"
+  },
+  mr: {
+    "hero-title": "दररोज ताजे उत्पादन 🛍️",
+    "hero-sub": "दर्जेदार किराणा, सर्वोत्तम किमती",
+    "tab-shop": "🏪 दुकान",
+    "tab-wishlist": "❤️ इच्छा यादी",
+    "tab-orders": "📦 ऑर्डर इतिहास",
+    "tab-loyalty": "⭐ लॉयल्टी",
+    "tab-analytics": "📊 माझे विश्लेषण",
+    "tab-referral": "🎁 रेफर करा आणि कमवा",
+    "recommended": "⭐ तुमच्यासाठी शिफारस केलेले",
+    "filter": "🔍 उत्पादने फिल्टर करा",
+    "wishlist-title": "❤️ तुमची इच्छा यादी",
+    "orders-title": "📦 तुमचा ऑर्डर इतिहास",
+    "search-placeholder": "उत्पादने शोधा...",
+    "in-stock": "स्टॉकमध्ये आहे",
+    "out-of-stock": "स्टॉकमध्ये नाही",
+    "low-stock": "फक्त",
+    "low-stock-suffix": "शिल्लक!",
+    "add-to-cart": "जोडा",
+    "buy-now": "⚡ आत्ता खरेदी करा",
+    "find-nearby": "📍 जवळचे स्टोर शोधा",
+    "compare": "⚖️ तुलना करा",
+    "compare-added": "✅ तुलनेत जोडले",
+    "cart-empty": "तुमची कार्ट रिकामी आहे",
+    "pay-btn": "💳 Razorpay ने पेमेंट करा",
+    "checkout-btn": "ऑर्डर द्या (विनामूल्य / चाचणी)",
+    "loyalty-points": "लॉयल्टी पॉइंट्स",
+    "refer-earn": "रेफर करा आणि कमवा",
+    "copy-link": "📋 लिंक कॉपी करा",
+    "share-whatsapp": "📲 WhatsApp वर शेअर करा",
+    "greeting-morning": "सुप्रभात",
+    "greeting-afternoon": "नमस्कार",
+    "greeting-evening": "शुभ संध्याकाळ"
+  }
+};
+
+let currentLanguage = localStorage.getItem("shelfsense-lang") || "en";
+
+function setLanguage(lang) {
+  currentLanguage = lang;
+  localStorage.setItem("shelfsense-lang", lang);
+
+  // Update active button
+  ["en","hi","mr"].forEach(l => {
+    const btn = document.getElementById(`lang-${l}`);
+    if (btn) btn.classList.toggle("active", l === lang);
+  });
+
+  const t = TRANSLATIONS[lang];
+  if (!t) return;
+
+  // Update static text elements
+  const updates = {
+    "txt-hero-title": t["hero-title"],
+    "txt-hero-sub": t["hero-sub"],
+    "tab-shop": t["tab-shop"],
+    "tab-wishlist": t["tab-wishlist"],
+    "tab-orders": t["tab-orders"],
+    "tab-loyalty": t["tab-loyalty"],
+    "tab-analytics": t["tab-analytics"],
+    "tab-referral": t["tab-referral"],
+    "txt-recommended": t["recommended"],
+    "txt-filter": t["filter"],
+    "txt-wishlist-title": t["wishlist-title"],
+    "txt-orders-title": t["orders-title"]
+  };
+
+  Object.entries(updates).forEach(([id, text]) => {
+    const el = document.getElementById(id);
+    if (el) el.innerText = text;
+  });
+
+  // Update search placeholder
+  const searchEl = document.getElementById("searchInput");
+  if (searchEl) searchEl.placeholder = t["search-placeholder"];
+
+  // Update cart buttons
+  const payBtn = document.getElementById("payBtn");
+  if (payBtn) payBtn.innerText = t["pay-btn"];
+  const checkoutBtn = document.getElementById("checkoutBtn");
+  if (checkoutBtn) checkoutBtn.innerText = t["checkout-btn"];
+
+  // Update greeting
+  const hour = new Date().getHours();
+  const greetKey = hour < 12 ? "greeting-morning" : hour < 17 ? "greeting-afternoon" : "greeting-evening";
+  const greetEl = document.getElementById("heroGreeting");
+  if (greetEl) greetEl.innerText = `${t[greetKey]}, ${fname}! 👋`;
+
+  // Re-render products to update in-product text
+  renderProducts();
+
+  showToast(lang === "hi" ? "भाषा बदली ✅" : lang === "mr" ? "भाषा बदलली ✅" : "Language changed ✅");
+}
+
+// Apply saved language on load
+function applyLanguage() {
+  if (currentLanguage !== "en") setLanguage(currentLanguage);
+  else {
+    const btn = document.getElementById("lang-en");
+    if (btn) btn.classList.add("active");
+  }
+}
+
+// Helper to get translated text
+function t(key) {
+  return TRANSLATIONS[currentLanguage]?.[key] || TRANSLATIONS["en"][key] || key;
+}
+
 /* ===== INIT ===== */
 loadProducts();
 renderWishlist();
 loadCustomer2FAStatus();
 loadRecommendations();
+applyLanguage();
 setInterval(async () => {
   try {
     const [pRes, rRes] = await Promise.all([
