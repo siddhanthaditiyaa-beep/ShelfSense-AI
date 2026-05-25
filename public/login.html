@@ -53,7 +53,7 @@
     .login-header h1 {
       font-size: 2rem; font-weight: 800; margin-bottom: 8px;
       background: linear-gradient(135deg, #fff, var(--secondary));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
     }
     .login-header p { color: var(--text-muted); font-size: 0.95rem; }
     .login-card {
@@ -215,48 +215,7 @@
   cursor: pointer; transition: all 0.2s; margin-top: 8px;
 }
 .back-to-login-btn:hover { border-color: rgba(255,255,255,0.3); color: white; }
- <script>
-/* ===== DEVICE FINGERPRINTING ===== */
-async function generateFingerprint() {
-  try {
-    const components = [
-      navigator.userAgent,
-      navigator.language,
-      navigator.platform,
-      screen.width + "x" + screen.height,
-      screen.colorDepth,
-      new Date().getTimezoneOffset(),
-      navigator.hardwareConcurrency || "unknown",
-      navigator.maxTouchPoints || 0,
-      window.devicePixelRatio || 1,
-      Intl.DateTimeFormat().resolvedOptions().timeZone
-    ];
-
-    // Canvas fingerprint
-    try {
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      ctx.textBaseline = "top";
-      ctx.font = "14px Arial";
-      ctx.fillStyle = "#6366f1";
-      ctx.fillText("ShelfSense🧠", 2, 2);
-      components.push(canvas.toDataURL());
-    } catch(e) {}
-
-    // Hash the components
-    const str = components.join("|||");
-    const encoder = new TextEncoder();
-    const data = encoder.encode(str);
-    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hash = hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
-    return hash.substring(0, 32);
-  } catch(err) {
-    return "fp-" + Math.random().toString(36).substring(2, 18);
-  }
-}
-</script>
- </style>
+</style>
 </head>
 <body>
 
@@ -422,6 +381,41 @@ async function generateFingerprint() {
 </div>
 
 <script>
+  /* ===== DEVICE FINGERPRINTING ===== */
+async function generateFingerprint() {
+  try {
+    const components = [
+      navigator.userAgent,
+      navigator.language,
+      navigator.platform,
+      screen.width + "x" + screen.height,
+      screen.colorDepth,
+      new Date().getTimezoneOffset(),
+      navigator.hardwareConcurrency || "unknown",
+      navigator.maxTouchPoints || 0,
+      window.devicePixelRatio || 1,
+      Intl.DateTimeFormat().resolvedOptions().timeZone
+    ];
+    try {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      ctx.textBaseline = "top";
+      ctx.font = "14px Arial";
+      ctx.fillStyle = "#6366f1";
+      ctx.fillText("ShelfSense🧠", 2, 2);
+      components.push(canvas.toDataURL());
+    } catch(e) {}
+    const str = components.join("|||");
+    const encoder = new TextEncoder();
+    const data = encoder.encode(str);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hash = hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+    return hash.substring(0, 32);
+  } catch(err) {
+    return "fp-" + Math.random().toString(36).substring(2, 18);
+  }
+}
   const existingToken = localStorage.getItem("token");
   const existingRole = localStorage.getItem("role");
   if (existingToken && existingRole === "admin") window.location.href = "admin.html";
@@ -754,12 +748,6 @@ function goBackToLogin() {
     if (e.target === this) closeForgotPassword();
   });
 
-// Auto-fill referral code from URL
-const refParam = new URLSearchParams(window.location.search).get("ref");
-if (refParam) {
-  const refInput = document.getElementById("referralCode");
-  if (refInput) { refInput.value = refParam.toUpperCase(); }
-}
 
   document.addEventListener("keypress", (e) => {
     if (e.key === "Enter") {

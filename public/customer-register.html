@@ -47,7 +47,7 @@
     .header h1 {
       font-size: 2rem; font-weight: 800; margin-bottom: 8px;
       background: linear-gradient(135deg, #fff, var(--secondary));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
     }
     .header p { color: var(--text-muted); font-size: 0.95rem; }
     .card {
@@ -189,6 +189,21 @@
     <input type="password" id="confirmPassword" placeholder="Repeat your password">
   </div>
 </div>
+     <div class="form-group">
+        <label>Referral Code <span style="color:rgba(255,255,255,0.3);font-weight:400">(optional)</span></label>
+        <input type="text" id="referralCode" placeholder="Enter referral code for bonus points" style="text-transform:uppercase">
+        <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);margin-top:4px">Get +50 bonus loyalty points when you sign up with a referral code!</div>
+      </div>
+
+      <!-- Honeypot — hidden from real users, bots fill it -->
+      <input type="text" name="website" style="display:none" tabindex="-1" autocomplete="off">
+
+<div class="form-group">
+        <label>Referral Code <span style="color:rgba(255,255,255,0.3);font-weight:400">(optional)</span></label>
+        <input type="text" id="referralCode" placeholder="Enter referral code for bonus points" style="text-transform:uppercase">
+        <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);margin-top:4px">✨ Get +50 bonus loyalty points!</div>
+      </div>
+
       <button class="submit-btn" id="signupBtn" onclick="signup()">
         Create Account
       </button>
@@ -252,7 +267,7 @@
       const res = await fetch("/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fname, lname, email, password, referralCode: document.getElementById("referralCode")?.value?.trim() || null })
+        body: JSON.stringify({ fname, lname, email, password, referralCode: document.getElementById("referralCode")?.value?.trim() || null, website: document.querySelector('input[name="website"]')?.value || "" })
       });
       const data = await res.json();
 
@@ -280,6 +295,12 @@
   document.addEventListener("keypress", (e) => {
     if (e.key === "Enter") signup();
   });
+  // Auto-fill referral code from URL
+  const refParam = new URLSearchParams(window.location.search).get("ref");
+  if (refParam) {
+    const refInput = document.getElementById("referralCode");
+    if (refInput) refInput.value = refParam.toUpperCase();
+  }
   function signupWithGoogle() {
   window.location.href = "/auth/google?type=customer";
 }

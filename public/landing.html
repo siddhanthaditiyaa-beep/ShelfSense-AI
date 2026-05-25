@@ -51,12 +51,12 @@
     .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3); color: var(--secondary); padding: 6px 16px; border-radius: 20px; font-size: 0.82rem; font-weight: 600; margin-bottom: 24px; }
     .hero-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); animation: pulse 2s infinite; }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-    .hero h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); font-weight: 800; line-height: 1.1; margin-bottom: 20px; background: linear-gradient(135deg, #ffffff 0%, rgba(255,255,255,0.8) 50%, var(--secondary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); font-weight: 800; line-height: 1.1; margin-bottom: 20px; background: linear-gradient(135deg, #ffffff 0%, rgba(255,255,255,0.8) 50%, var(--secondary) 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
     .hero p { font-size: 1.2rem; color: var(--text-muted); max-width: 600px; margin: 0 auto 40px; line-height: 1.6; }
     .hero-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
     .hero-stats { display: flex; gap: 48px; justify-content: center; margin-top: 64px; flex-wrap: wrap; }
     .hero-stat { text-align: center; }
-    .hero-stat-num { font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero-stat-num { font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
     .hero-stat-label { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
 
     section { padding: 100px 40px; }
