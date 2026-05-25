@@ -879,8 +879,16 @@
       <div class="cart-empty"><div class="cart-empty-icon">🔖</div><p>No saved items</p></div>
     </div>
   </div>
-  <div class="cart-footer">
+<div class="cart-footer">
     <div class="cart-summary" id="cartSummary"></div>
+    <!-- COUPON INPUT -->
+    <div id="couponSection" style="margin-bottom:10px;display:none">
+      <div style="display:flex;gap:6px;margin-bottom:6px">
+        <input type="text" id="couponInput" placeholder="Enter coupon code" style="flex:1;padding:8px 12px;font-size:0.82rem;text-transform:uppercase;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-input);color:var(--text-primary);margin-bottom:0">
+        <button onclick="applyCoupon()" style="padding:8px 14px;border-radius:8px;background:var(--accent);color:white;border:none;font-weight:600;font-size:0.82rem;cursor:pointer;white-space:nowrap">Apply</button>
+      </div>
+      <div id="couponMsg" style="font-size:0.78rem;font-weight:600;display:none"></div>
+    </div>
     <button class="pay-btn" id="payBtn" onclick="initiatePayment()" disabled>💳 Pay with Razorpay</button>
     <button class="checkout-btn" id="checkoutBtn" onclick="checkout()" disabled>Place Order (Free / Test)</button>
   </div>
@@ -1376,10 +1384,23 @@ function updateCartUI() {
         </div>`;
     }).join("");
   }
+  // Show coupon section when cart has items
+  const couponSection = document.getElementById("couponSection");
+  if (couponSection) couponSection.style.display = totalItems > 0 ? "block" : "none";
+
+  // Calculate final amount with coupon
+  let finalAmount = totalAmount;
+  let discountAmount = 0;
+  if (appliedCoupon && totalItems > 0) {
+    discountAmount = appliedCoupon.discountAmount;
+    finalAmount = Math.max(0, totalAmount - discountAmount);
+  }
+
   document.getElementById("cartSummary").innerHTML = totalItems > 0 ? `
     <div class="cart-summary-row"><span>Items (${totalItems})</span><span>₹${totalAmount}</span></div>
+    ${discountAmount > 0 ? `<div class="cart-summary-row"><span>🎟️ Coupon (${appliedCoupon.code})</span><span style="color:var(--success)">-₹${discountAmount} <button onclick="removeCoupon()" style="background:none;border:none;color:var(--danger-text);font-size:0.7rem;cursor:pointer;padding:0;font-weight:600">✕</button></span></div>` : ""}
     <div class="cart-summary-row"><span>Delivery</span><span style="color:var(--success)">FREE</span></div>
-    <div class="cart-total-row"><span>Total</span><span style="color:var(--success)">₹${totalAmount}</span></div>
+    <div class="cart-total-row"><span>Total</span><span style="color:var(--success)">₹${finalAmount}</span></div>
   ` : "";
 }
 
@@ -1456,7 +1477,7 @@ async function checkout() {
     const res = await fetch("/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: token },
-      body: JSON.stringify({ cart })
+      body: JSON.stringify({ cart, couponCode: appliedCoupon?.code || null })
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
@@ -1780,6 +1801,53 @@ async function loadCustomerAnalytics() {
       </div>`).join("");
 
   } catch(err) { console.error("Customer analytics error:", err); }
+}
+
+/* ===== COUPON SYSTEM ===== */
+let appliedCoupon = null;
+
+async function applyCoupon() {
+  const code = document.getElementById("couponInput").value.trim().toUpperCase();
+  const msgEl = document.getElementById("couponMsg");
+  if (!code) { showToast("Enter a coupon code", "warning"); return; }
+  const totalItems = Object.values(cart).reduce((a, b) => a + b, 0);
+  if (!totalItems) { showToast("Add items to cart first", "warning"); return; }
+  let orderAmount = 0;
+  Object.entries(cart).forEach(([key, qty]) => {
+    const item = allProducts[key];
+    if (item) orderAmount += (item.onSale ? item.salePrice : item.price) * qty;
+  });
+  try {
+    const res = await fetch("/validate-coupon", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: token },
+      body: JSON.stringify({ code, orderAmount })
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      msgEl.innerText = "❌ " + data.message;
+      msgEl.style.color = "var(--danger-text)";
+      msgEl.style.display = "block";
+      appliedCoupon = null;
+      updateCartUI();
+      return;
+    }
+    appliedCoupon = data;
+    msgEl.innerText = `✅ ${data.discountPercent}% off — You save ₹${data.discountAmount}!`;
+    msgEl.style.color = "var(--success-text)";
+    msgEl.style.display = "block";
+    updateCartUI();
+    showToast(`🎟️ Coupon applied! ₹${data.discountAmount} off`, "success");
+  } catch(err) { showToast("Failed to apply coupon", "error"); }
+}
+
+function removeCoupon() {
+  appliedCoupon = null;
+  document.getElementById("couponInput").value = "";
+  const msgEl = document.getElementById("couponMsg");
+  msgEl.style.display = "none";
+  updateCartUI();
+  showToast("Coupon removed");
 }
 
 /* ===== SMART RECOMMENDATIONS ===== */

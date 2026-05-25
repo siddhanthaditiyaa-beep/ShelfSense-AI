@@ -465,6 +465,18 @@ const WishlistNotificationSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
+const CouponSchema = new mongoose.Schema({
+  storeId: { type: mongoose.Schema.Types.ObjectId, ref: "Store" },
+  code: { type: String, required: true, uppercase: true },
+  discountPercent: { type: Number, required: true, min: 1, max: 90 },
+  maxUses: { type: Number, default: 100 },
+  usedCount: { type: Number, default: 0 },
+  minOrderAmount: { type: Number, default: 0 },
+  expiresAt: { type: Date, default: null },
+  isActive: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now }
+});
+
 const SessionLogSchema = new mongoose.Schema({
   storeId: { type: mongoose.Schema.Types.ObjectId, ref: "Store" },
   userId: String,
@@ -501,6 +513,7 @@ const AuditLog = mongoose.model("AuditLog", AuditLogSchema);
 const FraudLog = mongoose.model("FraudLog", FraudLogSchema);
 const WishlistNotification = mongoose.model("WishlistNotification", WishlistNotificationSchema);
 const SessionLog = mongoose.model("SessionLog", SessionLogSchema);
+const Coupon = mongoose.model("Coupon", CouponSchema);
 
 /* =========================
    HELPERS
@@ -1106,7 +1119,7 @@ app.post("/save-wishlist", auth("customer"), async (req, res) => {
 ========================= */
 app.post("/checkout", auth("customer"), async (req, res) => {
   try {
-    const { cart, storeId } = req.body;
+    const { cart, storeId, couponCode } = req.body;
     if (!cart || typeof cart !== "object") return res.status(400).json({ message: "Invalid cart" });
 
     // FRAUD DETECTION — check for suspicious order patterns
@@ -1169,11 +1182,24 @@ app.post("/checkout", auth("customer"), async (req, res) => {
       );
     }
 
+   // Apply coupon if provided
+    let discountAmount = 0;
+    let couponApplied = null;
+    if (couponCode) {
+      const coupon = await Coupon.findOne({ code: couponCode.toUpperCase(), storeId: storeId || { $exists: true }, isActive: true });
+      if (coupon && coupon.usedCount < coupon.maxUses && (!coupon.expiresAt || new Date() < coupon.expiresAt)) {
+        discountAmount = Math.round(totalAmount * coupon.discountPercent / 100);
+        totalAmount = Math.max(0, totalAmount - discountAmount);
+        couponApplied = coupon.code;
+        await Coupon.updateOne({ _id: coupon._id }, { $inc: { usedCount: 1 } });
+      }
+    }
+
     await Order.create({
       storeId, userId: req.user.id, userEmail: req.user.email,
       cart: adjusted, itemNames, totalItems, totalAmount,
       paymentStatus: "paid", flaggedAsFraud,
-      pointsEarned,
+      pointsEarned, couponCode: couponApplied, discountAmount,
       time: new Date().toLocaleString()
     });
 
