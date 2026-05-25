@@ -1656,6 +1656,65 @@ app.get("/admin/analytics", auth("admin"), async (req, res) => {
 });
 
 /* =========================
+   INVENTORY HEALTH SCORE
+========================= */
+app.get("/admin/inventory-health", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const items = await Item.find({ storeId });
+    if (!items.length) return res.json({ overallScore: 0, grade: "N/A", items: [] });
+
+    const scoredItems = items.map(item => {
+      let score = 100;
+      const issues = [];
+
+      // Stock level (40 points)
+      if (item.stock === 0) { score -= 40; issues.push("Out of stock"); }
+      else if (item.stock <= item.minStockLevel) { score -= 20; issues.push("Low stock"); }
+      else if (item.stock > 50) { score -= 10; issues.push("Overstocked"); }
+
+      // Sales velocity (20 points)
+      const history = item.salesHistory || [];
+      if (history.length >= 3) {
+        const avgSales = history.slice(-7).reduce((a, b) => a + b, 0) / Math.min(history.length, 7);
+        if (avgSales < 0.5) { score -= 20; issues.push("Slow moving"); }
+        else if (avgSales < 1) { score -= 10; issues.push("Below average sales"); }
+      }
+
+      // Sentiment (20 points)
+      if (item.totalRatings >= 3) {
+        if (item.avgRating < 2) { score -= 20; issues.push("Poor reviews"); }
+        else if (item.avgRating < 3.5) { score -= 10; issues.push("Mixed reviews"); }
+      }
+
+      // Expiry (20 points)
+      if (item.expiryDate) {
+        const daysLeft = Math.ceil((new Date(item.expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
+        if (daysLeft <= 0) { score -= 20; issues.push("Expired!"); }
+        else if (daysLeft <= 7) { score -= 15; issues.push(`Expires in ${daysLeft} days`); }
+        else if (daysLeft <= 30) { score -= 5; issues.push(`Expires in ${daysLeft} days`); }
+      }
+
+      score = Math.max(0, Math.min(100, score));
+      const itemGrade = score >= 90 ? "A" : score >= 75 ? "B" : score >= 60 ? "C" : score >= 40 ? "D" : "F";
+      const color = score >= 90 ? "#22c55e" : score >= 75 ? "#3b82f6" : score >= 60 ? "#f59e0b" : score >= 40 ? "#f97316" : "#ef4444";
+
+      return {
+        key: item.key, name: item.name, score, grade: itemGrade,
+        color, issues, stock: item.stock,
+        avgRating: item.avgRating || 0, category: item.category || "general"
+      };
+    });
+
+    const overallScore = Math.round(scoredItems.reduce((a, b) => a + b.score, 0) / scoredItems.length);
+    const grade = overallScore >= 90 ? "A" : overallScore >= 75 ? "B" : overallScore >= 60 ? "C" : overallScore >= 40 ? "D" : "F";
+    const gradeColor = overallScore >= 90 ? "#22c55e" : overallScore >= 75 ? "#3b82f6" : overallScore >= 60 ? "#f59e0b" : overallScore >= 40 ? "#f97316" : "#ef4444";
+
+    res.json({ overallScore, grade, gradeColor, items: scoredItems.sort((a, b) => a.score - b.score) });
+  } catch(err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* =========================
    LOYALTY POINTS
 ========================= */
 app.get("/customer/loyalty", auth("customer"), async (req, res) => {

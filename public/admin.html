@@ -351,6 +351,7 @@
     <button class="topbar-nav-item" data-page="inventory" onclick="showPage('inventory', this)">Inventory</button>
     <button class="topbar-nav-item" data-page="agents" onclick="showPage('agents', this)">Agents</button>
 <button class="topbar-nav-item" data-page="analytics" onclick="showPage('analytics', this)">Analytics</button>
+<button class="topbar-nav-item" data-page="health" onclick="showPage('health', this)">Health</button>
     <button class="topbar-nav-item" data-page="shelf-scan" onclick="showPage('shelf-scan', this)">Shelf Scan</button>
     <button class="topbar-nav-item" data-page="planogram" onclick="showPage('planogram', this)">Planogram</button>
     <button class="topbar-nav-item" data-page="franchise" onclick="showPage('franchise', this)">Franchises</button>
@@ -373,6 +374,7 @@
       <button class="sidebar-item" data-page="inventory" onclick="showPage('inventory', this)"><span class="sidebar-emoji">📦</span> Inventory</button>
       <button class="sidebar-item" data-page="agents" onclick="showPage('agents', this)"><span class="sidebar-emoji">🤖</span> AI Agents</button>
 <button class="sidebar-item" data-page="analytics" onclick="showPage('analytics', this)"><span class="sidebar-emoji">📊</span> Sales Analytics</button>
+<button class="sidebar-item" data-page="health" onclick="showPage('health', this)"><span class="sidebar-emoji">💊</span> Inventory Health</button>
       <button class="sidebar-item" data-page="shelf-scan" onclick="showPage('shelf-scan', this)"><span class="sidebar-emoji">🔍</span> Shelf Scan</button>
       <button class="sidebar-item" data-page="planogram" onclick="showPage('planogram', this)"><span class="sidebar-emoji">🗺️</span> Planogram</button>
       <div class="sidebar-divider"></div>
@@ -480,6 +482,63 @@
         </div>
       </div>
     </div>
+
+<!-- INVENTORY HEALTH PAGE -->
+<div class="page" id="page-health">
+
+  <!-- Overall Score Card -->
+  <div class="card" style="text-align:center;margin-bottom:20px;background:linear-gradient(135deg,var(--bg-card),var(--bg-secondary))">
+    <h2>💊 Store Inventory Health Score</h2>
+    <div style="margin:20px 0">
+      <div id="healthGrade" style="font-size:5rem;font-weight:900;line-height:1">—</div>
+      <div id="healthScore" style="font-size:1.2rem;font-weight:700;color:var(--text-muted);margin-top:4px">Calculating...</div>
+      <div id="healthBar" style="max-width:300px;margin:16px auto 0">
+        <div style="height:12px;background:var(--bg-tertiary);border-radius:6px;overflow:hidden">
+          <div id="healthBarFill" style="height:100%;border-radius:6px;transition:width 1s ease;width:0%"></div>
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:12px;margin-top:16px" id="healthSummaryCards"></div>
+  </div>
+
+  <!-- Grade Legend -->
+  <div class="card" style="margin-bottom:20px">
+    <h2>📊 Grade Scale</h2>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <div style="background:#22c55e20;border:1px solid #22c55e40;border-radius:10px;padding:10px 16px;text-align:center;flex:1;min-width:80px">
+        <div style="font-size:1.5rem;font-weight:900;color:#22c55e">A</div>
+        <div style="font-size:0.72rem;color:var(--text-muted)">90-100</div>
+        <div style="font-size:0.72rem;font-weight:600;color:#22c55e">Excellent</div>
+      </div>
+      <div style="background:#3b82f620;border:1px solid #3b82f640;border-radius:10px;padding:10px 16px;text-align:center;flex:1;min-width:80px">
+        <div style="font-size:1.5rem;font-weight:900;color:#3b82f6">B</div>
+        <div style="font-size:0.72rem;color:var(--text-muted)">75-89</div>
+        <div style="font-size:0.72rem;font-weight:600;color:#3b82f6">Good</div>
+      </div>
+      <div style="background:#f59e0b20;border:1px solid #f59e0b40;border-radius:10px;padding:10px 16px;text-align:center;flex:1;min-width:80px">
+        <div style="font-size:1.5rem;font-weight:900;color:#f59e0b">C</div>
+        <div style="font-size:0.72rem;color:var(--text-muted)">60-74</div>
+        <div style="font-size:0.72rem;font-weight:600;color:#f59e0b">Average</div>
+      </div>
+      <div style="background:#f9731620;border:1px solid #f9731640;border-radius:10px;padding:10px 16px;text-align:center;flex:1;min-width:80px">
+        <div style="font-size:1.5rem;font-weight:900;color:#f97316">D</div>
+        <div style="font-size:0.72rem;color:var(--text-muted)">40-59</div>
+        <div style="font-size:0.72rem;font-weight:600;color:#f97316">Poor</div>
+      </div>
+      <div style="background:#ef444420;border:1px solid #ef444440;border-radius:10px;padding:10px 16px;text-align:center;flex:1;min-width:80px">
+        <div style="font-size:1.5rem;font-weight:900;color:#ef4444">F</div>
+        <div style="font-size:0.72rem;color:var(--text-muted)">0-39</div>
+        <div style="font-size:0.72rem;font-weight:600;color:#ef4444">Critical</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Product Health List -->
+  <div class="card">
+    <h2>📦 Product Health Breakdown</h2>
+    <div id="healthItemsList"></div>
+  </div>
+</div>
 
 <!-- SALES ANALYTICS PAGE -->
 <div class="page" id="page-analytics">
@@ -1072,6 +1131,7 @@ function showPage(page, clickedBtn) {
   if (page === "planogram") loadPlanogram();
 if (page === "agents") loadAgentDashboard();
 if (page === "analytics") loadAnalytics();
+  if (page === "health") loadInventoryHealth();
   if (page === "sessions") loadSessions();
   if (page === "manage-orders") loadManageOrders();
   if (page === "orders") loadPurchaseOrders();
@@ -2046,6 +2106,81 @@ async function updateOrderStatus(orderId, status) {
     showToast(data.message + " 📧 Customer notified!");
     loadManageOrders();
   } catch(err) { showToast("Failed to update order", "error"); }
+}
+
+/* ===== INVENTORY HEALTH SCORE ===== */
+async function loadInventoryHealth() {
+  try {
+    const res = await fetch("/admin/inventory-health", { headers: { Authorization: token } });
+    const data = await res.json();
+
+    // Overall grade
+    const gradeEl = document.getElementById("healthGrade");
+    const scoreEl = document.getElementById("healthScore");
+    const barFill = document.getElementById("healthBarFill");
+
+    gradeEl.innerText = data.grade;
+    gradeEl.style.color = data.gradeColor;
+    scoreEl.innerText = `${data.overallScore}/100 — ${data.grade === "A" ? "Excellent! 🎉" : data.grade === "B" ? "Good 👍" : data.grade === "C" ? "Needs Attention ⚠️" : data.grade === "D" ? "Poor — Act Now 🚨" : "Critical ❌"}`;
+    scoreEl.style.color = data.gradeColor;
+    barFill.style.width = data.overallScore + "%";
+    barFill.style.background = data.gradeColor;
+
+    // Summary cards
+    const items = data.items || [];
+    const gradeA = items.filter(i => i.grade === "A").length;
+    const gradeBC = items.filter(i => i.grade === "B" || i.grade === "C").length;
+    const gradeDF = items.filter(i => i.grade === "D" || i.grade === "F").length;
+    document.getElementById("healthSummaryCards").innerHTML = `
+      <div style="background:var(--success-bg);border:1px solid var(--success);border-radius:10px;padding:12px;text-align:center">
+        <div style="font-size:1.5rem;font-weight:800;color:var(--success)">${gradeA}</div>
+        <div style="font-size:0.75rem;color:var(--success-text)">Healthy (A)</div>
+      </div>
+      <div style="background:var(--warning-bg);border:1px solid var(--warning);border-radius:10px;padding:12px;text-align:center">
+        <div style="font-size:1.5rem;font-weight:800;color:var(--warning)">${gradeBC}</div>
+        <div style="font-size:0.75rem;color:var(--warning-text)">Average (B/C)</div>
+      </div>
+      <div style="background:var(--danger-bg);border:1px solid var(--danger);border-radius:10px;padding:12px;text-align:center">
+        <div style="font-size:1.5rem;font-weight:800;color:var(--danger)">${gradeDF}</div>
+        <div style="font-size:0.75rem;color:var(--danger-text)">Critical (D/F)</div>
+      </div>
+      <div style="background:var(--accent-light);border:1px solid var(--accent);border-radius:10px;padding:12px;text-align:center">
+        <div style="font-size:1.5rem;font-weight:800;color:var(--accent)">${items.length}</div>
+        <div style="font-size:0.75rem;color:var(--accent)">Total Products</div>
+      </div>
+    `;
+
+    // Product list
+    const listEl = document.getElementById("healthItemsList");
+    if (!items.length) {
+      listEl.innerHTML = `<p style="color:var(--text-muted);text-align:center;padding:20px">No inventory data yet.</p>`;
+      return;
+    }
+    listEl.innerHTML = items.map(item => `
+      <div style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--bg-input);border:1px solid var(--border-color);border-radius:12px;margin-bottom:10px;border-left:4px solid ${item.color}">
+        <div style="text-align:center;min-width:48px">
+          <div style="font-size:1.6rem;font-weight:900;color:${item.color}">${item.grade}</div>
+          <div style="font-size:0.7rem;color:var(--text-muted)">${item.score}/100</div>
+        </div>
+        <div style="flex:1">
+          <div style="font-size:0.9rem;font-weight:700;color:var(--text-primary);margin-bottom:4px">${item.name}</div>
+          <div style="height:6px;background:var(--bg-tertiary);border-radius:3px;overflow:hidden;margin-bottom:6px">
+            <div style="height:100%;width:${item.score}%;background:${item.color};border-radius:3px;transition:width 0.8s ease"></div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px">
+            ${item.issues.length === 0
+              ? `<span style="font-size:0.72rem;color:var(--success-text);background:var(--success-bg);padding:2px 8px;border-radius:10px">✅ All good</span>`
+              : item.issues.map(issue => `<span style="font-size:0.72rem;color:var(--danger-text);background:var(--danger-bg);padding:2px 8px;border-radius:10px">⚠️ ${issue}</span>`).join("")
+            }
+          </div>
+        </div>
+        <div style="text-align:right;font-size:0.78rem;color:var(--text-muted)">
+          <div>${item.stock} units</div>
+          ${item.avgRating > 0 ? `<div>${item.avgRating}⭐</div>` : ""}
+        </div>
+      </div>`).join("");
+
+  } catch(err) { console.error("Health score error:", err); }
 }
 
 /* ===== SESSION MANAGEMENT ===== */
