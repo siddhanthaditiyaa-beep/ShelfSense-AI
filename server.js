@@ -1,7 +1,7 @@
 /* =========================================
    SHELFSENSE AI — Multi-Agent SaaS Platform
    server.js — Main Backend
-   Multi-tenant + Google OAuth + 15 Agents + Full Security
+   Multi-tenant + Google OAuth + 18 Agents + Full Security
 ========================================= */
 
 require("dotenv").config();
@@ -1868,6 +1868,280 @@ app.get("/admin/analytics", auth("admin"), async (req, res) => {
 });
 
 /* =========================
+   COUPON SYSTEM
+========================= */
+app.post("/admin/coupons/create", auth("admin"), async (req, res) => {
+  try {
+    const { code, discountPercent, maxUses, minOrderAmount, expiresAt } = req.body;
+    if (!code || !discountPercent) return res.status(400).json({ message: "Code and discount required" });
+    const storeId = req.user.storeId;
+    const existing = await Coupon.findOne({ code: code.toUpperCase(), storeId });
+    if (existing) return res.status(400).json({ message: "Coupon code already exists" });
+    const coupon = await Coupon.create({
+      storeId, code: code.toUpperCase().trim(),
+      discountPercent: parseInt(discountPercent),
+      maxUses: parseInt(maxUses) || 100,
+      minOrderAmount: parseInt(minOrderAmount) || 0,
+      expiresAt: expiresAt ? new Date(expiresAt) : null
+    });
+    await logAudit(req, req.user.email, "admin", "COUPON_CREATED", "success", `Code: ${coupon.code}`);
+    res.json({ message: `✅ Coupon ${coupon.code} created!`, coupon });
+  } catch(err) { res.status(500).json({ message: "Server error" }); }
+});
+
+app.get("/admin/coupons", auth("admin"), async (req, res) => {
+  try {
+    const coupons = await Coupon.find({ storeId: req.user.storeId }).sort({ createdAt: -1 });
+    res.json(coupons);
+  } catch(err) { res.status(500).json({ message: "Server error" }); }
+});
+
+app.post("/admin/coupons/toggle", auth("admin"), async (req, res) => {
+  try {
+    const { couponId } = req.body;
+    const coupon = await Coupon.findOne({ _id: couponId, storeId: req.user.storeId });
+    if (!coupon) return res.status(404).json({ message: "Coupon not found" });
+    coupon.isActive = !coupon.isActive;
+    await coupon.save();
+    res.json({ message: `Coupon ${coupon.isActive ? "activated" : "deactivated"}` });
+  } catch(err) { res.status(500).json({ message: "Server error" }); }
+});
+
+app.delete("/admin/coupons/:id", auth("admin"), async (req, res) => {
+  try {
+    await Coupon.deleteOne({ _id: req.params.id, storeId: req.user.storeId });
+    res.json({ message: "Coupon deleted" });
+  } catch(err) { res.status(500).json({ message: "Server error" }); }
+});
+
+app.post("/validate-coupon", auth("customer"), async (req, res) => {
+  try {
+    const { code, orderAmount, storeId } = req.body;
+    if (!code) return res.status(400).json({ message: "Coupon code required" });
+    const coupon = await Coupon.findOne({
+      code: code.toUpperCase().trim(),
+      storeId: storeId || { $exists: true },
+      isActive: true
+    });
+    if (!coupon) return res.status(404).json({ message: "Invalid coupon code" });
+    if (coupon.expiresAt && new Date() > coupon.expiresAt) return res.status(400).json({ message: "Coupon has expired" });
+    if (coupon.usedCount >= coupon.maxUses) return res.status(400).json({ message: "Coupon usage limit reached" });
+    if (orderAmount < coupon.minOrderAmount) return res.status(400).json({ message: `Minimum order amount is ₹${coupon.minOrderAmount}` });
+    const discountAmount = Math.round(orderAmount * coupon.discountPercent / 100);
+    const finalAmount = orderAmount - discountAmount;
+    res.json({ valid: true, code: coupon.code, discountPercent: coupon.discountPercent, discountAmount, finalAmount, message: `✅ ${coupon.discountPercent}% discount applied!` });
+  } catch(err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* =========================
+   DEMAND HEATMAP
+========================= */
+app.get("/admin/demand-heatmap", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const orders = await Order.find({ storeId }).sort({ createdAt: -1 }).limit(500);
+    const matrix = Array.from({ length: 7 }, () => Array(24).fill(0));
+    const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    orders.forEach(order => {
+      const d = new Date(order.createdAt);
+      matrix[d.getDay()][d.getHours()]++;
+    });
+    let peakValue = 0, peakDay = 0, peakHour = 0;
+    matrix.forEach((dayArr, d) => {
+      dayArr.forEach((count, h) => {
+        if (count > peakValue) { peakValue = count; peakDay = d; peakHour = h; }
+      });
+    });
+    const hourlyTotals = Array(24).fill(0);
+    matrix.forEach(dayArr => dayArr.forEach((count, h) => { hourlyTotals[h] += count; }));
+    const dailyTotals = matrix.map(dayArr => dayArr.reduce((a, b) => a + b, 0));
+    res.json({ matrix, days, hourlyTotals, dailyTotals, peakDay: days[peakDay], peakHour, peakValue, totalOrders: orders.length });
+  } catch(err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* =========================
+   STORE PERFORMANCE SCORE
+========================= */
+app.get("/admin/performance-score", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const now = new Date();
+    const last30 = new Date(now - 30 * 24 * 60 * 60 * 1000);
+    const last7 = new Date(now - 7 * 24 * 60 * 60 * 1000);
+    const [orders, recentOrders, fraudOrders, agentLogs, items, ratings] = await Promise.all([
+      Order.find({ storeId, createdAt: { $gte: last30 } }),
+      Order.find({ storeId, createdAt: { $gte: last7 } }),
+      Order.find({ storeId, flaggedAsFraud: true, createdAt: { $gte: last30 } }),
+      AgentLog.find({ storeId, createdAt: { $gte: last7 } }),
+      Item.find({ storeId }),
+      Rating.find({ storeId })
+    ]);
+    const metrics = [];
+    let totalScore = 0;
+    const totalRevenue = orders.reduce((s, o) => s + (o.totalAmount || 0), 0);
+    const revenueScore = Math.min(25, Math.round((totalRevenue / 10000) * 25));
+    metrics.push({ label: "Revenue (30 days)", value: `₹${totalRevenue.toLocaleString("en-IN")}`, score: revenueScore, max: 25, color: "#22c55e" });
+    totalScore += revenueScore;
+    const orderScore = Math.min(20, recentOrders.length * 2);
+    metrics.push({ label: "Orders (7 days)", value: `${recentOrders.length} orders`, score: orderScore, max: 20, color: "#6366f1" });
+    totalScore += orderScore;
+    const fraudRate = orders.length > 0 ? (fraudOrders.length / orders.length) * 100 : 0;
+    const fraudScore = Math.max(0, 20 - Math.round(fraudRate * 4));
+    metrics.push({ label: "Fraud Rate", value: `${fraudRate.toFixed(1)}%`, score: fraudScore, max: 20, color: "#ef4444" });
+    totalScore += fraudScore;
+    const agentScore = Math.min(20, Math.round(agentLogs.length / 5));
+    metrics.push({ label: "Agent Activity (7 days)", value: `${agentLogs.length} actions`, score: agentScore, max: 20, color: "#f59e0b" });
+    totalScore += agentScore;
+    const avgRating = ratings.length > 0 ? ratings.reduce((s, r) => s + r.rating, 0) / ratings.length : 0;
+    const satScore = Math.round((avgRating / 5) * 15);
+    metrics.push({ label: "Customer Satisfaction", value: avgRating > 0 ? `${avgRating.toFixed(1)}⭐ avg` : "No ratings yet", score: satScore, max: 15, color: "#a78bfa" });
+    totalScore += satScore;
+    const grade = totalScore >= 90 ? "A+" : totalScore >= 80 ? "A" : totalScore >= 70 ? "B" : totalScore >= 55 ? "C" : totalScore >= 40 ? "D" : "F";
+    const gradeColor = totalScore >= 80 ? "#22c55e" : totalScore >= 60 ? "#f59e0b" : "#ef4444";
+    const suggestion =
+      totalScore >= 80 ? "🎉 Excellent store performance! Keep it up." :
+      totalScore >= 60 ? "👍 Good performance. Focus on increasing orders and reducing fraud." :
+      totalScore >= 40 ? "⚠️ Average performance. Check agent activity and customer satisfaction." :
+      "🚨 Poor performance. Review inventory, fraud flags, and agent alerts immediately.";
+    res.json({ totalScore, grade, gradeColor, suggestion, metrics });
+  } catch(err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* =========================
+   PDF ANALYTICS REPORT
+========================= */
+app.get("/admin/export-pdf", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const store = await Store.findById(storeId);
+    const items = await Item.find({ storeId });
+    const orders = await Order.find({ storeId }).sort({ createdAt: -1 }).limit(100);
+    const agentLogs = await AgentLog.find({ storeId }).sort({ createdAt: -1 }).limit(20);
+    const fraudLogs = await FraudLog.find({ userEmail: { $exists: true } }).limit(10);
+    const totalRevenue = orders.reduce((s, o) => s + (o.totalAmount || 0), 0);
+    const totalOrders = orders.length;
+    const avgOrderValue = totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0;
+    const outOfStock = items.filter(i => i.stock === 0).length;
+    const lowStock = items.filter(i => i.stock > 0 && i.stock <= i.minStockLevel).length;
+    const healthyStock = items.filter(i => i.stock > i.minStockLevel).length;
+    const productQty = {};
+    orders.forEach(o => Object.entries(o.cart || {}).forEach(([key, qty]) => {
+      productQty[key] = (productQty[key] || 0) + qty;
+    }));
+    const topProducts = Object.entries(productQty).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    const now = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+<style>
+  * { box-sizing:border-box;margin:0;padding:0; }
+  body { font-family:Arial,sans-serif;color:#1e293b;background:#fff;font-size:13px; }
+  .header { background:linear-gradient(135deg,#6366f1,#a78bfa);color:white;padding:32px 40px; }
+  .header h1 { font-size:24px;font-weight:800;margin-bottom:4px; }
+  .header-meta { display:flex;gap:32px;margin-top:16px; }
+  .header-meta div { font-size:12px;opacity:0.8; }
+  .header-meta strong { font-size:16px;display:block;opacity:1; }
+  .section { padding:24px 40px;border-bottom:1px solid #e2e8f0; }
+  .section-title { font-size:15px;font-weight:700;color:#6366f1;margin-bottom:16px; }
+  .stats-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:8px; }
+  .stat-box { background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;text-align:center; }
+  .stat-num { font-size:22px;font-weight:800;color:#6366f1; }
+  .stat-label { font-size:11px;color:#64748b;margin-top:4px; }
+  table { width:100%;border-collapse:collapse;margin-top:8px; }
+  th { background:#f1f5f9;color:#64748b;padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase; }
+  td { padding:10px 12px;border-bottom:1px solid #f1f5f9;font-size:12px; }
+  .badge { padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600;display:inline-block; }
+  .badge-green { background:#dcfce7;color:#166534; }
+  .badge-yellow { background:#fef3c7;color:#92400e; }
+  .badge-red { background:#fee2e2;color:#991b1b; }
+  .bar-container { background:#e2e8f0;border-radius:4px;height:8px;margin-top:4px; }
+  .bar-fill { height:100%;border-radius:4px; }
+  .footer { background:#f8fafc;padding:20px 40px;text-align:center;color:#94a3b8;font-size:11px;border-top:1px solid #e2e8f0; }
+  .agent-log { padding:8px 12px;background:#f8fafc;border-left:3px solid #6366f1;border-radius:0 6px 6px 0;margin-bottom:6px;font-size:12px; }
+  @media print { body { print-color-adjust:exact;-webkit-print-color-adjust:exact; } }
+</style></head><body>
+<div class="header">
+  <h1>🧠 ShelfSense AI — Store Analytics Report</h1>
+  <p>Comprehensive performance report for ${store?.name || "Your Store"}</p>
+  <div class="header-meta">
+    <div><strong>${store?.name || "—"}</strong>Store Name</div>
+    <div><strong>${now}</strong>Generated At</div>
+    <div><strong>${items.length}</strong>Total Products</div>
+    <div><strong>${totalOrders}</strong>Total Orders</div>
+  </div>
+</div>
+<div class="section">
+  <div class="section-title">📊 Revenue Overview</div>
+  <div class="stats-grid">
+    <div class="stat-box"><div class="stat-num">₹${totalRevenue.toLocaleString("en-IN")}</div><div class="stat-label">Total Revenue</div></div>
+    <div class="stat-box"><div class="stat-num">${totalOrders}</div><div class="stat-label">Total Orders</div></div>
+    <div class="stat-box"><div class="stat-num">₹${avgOrderValue.toLocaleString("en-IN")}</div><div class="stat-label">Avg Order Value</div></div>
+    <div class="stat-box"><div class="stat-num">${fraudLogs.length}</div><div class="stat-label">Fraud Flags</div></div>
+  </div>
+</div>
+<div class="section">
+  <div class="section-title">📦 Inventory Status</div>
+  <div class="stats-grid">
+    <div class="stat-box"><div class="stat-num" style="color:#22c55e">${healthyStock}</div><div class="stat-label">Healthy Stock</div></div>
+    <div class="stat-box"><div class="stat-num" style="color:#f59e0b">${lowStock}</div><div class="stat-label">Low Stock</div></div>
+    <div class="stat-box"><div class="stat-num" style="color:#ef4444">${outOfStock}</div><div class="stat-label">Out of Stock</div></div>
+    <div class="stat-box"><div class="stat-num" style="color:#6366f1">${items.length}</div><div class="stat-label">Total Items</div></div>
+  </div>
+  <table>
+    <thead><tr><th>Product</th><th>Category</th><th>Stock</th><th>Price</th><th>Status</th><th>Avg Rating</th></tr></thead>
+    <tbody>${items.map(item => `<tr>
+      <td><strong>${item.name}</strong></td>
+      <td>${item.category || "general"}</td>
+      <td>${item.stock}</td>
+      <td>₹${item.price || 99}</td>
+      <td>${item.stock === 0 ? '<span class="badge badge-red">Out of Stock</span>' : item.stock <= item.minStockLevel ? '<span class="badge badge-yellow">Low Stock</span>' : '<span class="badge badge-green">Healthy</span>'}</td>
+      <td>${item.avgRating ? item.avgRating.toFixed(1) + " ⭐" : "No ratings"}</td>
+    </tr>`).join("")}</tbody>
+  </table>
+</div>
+<div class="section">
+  <div class="section-title">🏆 Top Selling Products</div>
+  ${topProducts.length === 0 ? "<p style='color:#94a3b8'>No order data yet</p>" : topProducts.map(([key, qty], i) => {
+    const item = items.find(it => it.key === key);
+    const pct = Math.round((qty / topProducts[0][1]) * 100);
+    const colors = ["#6366f1","#22c55e","#f59e0b","#ef4444","#a78bfa"];
+    return `<div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+        <span style="font-weight:600">${i+1}. ${item?.name || key}</span>
+        <span style="color:#64748b">${qty} units sold</span>
+      </div>
+      <div class="bar-container"><div class="bar-fill" style="width:${pct}%;background:${colors[i]}"></div></div>
+    </div>`;
+  }).join("")}
+</div>
+<div class="section">
+  <div class="section-title">🧾 Recent Orders (Last 10)</div>
+  <table>
+    <thead><tr><th>Order ID</th><th>Customer</th><th>Amount</th><th>Items</th><th>Status</th><th>Time</th></tr></thead>
+    <tbody>${orders.slice(0,10).map(o => `<tr>
+      <td><code>#${o._id.toString().slice(-8).toUpperCase()}</code></td>
+      <td>${o.userEmail || "Guest"}</td>
+      <td><strong>₹${o.totalAmount || 0}</strong></td>
+      <td>${o.totalItems || 0} items</td>
+      <td>${o.flaggedAsFraud ? '<span class="badge badge-red">🚨 Flagged</span>' : '<span class="badge badge-green">✅ Paid</span>'}</td>
+      <td style="color:#94a3b8;font-size:11px">${o.time || new Date(o.createdAt).toLocaleDateString("en-IN")}</td>
+    </tr>`).join("")}</tbody>
+  </table>
+</div>
+<div class="section">
+  <div class="section-title">🤖 Recent Agent Activity</div>
+  ${agentLogs.slice(0,10).map(log => `<div class="agent-log ${log.severity}"><strong>${log.agent}</strong> — ${log.action}<div style="font-size:11px;color:#94a3b8;margin-top:3px">${new Date(log.createdAt).toLocaleString("en-IN")}</div></div>`).join("")}
+</div>
+<div class="footer"><p>Generated by ShelfSense AI — ${now} | Confidential Store Report | shelfsense-ai-lptz.onrender.com</p></div>
+</body></html>`;
+    res.setHeader("Content-Type", "text/html");
+    res.setHeader("Content-Disposition", `inline; filename="ShelfSense_Report_${new Date().toISOString().split("T")[0]}.html"`);
+    res.send(html);
+  } catch(err) {
+    console.error("PDF export error:", err.message);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+/* =========================
    INVENTORY HEALTH SCORE
 ========================= */
 app.get("/admin/inventory-health", auth("admin"), async (req, res) => {
@@ -2852,7 +3126,7 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 ShelfSense AI running at http://localhost:${PORT}`);
   console.log(`🔒 Security layer active — CSRF, JWT Blacklist, Audit Log, IP Detection`);
-  console.log(`🤖 All 15 AI Agents initialized`);
+  console.log(`🤖 All 18 AI Agents initialized`);
   console.log(`💳 Razorpay active`);
   console.log(`📧 Email alerts active`);
   console.log(`🔐 Google OAuth active`);
