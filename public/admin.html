@@ -596,6 +596,11 @@
 
 <!-- SALES ANALYTICS PAGE -->
 <div class="page" id="page-analytics">
+  <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
+    <button onclick="exportPDF()" style="background:linear-gradient(135deg,#6366f1,#a78bfa);color:white;border:none;padding:10px 20px;border-radius:10px;font-weight:600;font-size:0.875rem;cursor:pointer;display:flex;align-items:center;gap:8px">
+      📄 Export Full Report
+    </button>
+  </div>
   <div class="stats-row" id="analyticsStats">
     <div class="stat-card"><div class="number" id="statRevenue" style="color:var(--success)">-</div><div class="label">Total Revenue (₹)</div></div>
     <div class="stat-card"><div class="number" id="statOrders" style="color:var(--accent)">-</div><div class="label">Total Orders</div></div>
@@ -1908,6 +1913,32 @@ document.addEventListener("click", function(e) {
   }
 });
 
+/* ===== PDF EXPORT ===== */
+async function exportPDF() {
+  const btn = document.querySelector('[onclick="exportPDF()"]');
+  btn.innerText = "⏳ Generating...";
+  btn.disabled = true;
+  try {
+    const res = await fetch("/admin/export-pdf", { headers: { Authorization: token } });
+    if (!res.ok) { showToast("Export failed", "error"); return; }
+    const html = await res.text();
+    const blob = new Blob([html], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const win = window.open(url, "_blank");
+    if (win) {
+      win.onload = () => {
+        setTimeout(() => {
+          win.print();
+          URL.revokeObjectURL(url);
+        }, 500);
+      };
+    }
+    showToast("✅ Report opened! Use Ctrl+P or browser print to save as PDF");
+  } catch(err) { showToast("Export failed", "error"); }
+  btn.innerText = "📄 Export Full Report";
+  btn.disabled = false;
+}
+
 /* ===== SALES ANALYTICS ===== */
 let revenueChart, ordersChart, bestSellersChart, dayChart;
 
@@ -2229,6 +2260,159 @@ app.post("/validate-coupon", auth("customer"), async (req, res) => {
     res.json({ valid: true, code: coupon.code, discountPercent: coupon.discountPercent, discountAmount, finalAmount, message: `✅ ${coupon.discountPercent}% discount applied!` });
   } catch(err) { res.status(500).json({ message: "Server error" }); }
 });
+
+/* =========================
+   PDF ANALYTICS REPORT
+========================= */
+app.get("/admin/export-pdf", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const store = await Store.findById(storeId);
+    const items = await Item.find({ storeId });
+    const orders = await Order.find({ storeId }).sort({ createdAt: -1 }).limit(100);
+    const agentLogs = await AgentLog.find({ storeId }).sort({ createdAt: -1 }).limit(20);
+    const fraudLogs = await FraudLog.find({ userEmail: { $exists: true } }).limit(10);
+
+    const totalRevenue = orders.reduce((s, o) => s + (o.totalAmount || 0), 0);
+    const totalOrders = orders.length;
+    const avgOrderValue = totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0;
+    const outOfStock = items.filter(i => i.stock === 0).length;
+    const lowStock = items.filter(i => i.stock > 0 && i.stock <= i.minStockLevel).length;
+    const healthyStock = items.filter(i => i.stock > i.minStockLevel).length;
+
+    // Product breakdown
+    const productQty = {};
+    orders.forEach(o => Object.entries(o.cart || {}).forEach(([key, qty]) => {
+      productQty[key] = (productQty[key] || 0) + qty;
+    }));
+    const topProducts = Object.entries(productQty).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+    const now = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; color: #1e293b; background: #fff; font-size: 13px; }
+  .header { background: linear-gradient(135deg, #6366f1, #a78bfa); color: white; padding: 32px 40px; }
+  .header h1 { font-size: 24px; font-weight: 800; margin-bottom: 4px; }
+  .header p { opacity: 0.85; font-size: 13px; }
+  .header-meta { display: flex; gap: 32px; margin-top: 16px; }
+  .header-meta div { font-size: 12px; opacity: 0.8; }
+  .header-meta strong { font-size: 16px; display: block; opacity: 1; }
+  .section { padding: 24px 40px; border-bottom: 1px solid #e2e8f0; }
+  .section-title { font-size: 15px; font-weight: 700; color: #6366f1; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 8px; }
+  .stat-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; text-align: center; }
+  .stat-num { font-size: 22px; font-weight: 800; color: #6366f1; }
+  .stat-label { font-size: 11px; color: #64748b; margin-top: 4px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  th { background: #f1f5f9; color: #64748b; padding: 10px 12px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+  td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; font-size: 12px; }
+  tr:hover td { background: #f8fafc; }
+  .badge { padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-block; }
+  .badge-green { background: #dcfce7; color: #166534; }
+  .badge-yellow { background: #fef3c7; color: #92400e; }
+  .badge-red { background: #fee2e2; color: #991b1b; }
+  .bar-container { background: #e2e8f0; border-radius: 4px; height: 8px; margin-top: 4px; }
+  .bar-fill { height: 100%; border-radius: 4px; }
+  .footer { background: #f8fafc; padding: 20px 40px; text-align: center; color: #94a3b8; font-size: 11px; border-top: 1px solid #e2e8f0; }
+  .agent-log { padding: 8px 12px; background: #f8fafc; border-left: 3px solid #6366f1; border-radius: 0 6px 6px 0; margin-bottom: 6px; font-size: 12px; }
+  .critical { border-left-color: #ef4444; }
+  .warning { border-left-color: #f59e0b; }
+  .info { border-left-color: #22c55e; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media print { body { print-color-adjust: exact; -webkit-print-color-adjust: exact; } }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <h1>🧠 ShelfSense AI — Store Analytics Report</h1>
+  <p>Comprehensive performance report for ${store?.name || "Your Store"}</p>
+  <div class="header-meta">
+    <div><strong>${store?.name || "—"}</strong>Store Name</div>
+    <div><strong>${now}</strong>Generated At</div>
+    <div><strong>${items.length}</strong>Total Products</div>
+    <div><strong>${totalOrders}</strong>Total Orders</div>
+  </div>
+</div>
+
+<!-- REVENUE STATS -->
+<div class="section">
+  <div class="section-title">📊 Revenue Overview</div>
+  <div class="stats-grid">
+    <div class="stat-box"><div class="stat-num">₹${totalRevenue.toLocaleString("en-IN")}</div><div class="stat-label">Total Revenue</div></div>
+    <div class="stat-box"><div class="stat-num">${totalOrders}</div><div class="stat-label">Total Orders</div></div>
+    <div class="stat-box"><div class="stat-num">₹${avgOrderValue.toLocaleString("en-IN")}</div><div class="stat-label">Avg Order Value</div></div>
+    <div class="stat-box"><div class="stat-num">${fraudLogs.length}</div><div class="stat-label">Fraud Flags</div></div>
+  </div>
+</div>
+
+<!-- INVENTORY STATUS -->
+<div class="section">
+  <div class="section-title">📦 Inventory Status</div>
+  <div class="stats-grid">
+    <div class="stat-box"><div class="stat-num" style="color:#22c55e">${healthyStock}</div><div class="stat-label">Healthy Stock</div></div>
+    <div class="stat-box"><div class="stat-num" style="color:#f59e0b">${lowStock}</div><div class="stat-label">Low Stock</div></div>
+    <div class="stat-box"><div class="stat-num" style="color:#ef4444">${outOfStock}</div><div class="stat-label">Out of Stock</div></div>
+    <div class="stat-box"><div class="stat-num" style="color:#6366f1">${items.length}</div><div class="stat-label">Total Items</div></div>
+  </div>
+  <table>
+    <thead><tr><th>Product</th><th>Category</th><th>Stock</th><th>Price</th><th>Status</th><th>Avg Rating</th></tr></thead>
+    <tbody>
+      ${items.map(item => `
+        <tr>
+          <td><strong>${item.name}</strong></td>
+          <td>${item.category || "general"}</td>
+          <td>${item.stock}</td>
+          <td>₹${item.price || 99}</td>
+          <td>
+            ${item.stock === 0
+              ? '<span class="badge badge-red">Out of Stock</span>'
+              : item.stock <= item.minStockLevel
+              ? '<span class="badge badge-yellow">Low Stock</span>'
+              : '<span class="badge badge-green">Healthy</span>'}
+          </td>
+          <td>${item.avgRating ? item.avgRating.toFixed(1) + " ⭐" : "No ratings"}</td>
+        </tr>`).join("")}
+    </tbody>
+  </table>
+</div>
+
+<!-- TOP PRODUCTS -->
+<div class="section">
+  <div class="section-title">🏆 Top Selling Products</div>
+  ${topProducts.length === 0
+    ? "<p style='color:#94a3b8'>No order data yet</p>"
+    : topProducts.map(([key, qty], i) => {
+        const item = items.find(it => it.key === key);
+        const maxQty = topProducts[0][1];
+        const pct = Math.round((qty / maxQty) * 100);
+        const colors = ["#6366f1","#22c55e","#f59e0b","#ef4444","#a78bfa"];
+        return `
+          <div style="margin-bottom:12px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+              <span style="font-weight:600">${i+1}. ${item?.name || key}</span>
+              <span style="color:#64748b">${qty} units sold</span>
+            </div>
+            <div class="bar-container">
+              <div class="bar-fill" style="width:${pct}%;background:${colors[i]}"></div>
+            </div>
+          </div>`;
+      }).join("")}
+</div>
+
+<!-- RECENT ORDERS -->
+<div class="section">
+  <div class="section-title">🧾 Recent Orders (Last 10)</div>
+  <table>
+    <thead><tr><th>Order ID</th><th>Customer</th><th>Amount</th><th>Items</th><th>Status</th><th>Time</th></tr></thead>
+    <tbody>
+      ${ord
 
 /* =========================
    STORE PERFORMANCE SCORE
