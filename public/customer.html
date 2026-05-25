@@ -1076,8 +1076,8 @@
       </div>
       <div id="couponMsg" style="font-size:0.78rem;font-weight:600;display:none"></div>
     </div>
-   <button class="pay-btn" id="payBtn" onclick="initiatePayment()" disabled id="txt-pay-btn">💳 Pay with Razorpay</button>
-    <button class="checkout-btn" id="checkoutBtn" onclick="checkout()" disabled id="txt-checkout-btn">Place Order (Free / Test)</button>
+   <button class="pay-btn" id="payBtn" onclick="initiatePayment()" disabled>💳 Pay with Razorpay</button>
+    <button class="checkout-btn" id="checkoutBtn" onclick="checkout()" disabled>Place Order (Free / Test)</button>
   </div>
 </div>
 
@@ -1112,6 +1112,118 @@
 <div id="toast"></div>
 
 <script>
+/* ===== TRANSLATIONS (must be first) ===== */
+const TRANSLATIONS = {
+  en: {
+    "hero-title": "Fresh Products Daily 🛍️",
+    "hero-sub": "Quality groceries, best prices",
+    "tab-shop": "🏪 Shop",
+    "tab-wishlist": "❤️ Wishlist",
+    "tab-orders": "📦 Order History",
+    "tab-loyalty": "⭐ Loyalty",
+    "tab-analytics": "📊 My Analytics",
+    "tab-referral": "🎁 Refer & Earn",
+    "recommended": "⭐ Recommended for You",
+    "filter": "🔍 Filter Products",
+    "wishlist-title": "❤️ Your Wishlist",
+    "orders-title": "📦 Your Order History",
+    "search-placeholder": "Search products...",
+    "in-stock": "In Stock",
+    "out-of-stock": "Out of Stock",
+    "low-stock": "Only",
+    "low-stock-suffix": "left!",
+    "add-to-cart": "Add",
+    "buy-now": "⚡ Buy Now",
+    "find-nearby": "📍 Find Nearby Store",
+    "compare": "⚖️ Compare",
+    "compare-added": "✅ Added to Compare",
+    "cart-empty": "Your cart is empty",
+    "pay-btn": "💳 Pay with Razorpay",
+    "checkout-btn": "Place Order (Free / Test)",
+    "loyalty-points": "Loyalty Points",
+    "refer-earn": "Refer & Earn",
+    "copy-link": "📋 Copy Link",
+    "share-whatsapp": "📲 Share on WhatsApp",
+    "greeting-morning": "Good morning",
+    "greeting-afternoon": "Good afternoon",
+    "greeting-evening": "Good evening"
+  },
+  hi: {
+    "hero-title": "ताज़े उत्पाद हर दिन 🛍️",
+    "hero-sub": "गुणवत्तापूर्ण किराना, सबसे अच्छे दाम",
+    "tab-shop": "🏪 दुकान",
+    "tab-wishlist": "❤️ इच्छा सूची",
+    "tab-orders": "📦 ऑर्डर इतिहास",
+    "tab-loyalty": "⭐ लॉयल्टी",
+    "tab-analytics": "📊 मेरा विश्लेषण",
+    "tab-referral": "🎁 रेफर करें और कमाएं",
+    "recommended": "⭐ आपके लिए अनुशंसित",
+    "filter": "🔍 उत्पाद फ़िल्टर करें",
+    "wishlist-title": "❤️ आपकी इच्छा सूची",
+    "orders-title": "📦 आपका ऑर्डर इतिहास",
+    "search-placeholder": "उत्पाद खोजें...",
+    "in-stock": "स्टॉक में है",
+    "out-of-stock": "स्टॉक में नहीं",
+    "low-stock": "केवल",
+    "low-stock-suffix": "बचे हैं!",
+    "add-to-cart": "जोड़ें",
+    "buy-now": "⚡ अभी खरीदें",
+    "find-nearby": "📍 नज़दीकी स्टोर खोजें",
+    "compare": "⚖️ तुलना करें",
+    "compare-added": "✅ तुलना में जोड़ा",
+    "cart-empty": "आपकी कार्ट खाली है",
+    "pay-btn": "💳 Razorpay से भुगतान करें",
+    "checkout-btn": "ऑर्डर दें (निःशुल्क / परीक्षण)",
+    "loyalty-points": "लॉयल्टी पॉइंट्स",
+    "refer-earn": "रेफर करें और कमाएं",
+    "copy-link": "📋 लिंक कॉपी करें",
+    "share-whatsapp": "📲 WhatsApp पर शेयर करें",
+    "greeting-morning": "सुप्रभात",
+    "greeting-afternoon": "नमस्कार",
+    "greeting-evening": "शुभ संध्या"
+  },
+  mr: {
+    "hero-title": "दररोज ताजे उत्पादन 🛍️",
+    "hero-sub": "दर्जेदार किराणा, सर्वोत्तम किमती",
+    "tab-shop": "🏪 दुकान",
+    "tab-wishlist": "❤️ इच्छा यादी",
+    "tab-orders": "📦 ऑर्डर इतिहास",
+    "tab-loyalty": "⭐ लॉयल्टी",
+    "tab-analytics": "📊 माझे विश्लेषण",
+    "tab-referral": "🎁 रेफर करा आणि कमवा",
+    "recommended": "⭐ तुमच्यासाठी शिफारस केलेले",
+    "filter": "🔍 उत्पादने फिल्टर करा",
+    "wishlist-title": "❤️ तुमची इच्छा यादी",
+    "orders-title": "📦 तुमचा ऑर्डर इतिहास",
+    "search-placeholder": "उत्पादने शोधा...",
+    "in-stock": "स्टॉकमध्ये आहे",
+    "out-of-stock": "स्टॉकमध्ये नाही",
+    "low-stock": "फक्त",
+    "low-stock-suffix": "शिल्लक!",
+    "add-to-cart": "जोडा",
+    "buy-now": "⚡ आत्ता खरेदी करा",
+    "find-nearby": "📍 जवळचे स्टोर शोधा",
+    "compare": "⚖️ तुलना करा",
+    "compare-added": "✅ तुलनेत जोडले",
+    "cart-empty": "तुमची कार्ट रिकामी आहे",
+    "pay-btn": "💳 Razorpay ने पेमेंट करा",
+    "checkout-btn": "ऑर्डर द्या (विनामूल्य / चाचणी)",
+    "loyalty-points": "लॉयल्टी पॉइंट्स",
+    "refer-earn": "रेफर करा आणि कमवा",
+    "copy-link": "📋 लिंक कॉपी करा",
+    "share-whatsapp": "📲 WhatsApp वर शेअर करा",
+    "greeting-morning": "सुप्रभात",
+    "greeting-afternoon": "नमस्कार",
+    "greeting-evening": "शुभ संध्याकाळ"
+  }
+};
+
+let currentLanguage = localStorage.getItem("shelfsense-lang") || "en";
+
+function t(key) {
+  return TRANSLATIONS[currentLanguage]?.[key] || TRANSLATIONS["en"][key] || key;
+}
+
 /* ===== AUTH — Handle Google OAuth token + role check ===== */
 const urlParams = new URLSearchParams(window.location.search);
 const oauthToken = urlParams.get("token");
@@ -2277,184 +2389,6 @@ async function loadLoyalty() {
     }
 
   } catch(err) { console.error("Loyalty error:", err); }
-}
-
-/* ===== MULTI-LANGUAGE SUPPORT ===== */
-const TRANSLATIONS = {
-  en: {
-    "hero-title": "Fresh Products Daily 🛍️",
-    "hero-sub": "Quality groceries, best prices",
-    "tab-shop": "🏪 Shop",
-    "tab-wishlist": "❤️ Wishlist",
-    "tab-orders": "📦 Order History",
-    "tab-loyalty": "⭐ Loyalty",
-    "tab-analytics": "📊 My Analytics",
-    "tab-referral": "🎁 Refer & Earn",
-    "recommended": "⭐ Recommended for You",
-    "filter": "🔍 Filter Products",
-    "wishlist-title": "❤️ Your Wishlist",
-    "orders-title": "📦 Your Order History",
-    "search-placeholder": "Search products...",
-    "in-stock": "In Stock",
-    "out-of-stock": "Out of Stock",
-    "low-stock": "Only",
-    "low-stock-suffix": "left!",
-    "add-to-cart": "Add",
-    "buy-now": "⚡ Buy Now",
-    "find-nearby": "📍 Find Nearby Store",
-    "compare": "⚖️ Compare",
-    "compare-added": "✅ Added to Compare",
-    "cart-empty": "Your cart is empty",
-    "pay-btn": "💳 Pay with Razorpay",
-    "checkout-btn": "Place Order (Free / Test)",
-    "loyalty-points": "Loyalty Points",
-    "refer-earn": "Refer & Earn",
-    "copy-link": "📋 Copy Link",
-    "share-whatsapp": "📲 Share on WhatsApp",
-    "greeting-morning": "Good morning",
-    "greeting-afternoon": "Good afternoon",
-    "greeting-evening": "Good evening"
-  },
-  hi: {
-    "hero-title": "ताज़े उत्पाद हर दिन 🛍️",
-    "hero-sub": "गुणवत्तापूर्ण किराना, सबसे अच्छे दाम",
-    "tab-shop": "🏪 दुकान",
-    "tab-wishlist": "❤️ इच्छा सूची",
-    "tab-orders": "📦 ऑर्डर इतिहास",
-    "tab-loyalty": "⭐ लॉयल्टी",
-    "tab-analytics": "📊 मेरा विश्लेषण",
-    "tab-referral": "🎁 रेफर करें और कमाएं",
-    "recommended": "⭐ आपके लिए अनुशंसित",
-    "filter": "🔍 उत्पाद फ़िल्टर करें",
-    "wishlist-title": "❤️ आपकी इच्छा सूची",
-    "orders-title": "📦 आपका ऑर्डर इतिहास",
-    "search-placeholder": "उत्पाद खोजें...",
-    "in-stock": "स्टॉक में है",
-    "out-of-stock": "स्टॉक में नहीं",
-    "low-stock": "केवल",
-    "low-stock-suffix": "बचे हैं!",
-    "add-to-cart": "जोड़ें",
-    "buy-now": "⚡ अभी खरीदें",
-    "find-nearby": "📍 नज़दीकी स्टोर खोजें",
-    "compare": "⚖️ तुलना करें",
-    "compare-added": "✅ तुलना में जोड़ा",
-    "cart-empty": "आपकी कार्ट खाली है",
-    "pay-btn": "💳 Razorpay से भुगतान करें",
-    "checkout-btn": "ऑर्डर दें (निःशुल्क / परीक्षण)",
-    "loyalty-points": "लॉयल्टी पॉइंट्स",
-    "refer-earn": "रेफर करें और कमाएं",
-    "copy-link": "📋 लिंक कॉपी करें",
-    "share-whatsapp": "📲 WhatsApp पर शेयर करें",
-    "greeting-morning": "सुप्रभात",
-    "greeting-afternoon": "नमस्कार",
-    "greeting-evening": "शुभ संध्या"
-  },
-  mr: {
-    "hero-title": "दररोज ताजे उत्पादन 🛍️",
-    "hero-sub": "दर्जेदार किराणा, सर्वोत्तम किमती",
-    "tab-shop": "🏪 दुकान",
-    "tab-wishlist": "❤️ इच्छा यादी",
-    "tab-orders": "📦 ऑर्डर इतिहास",
-    "tab-loyalty": "⭐ लॉयल्टी",
-    "tab-analytics": "📊 माझे विश्लेषण",
-    "tab-referral": "🎁 रेफर करा आणि कमवा",
-    "recommended": "⭐ तुमच्यासाठी शिफारस केलेले",
-    "filter": "🔍 उत्पादने फिल्टर करा",
-    "wishlist-title": "❤️ तुमची इच्छा यादी",
-    "orders-title": "📦 तुमचा ऑर्डर इतिहास",
-    "search-placeholder": "उत्पादने शोधा...",
-    "in-stock": "स्टॉकमध्ये आहे",
-    "out-of-stock": "स्टॉकमध्ये नाही",
-    "low-stock": "फक्त",
-    "low-stock-suffix": "शिल्लक!",
-    "add-to-cart": "जोडा",
-    "buy-now": "⚡ आत्ता खरेदी करा",
-    "find-nearby": "📍 जवळचे स्टोर शोधा",
-    "compare": "⚖️ तुलना करा",
-    "compare-added": "✅ तुलनेत जोडले",
-    "cart-empty": "तुमची कार्ट रिकामी आहे",
-    "pay-btn": "💳 Razorpay ने पेमेंट करा",
-    "checkout-btn": "ऑर्डर द्या (विनामूल्य / चाचणी)",
-    "loyalty-points": "लॉयल्टी पॉइंट्स",
-    "refer-earn": "रेफर करा आणि कमवा",
-    "copy-link": "📋 लिंक कॉपी करा",
-    "share-whatsapp": "📲 WhatsApp वर शेअर करा",
-    "greeting-morning": "सुप्रभात",
-    "greeting-afternoon": "नमस्कार",
-    "greeting-evening": "शुभ संध्याकाळ"
-  }
-};
-
-let currentLanguage = localStorage.getItem("shelfsense-lang") || "en";
-
-function setLanguage(lang) {
-  currentLanguage = lang;
-  localStorage.setItem("shelfsense-lang", lang);
-
-  // Update active button
-  ["en","hi","mr"].forEach(l => {
-    const btn = document.getElementById(`lang-${l}`);
-    if (btn) btn.classList.toggle("active", l === lang);
-  });
-
-  const t = TRANSLATIONS[lang];
-  if (!t) return;
-
-  // Update static text elements
-  const updates = {
-    "txt-hero-title": t["hero-title"],
-    "txt-hero-sub": t["hero-sub"],
-    "tab-shop": t["tab-shop"],
-    "tab-wishlist": t["tab-wishlist"],
-    "tab-orders": t["tab-orders"],
-    "tab-loyalty": t["tab-loyalty"],
-    "tab-analytics": t["tab-analytics"],
-    "tab-referral": t["tab-referral"],
-    "txt-recommended": t["recommended"],
-    "txt-filter": t["filter"],
-    "txt-wishlist-title": t["wishlist-title"],
-    "txt-orders-title": t["orders-title"]
-  };
-
-  Object.entries(updates).forEach(([id, text]) => {
-    const el = document.getElementById(id);
-    if (el) el.innerText = text;
-  });
-
-  // Update search placeholder
-  const searchEl = document.getElementById("searchInput");
-  if (searchEl) searchEl.placeholder = t["search-placeholder"];
-
-  // Update cart buttons
-  const payBtn = document.getElementById("payBtn");
-  if (payBtn) payBtn.innerText = t["pay-btn"];
-  const checkoutBtn = document.getElementById("checkoutBtn");
-  if (checkoutBtn) checkoutBtn.innerText = t["checkout-btn"];
-
-  // Update greeting
-  const hour = new Date().getHours();
-  const greetKey = hour < 12 ? "greeting-morning" : hour < 17 ? "greeting-afternoon" : "greeting-evening";
-  const greetEl = document.getElementById("heroGreeting");
-  if (greetEl) greetEl.innerText = `${t[greetKey]}, ${fname}! 👋`;
-
-  // Re-render products to update in-product text
-  renderProducts();
-
-  showToast(lang === "hi" ? "भाषा बदली ✅" : lang === "mr" ? "भाषा बदलली ✅" : "Language changed ✅");
-}
-
-// Apply saved language on load
-function applyLanguage() {
-  if (currentLanguage !== "en") setLanguage(currentLanguage);
-  else {
-    const btn = document.getElementById("lang-en");
-    if (btn) btn.classList.add("active");
-  }
-}
-
-// Helper to get translated text
-function t(key) {
-  return TRANSLATIONS[currentLanguage]?.[key] || TRANSLATIONS["en"][key] || key;
 }
 
 /* ===== INIT ===== */
