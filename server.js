@@ -786,6 +786,14 @@ app.post("/register-store", signupLimiter, async (req, res) => {
 ========================= */
 app.post("/login-store", loginLimiter, async (req, res) => {
   try {
+    if (req.body.website || req.body.phone_number || req.body.company) {
+      const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+      await SecurityLog.create({
+        type: "HONEYPOT_TRIGGERED", ip, path: "/login-store",
+        message: `Bot detected on /login-store from IP ${ip}`
+      });
+      return res.json({ message: "Login successful" });
+    }
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ message: "Email and password required" });
     const store = await Store.findOne({ ownerEmail: email.toLowerCase() });
@@ -831,6 +839,14 @@ res.json({ token, role: "admin", fname: store.ownerName, storeName: store.name, 
 ========================= */
 app.post("/signup", signupLimiter, async (req, res) => {
   try {
+    if (req.body.website || req.body.phone_number || req.body.company) {
+      const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+      await SecurityLog.create({
+        type: "HONEYPOT_TRIGGERED", ip, path: "/signup",
+        message: `Bot detected on /signup from IP ${ip}`
+      });
+      return res.json({ message: "Account created successfully" });
+    }
     const { fname, lname, email, password } = req.body;
     if (!fname || !lname || !email || !password) return res.status(400).json({ message: "All fields required" });
     if (password.length < 6) return res.status(400).json({ message: "Password must be at least 6 characters" });
@@ -844,6 +860,18 @@ app.post("/signup", signupLimiter, async (req, res) => {
 
 app.post("/login", loginLimiter, async (req, res) => {
   try {
+    // HONEYPOT — bots fill hidden fields, humans don't
+    if (req.body.website || req.body.phone_number || req.body.company) {
+      const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+      await SecurityLog.create({
+        type: "HONEYPOT_TRIGGERED",
+        ip, path: "/login",
+        message: `Bot detected on /login from IP ${ip}`
+      });
+      await logAudit(req, "bot", "bot", "HONEYPOT_LOGIN", "blocked", `IP: ${ip}`);
+      // Return fake success to confuse bots
+      return res.json({ message: "Login successful" });
+    }
     const { username, password } = req.body;
     if (!username || !password) return res.status(400).json({ message: "Username and password required" });
     const user = await User.findOne({ email: username.toLowerCase() });

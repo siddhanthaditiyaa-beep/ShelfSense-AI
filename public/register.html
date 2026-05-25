@@ -234,6 +234,10 @@
         </div>
       </div>
 
+<!-- HONEYPOT -->
+<input type="text" name="website" style="display:none;position:absolute;left:-9999px" tabindex="-1" autocomplete="off">
+<input type="text" name="company" style="display:none;position:absolute;left:-9999px" tabindex="-1" autocomplete="off">
+
       <button class="submit-btn" id="submitBtn" onclick="register()">
         Create My Store 🏪
       </button>
@@ -390,7 +394,7 @@ if (strengthEl.innerText === "Weak") {
     const res = await fetch("/register-store", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ storeName, ownerName, email, password, plan: selectedPlan })
+      body: JSON.stringify({ storeName, ownerName, email, password, plan: selectedPlan, website: document.querySelector('input[name="website"]')?.value || "", company: document.querySelector('input[name="company"]')?.value || "" })
     });
 
     const data = await res.json();

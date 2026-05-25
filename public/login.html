@@ -301,6 +301,9 @@
             <a href="#" onclick="openForgotPassword(); return false;">Forgot password?</a>
           </div>
         </div>
+        <!-- HONEYPOT — invisible to humans, bots fill these -->
+<input type="text" name="website" style="display:none;position:absolute;left:-9999px" tabindex="-1" autocomplete="off">
+<input type="text" name="phone_number" style="display:none;position:absolute;left:-9999px" tabindex="-1" autocomplete="off">
         <button class="submit-btn" id="storeLoginBtn" onclick="loginStore()">
           Login to Dashboard
         </button>
@@ -345,6 +348,9 @@
             </button>
           </div>
         </div>
+        <!-- HONEYPOT -->
+<input type="text" name="website" style="display:none;position:absolute;left:-9999px" tabindex="-1" autocomplete="off">
+<input type="text" name="phone_number" style="display:none;position:absolute;left:-9999px" tabindex="-1" autocomplete="off">
         <button class="submit-btn" id="customerLoginBtn" onclick="loginCustomer()">
           Login to My Account
         </button>
@@ -495,9 +501,9 @@ let otpTimerInterval = null;
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span>Logging in...';
     try {
-      const res = await fetch("/login-store", {
+    const res = await fetch("/login-store", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password, website: document.querySelector('input[name="website"]')?.value || "" })
       });
       const data = await res.json();
   if (res.ok) {
@@ -537,9 +543,9 @@ let otpTimerInterval = null;
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span>Logging in...';
     try {
-      const res = await fetch("/login", {
+     const res = await fetch("/login", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ username, password, website: document.querySelector('#customerForm input[name="website"]')?.value || "" })
       });
       const data = await res.json();
       if (!res.ok) {
