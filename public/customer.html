@@ -1138,51 +1138,6 @@
 <div id="toast"></div>
 
 <script>
-/* ===== FLASH SALE COUNTDOWN ===== */
-let countdownIntervals = {};
-
-function startCountdowns() {
-  // Clear existing intervals
-  Object.values(countdownIntervals).forEach(i => clearInterval(i));
-  countdownIntervals = {};
-
-  Object.entries(allProducts).forEach(([key, item]) => {
-    if (!item.onSale || !item.saleEndsAt) return;
-    const endsAt = new Date(item.saleEndsAt).getTime();
-    if (endsAt <= Date.now()) return;
-
-    countdownIntervals[key] = setInterval(() => {
-      const now = Date.now();
-      const msLeft = endsAt - now;
-
-      if (msLeft <= 0) {
-        clearInterval(countdownIntervals[key]);
-        // Sale ended — reload products
-        loadProducts();
-        return;
-      }
-
-      const h = Math.floor(msLeft / (1000 * 60 * 60));
-      const m = Math.floor((msLeft % (1000 * 60 * 60)) / (1000 * 60));
-      const s = Math.floor((msLeft % (1000 * 60)) / 1000);
-
-      const hEl = document.getElementById(`cd_h_${key}`);
-      const mEl = document.getElementById(`cd_m_${key}`);
-      const sEl = document.getElementById(`cd_s_${key}`);
-      const badgeEl = document.getElementById(`flashBadge_${key}`);
-
-      if (hEl) hEl.innerText = String(h).padStart(2, "0");
-      if (mEl) mEl.innerText = String(m).padStart(2, "0");
-      if (sEl) sEl.innerText = String(s).padStart(2, "0");
-
-      // Pulse faster when ending soon (< 1 hour)
-      if (badgeEl && msLeft < 60 * 60 * 1000) {
-        badgeEl.classList.add("sale-ending-soon");
-      }
-
-    }, 1000);
-  });
-}
 
 /* ===== TRANSLATIONS (must be first) ===== */
 const TRANSLATIONS = {
@@ -2481,6 +2436,78 @@ async function loadLoyalty() {
 
   } catch(err) { console.error("Loyalty error:", err); }
 }
+
+/* ===== FLASH SALE COUNTDOWN ===== */
+let countdownIntervals = {};
+
+function startCountdowns() {
+  // Clear existing intervals
+  Object.values(countdownIntervals).forEach(i => clearInterval(i));
+  countdownIntervals = {};
+
+  Object.entries(allProducts).forEach(([key, item]) => {
+    if (!item.onSale || !item.saleEndsAt) return;
+    const endsAt = new Date(item.saleEndsAt).getTime();
+    if (endsAt <= Date.now()) return;
+
+    countdownIntervals[key] = setInterval(() => {
+      const now = Date.now();
+      const msLeft = endsAt - now;
+
+      if (msLeft <= 0) {
+        clearInterval(countdownIntervals[key]);
+        // Sale ended — reload products
+        loadProducts();
+        return;
+      }
+
+      const h = Math.floor(msLeft / (1000 * 60 * 60));
+      const m = Math.floor((msLeft % (1000 * 60 * 60)) / (1000 * 60));
+      const s = Math.floor((msLeft % (1000 * 60)) / 1000);
+
+      const hEl = document.getElementById(`cd_h_${key}`);
+      const mEl = document.getElementById(`cd_m_${key}`);
+      const sEl = document.getElementById(`cd_s_${key}`);
+      const badgeEl = document.getElementById(`flashBadge_${key}`);
+
+      if (hEl) hEl.innerText = String(h).padStart(2, "0");
+      if (mEl) mEl.innerText = String(m).padStart(2, "0");
+      if (sEl) sEl.innerText = String(s).padStart(2, "0");
+
+      // Pulse faster when ending soon (< 1 hour)
+      if (badgeEl && msLeft < 60 * 60 * 1000) {
+        badgeEl.classList.add("sale-ending-soon");
+      }
+
+    }, 1000);
+  });
+}
+
+/* ===== MULTI-LANGUAGE FUNCTIONS ===== */
+function setLanguage(lang) {
+  currentLanguage = lang;
+  localStorage.setItem("shelfsense-lang", lang);
+  ["en","hi","mr"].forEach(l => { const btn = document.getElementById(`lang-${l}`); if (btn) btn.classList.toggle("active", l === lang); });
+  const tr = TRANSLATIONS[lang]; if (!tr) return;
+  const updates = { "txt-hero-title": tr["hero-title"], "txt-hero-sub": tr["hero-sub"], "tab-shop": tr["tab-shop"], "tab-wishlist": tr["tab-wishlist"], "tab-orders": tr["tab-orders"], "tab-loyalty": tr["tab-loyalty"], "tab-analytics": tr["tab-analytics"], "tab-referral": tr["tab-referral"], "txt-recommended": tr["recommended"], "txt-filter": tr["filter"], "txt-wishlist-title": tr["wishlist-title"], "txt-orders-title": tr["orders-title"] };
+  Object.entries(updates).forEach(([id, text]) => { const el = document.getElementById(id); if (el) el.innerText = text; });
+  const searchEl = document.getElementById("searchInput"); if (searchEl) searchEl.placeholder = tr["search-placeholder"];
+  const payBtn = document.getElementById("payBtn"); if (payBtn) payBtn.innerText = tr["pay-btn"];
+  const checkoutBtn = document.getElementById("checkoutBtn"); if (checkoutBtn) checkoutBtn.innerText = tr["checkout-btn"];
+  const hour = new Date().getHours(), greetKey = hour < 12 ? "greeting-morning" : hour < 17 ? "greeting-afternoon" : "greeting-evening";
+  const greetEl = document.getElementById("heroGreeting"); if (greetEl) greetEl.innerText = `${tr[greetKey]}, ${fname}! 👋`;
+  renderProducts();
+  showToast(lang === "hi" ? "भाषा बदली ✅" : lang === "mr" ? "भाषा बदलली ✅" : "Language changed ✅");
+}
+
+function applyLanguage() {
+  if (currentLanguage !== "en") setLanguage(currentLanguage);
+  else { const btn = document.getElementById("lang-en"); if (btn) btn.classList.add("active"); }
+}
+
+/* ===== SETTINGS ===== */
+function toggleSettings() { document.getElementById("settingsPanel").classList.toggle("open"); }
+function setTheme(theme) { document.documentElement.setAttribute("data-theme", theme); localStorage.setItem("shelfsense-theme", theme); document.querySelectorAll(".theme-option").forEach(o => o.classList.toggle("active", o.getAttribute("data-theme") === theme)); document.getElementById("settingsPanel").classList.remove("open"); }
 
 /* ===== INIT ===== */
 loadProducts();
