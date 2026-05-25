@@ -475,6 +475,8 @@ const SessionLogSchema = new mongoose.Schema({
   userAgent: String,
   device: String,
   browser: String,
+  country: String,
+  city: String,
   isActive: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now },
   lastSeen: { type: Date, default: Date.now }
@@ -552,14 +554,30 @@ function parseUserAgent(ua) {
   return { browser, device };
 }
 
+async function getGeoLocation(ip) {
+  try {
+    const cleanIp = ip.includes(",") ? ip.split(",")[0].trim() : ip;
+    if (cleanIp === "127.0.0.1" || cleanIp === "::1" || cleanIp.includes("192.168")) {
+      return { country: "Local Network", city: "Localhost", flag: "🖥️" };
+    }
+    const res = await axios.get(`http://ip-api.com/json/${cleanIp}?fields=country,city,regionName,isp,status`, { timeout: 3000 });
+    if (res.data.status === "success") {
+      return { country: res.data.country || "Unknown", city: res.data.city || "Unknown", region: res.data.regionName || "", isp: res.data.isp || "", flag: "🌍" };
+    }
+    return { country: "Unknown", city: "Unknown", flag: "🌍" };
+  } catch(err) { return { country: "Unknown", city: "Unknown", flag: "🌍" }; }
+}
+
 async function createSession(req, userEmail, role, token, storeId = null) {
   try {
     const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "unknown";
     const ua = req.headers["user-agent"] || "unknown";
     const { browser, device } = parseUserAgent(ua);
+    const geo = await getGeoLocation(ip);
     await SessionLog.create({
       storeId, userId: userEmail, userEmail, role, token,
-      ip, userAgent: ua, device, browser, isActive: true
+      ip, userAgent: ua, device, browser, isActive: true,
+      country: geo.country, city: geo.city
     });
   } catch(err) { console.error("Session log error:", err.message); }
 }
@@ -830,6 +848,43 @@ if (store.twoFactorEnabled) {
 }
 const token = jwt.sign({ id: store._id, role: "admin", email: store.ownerEmail, fname: store.ownerName, storeId: store._id, storeName: store.name, plan: store.plan }, process.env.JWT_SECRET, { expiresIn: "24h" });
 await createSession(req, store.ownerEmail, "admin", token, store._id);
+
+// Geo-location login alert
+const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "unknown";
+const geo = await getGeoLocation(ip);
+const ua = req.headers["user-agent"] || "Unknown";
+const { browser, device } = parseUserAgent(ua);
+const loginTime = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+
+await emailTransporter.sendMail({
+  from: `"ShelfSense AI 🔐" <${process.env.ALERT_EMAIL}>`,
+  to: store.alertEmail || store.ownerEmail,
+  subject: `🔐 New Login to Your ShelfSense Account`,
+  html: `
+    <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto">
+      <div style="background:#6366f1;padding:20px;border-radius:10px 10px 0 0">
+        <h1 style="color:white;margin:0;font-size:1.1rem">🔐 New Login Detected — ShelfSense AI</h1>
+      </div>
+      <div style="background:#f8fafc;padding:24px;border-radius:0 0 10px 10px;border:1px solid #e2e8f0">
+        <p style="color:#1e293b;margin-bottom:16px">Hi <strong>${store.ownerName}</strong>, a new login was detected on your ShelfSense AI account.</p>
+        <div style="background:white;border-radius:8px;padding:16px;border:1px solid #e2e8f0;margin-bottom:16px">
+          <table style="width:100%;font-size:0.85rem;border-collapse:collapse">
+            <tr><td style="padding:6px 0;color:#64748b;width:40%">📍 Location</td><td style="padding:6px 0;color:#1e293b;font-weight:600">${geo.flag} ${geo.city}, ${geo.country}</td></tr>
+            <tr><td style="padding:6px 0;color:#64748b">🌐 IP Address</td><td style="padding:6px 0;color:#1e293b;font-weight:600">${ip}</td></tr>
+            <tr><td style="padding:6px 0;color:#64748b">💻 Device</td><td style="padding:6px 0;color:#1e293b;font-weight:600">${device} — ${browser}</td></tr>
+            <tr><td style="padding:6px 0;color:#64748b">🕐 Time</td><td style="padding:6px 0;color:#1e293b;font-weight:600">${loginTime} IST</td></tr>
+            <tr><td style="padding:6px 0;color:#64748b">🏪 Store</td><td style="padding:6px 0;color:#1e293b;font-weight:600">${store.name}</td></tr>
+          </table>
+        </div>
+        <div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:8px;padding:12px;margin-bottom:16px">
+          <p style="color:#92400e;font-size:0.85rem;margin:0">⚠️ <strong>Not you?</strong> If you did not login, your account may be compromised. Change your password immediately and enable 2FA.</p>
+        </div>
+        <a href="${process.env.BASE_URL || "https://shelfsense-ai-lptz.onrender.com"}/login.html" style="display:inline-block;background:#ef4444;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:700;font-size:0.85rem">🔒 Secure My Account</a>
+        <p style="color:#94a3b8;font-size:0.78rem;margin-top:16px">If this was you, you can safely ignore this email.</p>
+      </div>
+    </div>`
+}).catch(() => {});
+
 res.json({ token, role: "admin", fname: store.ownerName, storeName: store.name, plan: store.plan });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
@@ -1703,11 +1758,13 @@ app.get("/admin/sessions", auth("admin"), async (req, res) => {
     const sessions = await SessionLog.find({ userEmail: req.user.email })
       .sort({ createdAt: -1 }).limit(20);
     const currentToken = req.token;
-    res.json(sessions.map(s => ({
+res.json(sessions.map(s => ({
       _id: s._id,
       ip: s.ip,
       device: s.device,
       browser: s.browser,
+      country: s.country,
+      city: s.city,
       isActive: s.isActive,
       isCurrent: s.token === currentToken,
       createdAt: s.createdAt,

@@ -2067,6 +2067,7 @@ async function loadSessions() {
           <div class="session-icon">${s.device?.includes("Mobile") ? "📱" : "💻"}</div>
           <div class="session-info">
             <h3>${s.device || "Unknown Device"} — ${s.browser || "Unknown Browser"}
+              ${s.country ? `<span style="font-size:0.75rem;color:var(--text-muted);font-weight:400;margin-left:6px">📍 ${s.city || ""}, ${s.country}</span>` : ""}
               ${s.isCurrent ? '<span class="badge badge-green" style="margin-left:8px;font-size:0.7rem">Current Session</span>' : ''}
             </h3>
             <p>🌐 IP: ${s.ip}</p>
