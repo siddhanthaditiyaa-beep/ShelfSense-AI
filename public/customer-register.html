@@ -252,7 +252,7 @@
       const res = await fetch("/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fname, lname, email, password })
+        body: JSON.stringify({ fname, lname, email, password, referralCode: document.getElementById("referralCode")?.value?.trim() || null })
       });
       const data = await res.json();
 

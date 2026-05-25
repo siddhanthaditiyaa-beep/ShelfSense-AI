@@ -664,6 +664,7 @@
   <button class="main-tab" data-tab="orders" onclick="showMainTab('orders', this)">📦 Order History</button>
   <button class="main-tab" data-tab="loyalty" onclick="showMainTab('loyalty', this)">⭐ Loyalty</button>
   <button class="main-tab" data-tab="analytics" onclick="showMainTab('analytics', this)">📊 My Analytics</button>
+  <button class="main-tab" data-tab="referral" onclick="showMainTab('referral', this)">🎁 Refer & Earn</button>
 </div>
 
 <!-- SHOP PAGE -->
@@ -813,6 +814,78 @@
       <h2>📜 Points History</h2>
       <div id="loyaltyHistory">
         <div style="text-align:center;padding:20px;color:var(--text-muted)">⏳ Loading...</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- REFERRAL PAGE -->
+<div class="page" id="page-referral">
+  <div style="max-width:600px;margin:0 auto">
+
+    <!-- Hero Card -->
+    <div style="background:linear-gradient(135deg,#f59e0b,#ef4444);border-radius:20px;padding:28px;margin-bottom:20px;color:white;text-align:center;position:relative;overflow:hidden">
+      <div style="position:absolute;top:-20px;right:-20px;width:120px;height:120px;background:rgba(255,255,255,0.1);border-radius:50%"></div>
+      <div style="font-size:3rem;margin-bottom:8px">🎁</div>
+      <div style="font-size:1.4rem;font-weight:800;margin-bottom:6px">Refer & Earn</div>
+      <div style="font-size:0.9rem;opacity:0.85">Share your link → Friend signs up → You both earn points!</div>
+      <div style="display:flex;justify-content:center;gap:24px;margin-top:20px">
+        <div style="text-align:center">
+          <div style="font-size:1.8rem;font-weight:800" id="refTotalReferrals">0</div>
+          <div style="font-size:0.75rem;opacity:0.75">Friends Referred</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:1.8rem;font-weight:800" id="refPointsEarned">0</div>
+          <div style="font-size:0.75rem;opacity:0.75">Points Earned</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- How It Works -->
+    <div class="card" style="margin-bottom:16px">
+      <h2>🎯 How It Works</h2>
+      <div style="display:flex;flex-direction:column;gap:12px;margin-top:8px">
+        <div style="display:flex;align-items:center;gap:14px;padding:12px;background:var(--bg-input);border-radius:10px">
+          <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#ef4444);display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0">1</div>
+          <div>
+            <div style="font-size:0.875rem;font-weight:700;color:var(--text-primary)">Share Your Link</div>
+            <div style="font-size:0.78rem;color:var(--text-muted)">Copy your unique referral link and share it with friends</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;padding:12px;background:var(--bg-input);border-radius:10px">
+          <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#a78bfa);display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0">2</div>
+          <div>
+            <div style="font-size:0.875rem;font-weight:700;color:var(--text-primary)">Friend Signs Up</div>
+            <div style="font-size:0.78rem;color:var(--text-muted)">They create an account using your referral link</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;padding:12px;background:var(--bg-input);border-radius:10px">
+          <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#22d3ee);display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0">3</div>
+          <div>
+            <div style="font-size:0.875rem;font-weight:700;color:var(--text-primary)">Both Earn Points</div>
+            <div style="font-size:0.78rem;color:var(--text-muted)">You get <strong style="color:var(--success)">+100 points</strong>, your friend gets <strong style="color:var(--success)">+50 points</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Referral Link Card -->
+    <div class="card">
+      <h2>🔗 Your Referral Link</h2>
+      <div style="background:var(--bg-input);border:1px solid var(--border-color);border-radius:10px;padding:14px;margin-bottom:14px">
+        <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:6px;font-weight:600">YOUR REFERRAL CODE</div>
+        <div id="refCode" style="font-size:1.4rem;font-weight:800;color:var(--accent);letter-spacing:4px;margin-bottom:10px">Loading...</div>
+        <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:6px;font-weight:600">YOUR REFERRAL LINK</div>
+        <div id="refLink" style="font-size:0.78rem;color:var(--text-muted);word-break:break-all;margin-bottom:12px">Loading...</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button onclick="copyReferralLink()" style="flex:1;padding:10px;border-radius:8px;background:var(--accent);color:white;border:none;font-weight:600;font-size:0.82rem;cursor:pointer">
+            📋 Copy Link
+          </button>
+          <button onclick="shareReferralWhatsApp()" style="flex:1;padding:10px;border-radius:8px;background:#25D366;color:white;border:none;font-weight:600;font-size:0.82rem;cursor:pointer">
+            📲 Share on WhatsApp
+          </button>
+        </div>
       </div>
     </div>
 
@@ -986,6 +1059,7 @@ if (tab === "orders") loadOrders();
   if (tab === "wishlist") renderWishlist();
   if (tab === "loyalty") loadLoyalty();
   if (tab === "analytics") loadCustomerAnalytics();
+  if (tab === "referral") loadReferral();
 }
 
 /* ===== CART TABS ===== */
@@ -1848,6 +1922,41 @@ function removeCoupon() {
   msgEl.style.display = "none";
   updateCartUI();
   showToast("Coupon removed");
+}
+
+/* ===== REFERRAL PROGRAM ===== */
+let referralData = null;
+
+async function loadReferral() {
+  try {
+    const res = await fetch("/customer/referral", { headers: { Authorization: token } });
+    referralData = await res.json();
+
+    document.getElementById("refTotalReferrals").innerText = referralData.totalReferrals || 0;
+    document.getElementById("refPointsEarned").innerText = referralData.pointsFromReferrals || 0;
+    document.getElementById("refCode").innerText = referralData.referralCode || "—";
+    document.getElementById("refLink").innerText = referralData.referralLink || "—";
+  } catch(err) { console.error("Referral error:", err); }
+}
+
+function copyReferralLink() {
+  if (!referralData?.referralLink) return;
+  navigator.clipboard.writeText(referralData.referralLink).then(() => {
+    showToast("✅ Referral link copied!", "success");
+  }).catch(() => {
+    const el = document.getElementById("refLink");
+    const range = document.createRange();
+    range.selectNode(el);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+    showToast("✅ Link selected — press Ctrl+C to copy");
+  });
+}
+
+function shareReferralWhatsApp() {
+  if (!referralData?.referralLink) return;
+  const msg = `🛍️ Hey! I've been using ShelfSense AI for shopping — great products and fast delivery!\n\nUse my referral link to sign up and get 50 bonus loyalty points:\n\n${referralData.referralLink}`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
 }
 
 /* ===== SMART RECOMMENDATIONS ===== */

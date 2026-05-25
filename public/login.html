@@ -711,6 +711,13 @@ function goBackToLogin() {
     if (e.target === this) closeForgotPassword();
   });
 
+// Auto-fill referral code from URL
+const refParam = new URLSearchParams(window.location.search).get("ref");
+if (refParam) {
+  const refInput = document.getElementById("referralCode");
+  if (refInput) { refInput.value = refParam.toUpperCase(); }
+}
+
   document.addEventListener("keypress", (e) => {
     if (e.key === "Enter") {
       if (currentTab === "store") loginStore();

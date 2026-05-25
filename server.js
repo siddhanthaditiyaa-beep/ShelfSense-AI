@@ -322,8 +322,11 @@ const UserSchema = new mongoose.Schema({
   googleId: String,
   avatar: String,
  wishlist: { type: [String], default: [] },
-  loyaltyPoints: { type: Number, default: 0 },
+loyaltyPoints: { type: Number, default: 0 },
   totalPointsEarned: { type: Number, default: 0 },
+  referralCode: { type: String, unique: true, sparse: true },
+  referredBy: { type: String, default: null },
+  totalReferrals: { type: Number, default: 0 },
   loginAttempts: { type: Number, default: 0 },
   lockUntil: Date,
   resetToken: String,
@@ -907,22 +910,61 @@ res.json({ token, role: "admin", fname: store.ownerName, storeName: store.name, 
 ========================= */
 app.post("/signup", signupLimiter, async (req, res) => {
   try {
-    if (req.body.website || req.body.phone_number || req.body.company) {
-      const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
-      await SecurityLog.create({
-        type: "HONEYPOT_TRIGGERED", ip, path: "/signup",
-        message: `Bot detected on /signup from IP ${ip}`
-      });
-      return res.json({ message: "Account created successfully" });
-    }
-    const { fname, lname, email, password } = req.body;
+    const { fname, lname, email, password, referralCode } = req.body;
     if (!fname || !lname || !email || !password) return res.status(400).json({ message: "All fields required" });
     if (password.length < 6) return res.status(400).json({ message: "Password must be at least 6 characters" });
     if (await User.findOne({ email: email.toLowerCase() })) return res.status(400).json({ message: "User already exists" });
     const hashedPassword = await bcrypt.hash(password, 12);
-    await User.create({ fname, lname, email: email.toLowerCase(), password: hashedPassword });
-    await logAudit(req, email, "customer", "CUSTOMER_REGISTERED");
-    res.json({ message: "Account created successfully" });
+
+    // Generate unique referral code
+    const myReferralCode = `${fname.toUpperCase().slice(0,3)}${Math.random().toString(36).substring(2,7).toUpperCase()}`;
+
+    // Check if referred by someone
+    let referredBy = null;
+    let referrer = null;
+    if (referralCode) {
+      referrer = await User.findOne({ referralCode: referralCode.toUpperCase() });
+      if (referrer) referredBy = referralCode.toUpperCase();
+    }
+
+    const newUser = await User.create({
+      fname, lname, email: email.toLowerCase(), password: hashedPassword,
+      referralCode: myReferralCode, referredBy,
+      // Bonus points for signing up with referral
+      loyaltyPoints: referredBy ? 50 : 0,
+      totalPointsEarned: referredBy ? 50 : 0
+    });
+
+    // Give referrer bonus points
+    if (referrer) {
+      await User.updateOne({ _id: referrer._id }, {
+        $inc: { loyaltyPoints: 100, totalPointsEarned: 100, totalReferrals: 1 }
+      });
+      // Notify referrer
+      await emailTransporter.sendMail({
+        from: `"ShelfSense AI 🎉" <${process.env.ALERT_EMAIL}>`,
+        to: referrer.email,
+        subject: "🎉 Someone used your referral link!",
+        html: `
+          <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto">
+            <div style="background:#6366f1;padding:20px;border-radius:10px 10px 0 0">
+              <h1 style="color:white;margin:0;font-size:1.1rem">🎉 Referral Bonus — ShelfSense AI</h1>
+            </div>
+            <div style="background:#f8fafc;padding:24px;border-radius:0 0 10px 10px;border:1px solid #e2e8f0">
+              <p style="color:#1e293b">Hi <strong>${referrer.fname}</strong>!</p>
+              <p style="color:#1e293b;margin-top:8px"><strong>${fname} ${lname}</strong> just signed up using your referral link!</p>
+              <div style="background:#eef2ff;border-radius:8px;padding:14px;margin:16px 0;text-align:center">
+                <div style="font-size:2rem;font-weight:800;color:#6366f1">+100 ⭐</div>
+                <div style="color:#64748b;font-size:0.85rem;margin-top:4px">Loyalty Points Added to Your Account</div>
+              </div>
+              <p style="color:#64748b;font-size:0.85rem">Keep sharing your referral link to earn more points!</p>
+            </div>
+          </div>`
+      }).catch(() => {});
+    }
+
+    await logAudit(req, email, "customer", "CUSTOMER_REGISTERED", "success", referredBy ? `Referred by ${referredBy}` : "");
+    res.json({ message: "Account created successfully", referralCode: myReferralCode });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
@@ -1260,6 +1302,33 @@ app.post("/verify-payment", auth("customer"), async (req, res) => {
     await logAudit(req, req.user.email, "customer", "PAYMENT_SUCCESS", "success", `₹${totalAmount}`);
     res.json({ message: "Payment successful!", paymentId: razorpay_payment_id, notices });
   } catch (err) { res.status(500).json({ message: "Payment verification error" }); }
+});
+
+/* =========================
+   REFERRAL PROGRAM
+========================= */
+app.get("/customer/referral", auth("customer"), async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("fname referralCode totalReferrals loyaltyPoints");
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Generate code if doesn't have one
+    if (!user.referralCode) {
+      const code = `${(user.fname || "USER").toUpperCase().slice(0,3)}${Math.random().toString(36).substring(2,7).toUpperCase()}`;
+      await User.updateOne({ _id: user._id }, { $set: { referralCode: code } });
+      user.referralCode = code;
+    }
+
+    const baseUrl = process.env.BASE_URL || "https://shelfsense-ai-lptz.onrender.com";
+    const referralLink = `${baseUrl}/customer-register.html?ref=${user.referralCode}`;
+
+    res.json({
+      referralCode: user.referralCode,
+      referralLink,
+      totalReferrals: user.totalReferrals || 0,
+      pointsFromReferrals: (user.totalReferrals || 0) * 100
+    });
+  } catch(err) { res.status(500).json({ message: "Server error" }); }
 });
 
 /* =========================
