@@ -609,6 +609,93 @@
   </div>
 </section>
 
+
+<!-- ROI CALCULATOR -->
+<section style="padding:80px 40px;background:linear-gradient(180deg,var(--dark2) 0%,var(--dark) 100%)">
+  <div class="section-label">Save Money</div>
+  <h2 class="section-title">Calculate Your ROI</h2>
+  <p class="section-subtitle">See exactly how much ShelfSense AI would save your store every month.</p>
+  <div style="max-width:700px;margin:0 auto;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:24px;padding:40px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:32px">
+      <div>
+        <label style="font-size:0.82rem;color:rgba(255,255,255,0.6);display:block;margin-bottom:8px">Number of Products</label>
+        <input type="range" id="roiProducts" min="10" max="500" value="100" oninput="calcROI()" style="width:100%;accent-color:#6366f1">
+        <div style="font-size:1.2rem;font-weight:800;color:#a78bfa;margin-top:4px" id="roiProductsVal">100</div>
+      </div>
+      <div>
+        <label style="font-size:0.82rem;color:rgba(255,255,255,0.6);display:block;margin-bottom:8px">Monthly Revenue (₹)</label>
+        <input type="range" id="roiRevenue" min="50000" max="5000000" step="50000" value="500000" oninput="calcROI()" style="width:100%;accent-color:#6366f1">
+        <div style="font-size:1.2rem;font-weight:800;color:#a78bfa;margin-top:4px" id="roiRevenueVal">₹5,00,000</div>
+      </div>
+      <div>
+        <label style="font-size:0.82rem;color:rgba(255,255,255,0.6);display:block;margin-bottom:8px">Monthly Stockout Losses (₹)</label>
+        <input type="range" id="roiLoss" min="5000" max="500000" step="5000" value="50000" oninput="calcROI()" style="width:100%;accent-color:#6366f1">
+        <div style="font-size:1.2rem;font-weight:800;color:#a78bfa;margin-top:4px" id="roiLossVal">₹50,000</div>
+      </div>
+      <div>
+        <label style="font-size:0.82rem;color:rgba(255,255,255,0.6);display:block;margin-bottom:8px">Staff Hours on Inventory/Week</label>
+        <input type="range" id="roiHours" min="1" max="40" value="10" oninput="calcROI()" style="width:100%;accent-color:#6366f1">
+        <div style="font-size:1.2rem;font-weight:800;color:#a78bfa;margin-top:4px" id="roiHoursVal">10 hrs</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;padding:24px;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);border-radius:16px">
+      <div style="text-align:center">
+        <div style="font-size:1.8rem;font-weight:900;color:#22c55e" id="roiSaved">₹0</div>
+        <div style="font-size:0.78rem;color:rgba(255,255,255,0.5);margin-top:4px">Estimated Monthly Savings</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:1.8rem;font-weight:900;color:#a78bfa" id="roiROI">0x</div>
+        <div style="font-size:0.78rem;color:rgba(255,255,255,0.5);margin-top:4px">Return on Investment</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:1.8rem;font-weight:900;color:#22d3ee" id="roiPayback">0 days</div>
+        <div style="font-size:0.78rem;color:rgba(255,255,255,0.5);margin-top:4px">Payback Period</div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:24px">
+      <a href="register.html" class="btn btn-primary btn-large">Start Saving Today 🚀</a>
+    </div>
+  </div>
+</section>
+
+<!-- COMPARISON TABLE -->
+<section style="padding:80px 40px">
+  <div class="section-label">Why ShelfSense</div>
+  <h2 class="section-title">ShelfSense vs The Rest</h2>
+  <p class="section-subtitle">See how we compare to manual inventory management and basic software.</p>
+  <div style="max-width:900px;margin:0 auto;overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse">
+      <thead>
+        <tr>
+          <th style="padding:14px 20px;text-align:left;font-size:0.85rem;color:rgba(255,255,255,0.5);border-bottom:1px solid rgba(255,255,255,0.1)">Feature</th>
+          <th style="padding:14px 20px;text-align:center;font-size:0.85rem;background:rgba(99,102,241,0.15);color:#a78bfa;border-bottom:1px solid rgba(99,102,241,0.3);border-radius:12px 12px 0 0">🧠 ShelfSense AI</th>
+          <th style="padding:14px 20px;text-align:center;font-size:0.85rem;color:rgba(255,255,255,0.5);border-bottom:1px solid rgba(255,255,255,0.1)">📋 Manual</th>
+          <th style="padding:14px 20px;text-align:center;font-size:0.85rem;color:rgba(255,255,255,0.5);border-bottom:1px solid rgba(255,255,255,0.1)">📊 Basic Software</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${[
+          ["18 AI Agents running 24/7","✅","❌","❌"],
+          ["Automatic stockout prediction","✅","❌","⚠️ Manual"],
+          ["Fraud detection","✅","❌","❌"],
+          ["Dynamic pricing","✅","❌","❌"],
+          ["Shelf image scanning (YOLOv8)","✅","❌","❌"],
+          ["13-layer cybersecurity","✅","❌","⚠️ Basic"],
+          ["Multi-tenant SaaS","✅","❌","⚠️ Limited"],
+          ["Free to start","✅","✅","❌"],
+          ["Real-time alerts","✅","❌","⚠️ Email only"],
+          ["Explainable AI decisions","✅","N/A","❌"],
+        ].map(([f,a,b,c])=>`<tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+          <td style="padding:12px 20px;font-size:0.875rem;color:rgba(255,255,255,0.8)">${f}</td>
+          <td style="padding:12px 20px;text-align:center;background:rgba(99,102,241,0.05);font-size:1rem">${a}</td>
+          <td style="padding:12px 20px;text-align:center;font-size:1rem">${b}</td>
+          <td style="padding:12px 20px;text-align:center;font-size:1rem">${c}</td>
+        </tr>`).join("")}
+      </tbody>
+    </table>
+  </div>
+</section>
+
 <!-- CTA -->
 <section class="cta-section">
   <h2>Ready to Transform Your Store?</h2>
@@ -715,6 +802,31 @@ function renderActivityFeed() {
       <div style="font-size:0.72rem;color:rgba(255,255,255,0.35);white-space:nowrap;flex-shrink:0">${item.time}</div>
     </div>`).join("");
 }
+
+
+/* ROI CALCULATOR */
+function calcROI() {
+  const products = parseInt(document.getElementById("roiProducts").value);
+  const revenue = parseInt(document.getElementById("roiRevenue").value);
+  const loss = parseInt(document.getElementById("roiLoss").value);
+  const hours = parseInt(document.getElementById("roiHours").value);
+  document.getElementById("roiProductsVal").textContent = products;
+  document.getElementById("roiRevenueVal").textContent = "₹" + revenue.toLocaleString("en-IN");
+  document.getElementById("roiLossVal").textContent = "₹" + loss.toLocaleString("en-IN");
+  document.getElementById("roiHoursVal").textContent = hours + " hrs";
+  // AI reduces stockout losses by 80%, saves 70% of staff time at ₹150/hr
+  const stockoutSaved = loss * 0.8;
+  const staffSaved = hours * 4 * 150 * 0.7; // 4 weeks, ₹150/hr, 70% reduction
+  const revenueLift = revenue * 0.03; // 3% revenue lift from better availability
+  const totalSaved = Math.round(stockoutSaved + staffSaved + revenueLift);
+  const planCost = 999; // Pro plan
+  const roi = (totalSaved / planCost).toFixed(1);
+  const payback = Math.ceil(30 / parseFloat(roi));
+  document.getElementById("roiSaved").textContent = "₹" + totalSaved.toLocaleString("en-IN");
+  document.getElementById("roiROI").textContent = roi + "x";
+  document.getElementById("roiPayback").textContent = payback + " days";
+}
+calcROI();
 
 loadLiveStats();
 renderActivityFeed();

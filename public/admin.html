@@ -605,6 +605,15 @@
       <button class="sidebar-item" data-page="manage-orders" onclick="showPage('manage-orders', this)"><span class="sidebar-emoji">🧾</span> Orders</button>
       <button class="sidebar-item" data-page="sessions" onclick="showPage('sessions', this)"><span class="sidebar-emoji">🔑</span> Sessions</button>
 <button class="sidebar-item" data-page="security" onclick="showPage('security', this)"><span class="sidebar-emoji">🛡️</span> Security</button>
+<button class="sidebar-item" data-page="xai" onclick="showPage('xai', this)"><span class="sidebar-emoji">🧠</span> Explainable AI</button>
+<button class="sidebar-item" data-page="stockout" onclick="showPage('stockout', this)"><span class="sidebar-emoji">📉</span> Stockout Risk</button>
+<button class="sidebar-item" data-page="attack-sim" onclick="showPage('attack-sim', this)"><span class="sidebar-emoji">🔴</span> Attack Simulator</button>
+<button class="sidebar-item" data-page="returns" onclick="showPage('returns', this)"><span class="sidebar-emoji">↩️</span> Returns</button>
+<button class="sidebar-item" data-page="suppliers" onclick="showPage('suppliers', this)"><span class="sidebar-emoji">🏭</span> Suppliers</button>
+<button class="sidebar-item" data-page="aging" onclick="showPage('aging', this)"><span class="sidebar-emoji">📅</span> Aging Report</button>
+<button class="sidebar-item" data-page="system-health" onclick="showPage('system-health', this)"><span class="sidebar-emoji">💻</span> System Health</button>
+<button class="sidebar-item" data-page="what-if" onclick="showPage('what-if', this)"><span class="sidebar-emoji">🔮</span> What-If Sim</button>
+<button class="sidebar-item" data-page="settings-advanced" onclick="showPage('settings-advanced', this)"><span class="sidebar-emoji">⚙️</span> Advanced Settings</button>
 <button class="sidebar-item" data-page="store-settings" onclick="showPage('store-settings', this)"><span class="sidebar-emoji">⚙️</span> Store Settings</button>
     </div>
     <div class="sidebar-bottom">
@@ -1435,6 +1444,171 @@
 </div>
 
 <!-- AI CHATBOT -->
+
+<!-- XAI PAGE -->
+<div class="page" id="page-xai">
+  <div class="card">
+    <h2>🧠 Explainable AI Dashboard</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">See exactly WHY each AI agent made every decision — with confidence scores, contributing factors, and counterfactual explanations.</p>
+    <div id="xaiList"><div class="skeleton skeleton-stat" style="height:120px;border-radius:12px;margin-bottom:12px"></div><div class="skeleton skeleton-stat" style="height:120px;border-radius:12px;margin-bottom:12px"></div><div class="skeleton skeleton-stat" style="height:120px;border-radius:12px"></div></div>
+  </div>
+</div>
+
+<!-- STOCKOUT RISK PAGE -->
+<div class="page" id="page-stockout">
+  <div class="card">
+    <h2>📉 Stockout Probability Scores</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">AI-calculated probability of each product stocking out today, based on sales velocity and current stock.</p>
+    <div id="stockoutList"><div class="skeleton skeleton-stat" style="height:80px;border-radius:12px;margin-bottom:8px"></div><div class="skeleton skeleton-stat" style="height:80px;border-radius:12px;margin-bottom:8px"></div></div>
+  </div>
+</div>
+
+<!-- ATTACK SIMULATOR PAGE -->
+<div class="page" id="page-attack-sim">
+  <div class="card">
+    <h2>🔴 Security Attack Simulation Console</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Simulate real attacks against your own system and watch them get blocked in real-time. Safe, educational, and impressive for demos.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px">
+      <button class="btn-primary" onclick="runAttack('nosql_injection')">💉 NoSQL Injection</button>
+      <button class="btn-primary" onclick="runAttack('xss')">📜 XSS Attack</button>
+      <button class="btn-primary" onclick="runAttack('brute_force')">🔨 Brute Force</button>
+      <button class="btn-primary" onclick="runAttack('path_traversal')">📁 Path Traversal</button>
+      <button class="btn-primary" onclick="runAttack('csrf')">🎭 CSRF Attack</button>
+      <button class="btn-danger" onclick="runAttack('all')">💥 Run ALL Attacks</button>
+    </div>
+    <div id="attackResults"></div>
+  </div>
+</div>
+
+<!-- RETURNS PAGE -->
+<div class="page" id="page-returns">
+  <div class="card">
+    <h2>↩️ Return & Refund Management</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Manage customer return requests. Approve or reject with notes — customers get email notifications automatically.</p>
+    <div id="returnsList">Loading returns...</div>
+  </div>
+</div>
+
+<!-- SUPPLIERS PAGE -->
+<div class="page" id="page-suppliers">
+  <div class="card">
+    <h2>🏭 Supplier Scorecard</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Rate your suppliers on delivery, quality, and pricing. Track performance over time.</p>
+    <div id="suppliersList">Loading suppliers...</div>
+  </div>
+</div>
+
+<!-- AGING REPORT PAGE -->
+<div class="page" id="page-aging">
+  <div class="card">
+    <h2>📅 Inventory Aging Report</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Products ranked by how long they'll last at current sales velocity. Dead stock and slow movers flagged automatically.</p>
+    <div id="agingList">Loading...</div>
+  </div>
+</div>
+
+<!-- SYSTEM HEALTH PAGE -->
+<div class="page" id="page-system-health">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:20px" id="healthGrid">
+    <div class="skeleton skeleton-stat" style="height:100px;border-radius:12px"></div>
+    <div class="skeleton skeleton-stat" style="height:100px;border-radius:12px"></div>
+    <div class="skeleton skeleton-stat" style="height:100px;border-radius:12px"></div>
+    <div class="skeleton skeleton-stat" style="height:100px;border-radius:12px"></div>
+  </div>
+  <div class="card" id="healthDetails"></div>
+</div>
+
+<!-- WHAT-IF SIMULATOR PAGE -->
+<div class="page" id="page-what-if">
+  <div class="card">
+    <h2>🔮 What-If Simulator</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Run hypothetical scenarios on your inventory. See predicted impact before making changes.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <div>
+        <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:6px">Select Product</label>
+        <select id="whatIfProduct" style="width:100%;padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary)">
+          <option value="">Loading products...</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:6px">Discount % (optional)</label>
+        <input type="number" id="whatIfDiscount" placeholder="e.g. 20" min="0" max="90" style="width:100%;padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary)">
+      </div>
+      <div>
+        <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:6px">Stock Change (optional)</label>
+        <input type="number" id="whatIfStock" placeholder="e.g. +50 or -10" style="width:100%;padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary)">
+      </div>
+      <div style="display:flex;align-items:flex-end">
+        <button class="btn-primary" style="width:100%;padding:10px" onclick="runWhatIf()">🔮 Simulate</button>
+      </div>
+    </div>
+    <div id="whatIfResults"></div>
+  </div>
+</div>
+
+<!-- ADVANCED SETTINGS PAGE -->
+<div class="page" id="page-settings-advanced">
+  <div class="card" style="margin-bottom:16px">
+    <h2>🔧 Maintenance Mode</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:16px">Put your store in maintenance mode — customers see a friendly message, admin still works normally.</p>
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <input type="text" id="maintenanceMsg" placeholder="We'll be back soon! Doing some improvements." style="flex:1;padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary)">
+      <button class="btn-primary" onclick="toggleMaintenance(true)">🔴 Enable</button>
+      <button class="btn-success" onclick="toggleMaintenance(false)">🟢 Disable</button>
+    </div>
+    <div id="maintenanceStatus" style="margin-top:12px;font-size:0.85rem;color:var(--text-muted)"></div>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <h2>📢 Announcements</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:16px">Banner messages shown to all customers on the shop page.</p>
+    <div style="display:grid;grid-template-columns:1fr auto auto;gap:10px;margin-bottom:16px">
+      <input type="text" id="announcementMsg" placeholder="Store closes at 8PM today!" style="padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary)">
+      <select id="announcementType" style="padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary)"><option value="info">ℹ️ Info</option><option value="warning">⚠️ Warning</option><option value="success">✅ Success</option></select>
+      <button class="btn-primary" onclick="createAnnouncement()">Post</button>
+    </div>
+    <div id="announcementsList">Loading...</div>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <h2>💾 Inventory Snapshots</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:16px">Save your current inventory state and restore it later if needed.</p>
+    <div style="display:flex;gap:10px;margin-bottom:16px">
+      <input type="text" id="snapshotName" placeholder="e.g. Before Diwali Sale" style="flex:1;padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary)">
+      <button class="btn-primary" onclick="saveSnapshot()">💾 Save Snapshot</button>
+    </div>
+    <div id="snapshotsList">Loading...</div>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <h2>💰 Bulk Price Update by Category</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:16px">Update all prices in a category by a percentage at once.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px">
+      <select id="bulkPriceCategory" style="padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary)">
+        <option value="all">All Categories</option>
+        <option value="snacks">Snacks</option>
+        <option value="beverages">Beverages</option>
+        <option value="dairy">Dairy</option>
+        <option value="general">General</option>
+      </select>
+      <input type="number" id="bulkPriceChange" placeholder="e.g. 10 or -5" style="padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary)">
+      <button class="btn-primary" onclick="bulkUpdatePrice()">Update Prices</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2>🔗 Webhooks</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:16px">Send automatic POST requests to any URL when events happen in your store.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:16px">
+      <input type="text" id="webhookUrl" placeholder="https://your-endpoint.com/webhook" style="padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary)">
+      <select id="webhookEvents" multiple style="padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);height:80px">
+        <option value="low_stock">Low Stock</option>
+        <option value="out_of_stock">Out of Stock</option>
+        <option value="fraud_detected">Fraud Detected</option>
+        <option value="reorder_triggered">Reorder Triggered</option>
+      </select>
+      <button class="btn-primary" onclick="createWebhook()" style="align-self:flex-start">Add</button>
+    </div>
+    <div id="webhooksList">Loading...</div>
+  </div>
+</div>
+
 <button class="chatbot-fab" id="chatbotFab" onclick="toggleChatbot()">🤖</button>
 <div class="chatbot-panel" id="chatbotPanel">
   <div class="chatbot-header">
@@ -3533,6 +3707,519 @@ function showSkeleton(containerId, rows = 3) {
       <div class="skeleton skeleton-line short"></div>
     </div>`).join("");
 }
+
+
+/* ============================================
+   BATCH 3 JS FUNCTIONS
+============================================ */
+
+/* XAI DASHBOARD */
+async function loadXAI() {
+  const el = document.getElementById("xaiList");
+  if (!el) return;
+  showSkeleton("xaiList", 3);
+  try {
+    const res = await fetch("/admin/xai-explanations", { headers: getAuthHeaders() });
+    const data = await res.json();
+    if (!data.explanations?.length) { el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">No agent decisions to explain yet. Agents will populate this as they run.</div>'; return; }
+    el.innerHTML = data.explanations.map(exp => `
+      <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:18px;margin-bottom:12px;border-left:4px solid ${exp.severity==='critical'?'#ef4444':exp.severity==='warning'?'#f59e0b':'#6366f1'}">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+          <div>
+            <span style="font-weight:700;font-size:0.9rem">${exp.agent}</span>
+            <span style="margin-left:10px;font-size:0.75rem;color:var(--text-muted)">${new Date(exp.time).toLocaleString("en-IN")}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:0.75rem;background:var(--bg-tertiary);padding:3px 10px;border-radius:20px">Confidence: <strong>${exp.confidence}%</strong></span>
+            <span style="font-size:0.72rem;padding:3px 8px;border-radius:6px;background:${exp.severity==='critical'?'rgba(239,68,68,0.1)':exp.severity==='warning'?'rgba(245,158,11,0.1)':'rgba(99,102,241,0.1)'};color:${exp.severity==='critical'?'#ef4444':exp.severity==='warning'?'#f59e0b':'#6366f1'}">${exp.severity?.toUpperCase()}</span>
+          </div>
+        </div>
+        <div style="font-size:0.875rem;color:var(--text-primary);margin-bottom:10px">${exp.action}</div>
+        <div style="background:var(--bg-tertiary);border-radius:8px;padding:12px;margin-bottom:8px">
+          <div style="font-size:0.78rem;font-weight:700;color:var(--text-muted);margin-bottom:6px">🔍 REASONING CHAIN</div>
+          ${exp.reasoning.map((r,i) => `<div style="font-size:0.82rem;color:var(--text-primary);margin-bottom:3px">${i+1}. ${r}</div>`).join("")}
+        </div>
+        ${exp.factors?.length ? `<div style="margin-bottom:8px">${exp.factors.map(f => `
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span style="font-size:0.75rem;color:var(--text-muted);width:140px;flex-shrink:0">${f.name}</span>
+            <div style="flex:1;height:6px;background:var(--bg-tertiary);border-radius:3px;overflow:hidden">
+              <div style="height:100%;background:linear-gradient(90deg,#6366f1,#a78bfa);border-radius:3px;width:${f.weight}%"></div>
+            </div>
+            <span style="font-size:0.75rem;color:var(--text-muted);width:40px;text-align:right">${f.weight}%</span>
+          </div>`).join("")}</div>` : ""}
+        ${exp.counterfactual ? `<div style="font-size:0.78rem;color:#a78bfa;background:rgba(167,139,250,0.1);padding:8px 12px;border-radius:6px;border-left:3px solid #a78bfa">💡 <em>${exp.counterfactual}</em></div>` : ""}
+      </div>`).join("");
+  } catch(err) { el.innerHTML = '<div style="color:var(--danger);padding:20px">Failed to load XAI data</div>'; }
+}
+
+/* STOCKOUT PROBABILITY */
+async function loadStockoutRisk() {
+  const el = document.getElementById("stockoutList");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/stockout-probability", { headers: getAuthHeaders() });
+    const data = await res.json();
+    const colors = { critical:"#ef4444", high:"#f97316", medium:"#f59e0b", low:"#22c55e" };
+    el.innerHTML = data.scores.map(s => `
+      <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:10px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:16px">
+        <div style="width:52px;height:52px;border-radius:50%;background:conic-gradient(${colors[s.risk]} ${s.probability*3.6}deg,var(--bg-tertiary) 0deg);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <div style="width:38px;height:38px;background:var(--bg-secondary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:800;color:${colors[s.risk]}">${s.probability}%</div>
+        </div>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:0.9rem">${s.name}</div>
+          <div style="font-size:0.78rem;color:var(--text-muted)">${s.stock} units · ${s.avgDailySales}/day avg · ${s.daysLeft!=null?s.daysLeft+" days left":"No sales data"}</div>
+        </div>
+        <span style="padding:4px 12px;border-radius:20px;font-size:0.75rem;font-weight:700;background:${colors[s.risk]}20;color:${colors[s.risk]}">${s.risk.toUpperCase()}</span>
+      </div>`).join("");
+  } catch(err) { document.getElementById("stockoutList").innerHTML = "Failed to load"; }
+}
+
+/* ATTACK SIMULATOR */
+async function runAttack(type) {
+  const el = document.getElementById("attackResults");
+  el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted)">⏳ Simulating attack...</div>';
+  try {
+    const res = await fetch("/admin/simulate-attack", { method:"POST", headers:{ "Content-Type":"application/json", ...getAuthHeaders() }, body: JSON.stringify({ attackType:type }) });
+    const data = await res.json();
+    el.innerHTML = `
+      <div style="background:${data.allBlocked?'rgba(34,197,94,0.1)':'rgba(239,68,68,0.1)'};border:1px solid ${data.allBlocked?'#22c55e':'#ef4444'};border-radius:12px;padding:16px;margin-bottom:16px">
+        <div style="font-weight:700;color:${data.allBlocked?'#22c55e':'#ef4444'};font-size:1rem">${data.allBlocked?'✅ ALL ATTACKS BLOCKED':'⚠️ Some attacks not blocked'}</div>
+        <div style="font-size:0.82rem;color:var(--text-muted);margin-top:4px">${data.results.length} attack(s) simulated · All logged to Security Dashboard</div>
+      </div>
+      ${data.results.map(r => `
+        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:10px;padding:14px;margin-bottom:8px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <span style="font-size:1rem">${r.blocked?'🛡️':'💀'}</span>
+            <span style="font-weight:700;font-size:0.9rem">${r.type}</span>
+            <span style="margin-left:auto;padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;background:${r.blocked?'rgba(34,197,94,0.1)':'rgba(239,68,68,0.1)'};color:${r.blocked?'#22c55e':'#ef4444'}">${r.blocked?'BLOCKED':'PASSED'}</span>
+          </div>
+          <div style="font-size:0.78rem;background:var(--bg-tertiary);padding:8px 12px;border-radius:6px;font-family:monospace;margin-bottom:6px;color:#f97316">Payload: ${r.payload}</div>
+          <div style="font-size:0.78rem;color:var(--text-muted)">Layer: <strong style="color:var(--accent)">${r.layer}</strong></div>
+          <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px">${r.detail}</div>
+        </div>`).join("")}`;
+  } catch(err) { el.innerHTML = '<div style="color:var(--danger);padding:20px">Simulation failed</div>'; }
+}
+
+/* RETURNS MANAGEMENT */
+async function loadReturns() {
+  const el = document.getElementById("returnsList");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/return-requests", { headers: getAuthHeaders() });
+    const data = await res.json();
+    if (!data.returns?.length) { el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">No return requests yet.</div>'; return; }
+    el.innerHTML = data.returns.map(r => `
+      <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:10px;padding:14px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+          <div>
+            <span style="font-weight:700">${r.itemName}</span>
+            <span style="font-size:0.78rem;color:var(--text-muted);margin-left:8px">Order: ${r.orderId}</span>
+          </div>
+          <span style="padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;background:${r.status==='approved'?'rgba(34,197,94,0.1)':r.status==='rejected'?'rgba(239,68,68,0.1)':'rgba(245,158,11,0.1)'};color:${r.status==='approved'?'#22c55e':r.status==='rejected'?'#ef4444':'#f59e0b'}">${r.status.toUpperCase()}</span>
+        </div>
+        <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:8px">📧 ${r.customerEmail} · Reason: ${r.reason}</div>
+        ${r.status==='pending' ? `
+          <div style="display:flex;gap:8px">
+            <input type="text" id="note-${r._id}" placeholder="Add admin note..." style="flex:1;padding:8px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);font-size:0.82rem">
+            <button class="btn-success" style="font-size:0.8rem;padding:8px 12px" onclick="resolveReturn('${r._id}','approved')">✅ Approve</button>
+            <button class="btn-danger" style="font-size:0.8rem;padding:8px 12px" onclick="resolveReturn('${r._id}','rejected')">❌ Reject</button>
+          </div>` : `<div style="font-size:0.78rem;color:var(--text-muted)">Note: ${r.adminNote||"None"}</div>`}
+      </div>`).join("");
+  } catch(err) { document.getElementById("returnsList").innerHTML = "Failed to load"; }
+}
+async function resolveReturn(id, status) {
+  const note = document.getElementById(`note-${id}`)?.value || "";
+  try {
+    const res = await fetch(`/admin/return-requests/${id}/resolve`, { method:"POST", headers:{ "Content-Type":"application/json", ...getAuthHeaders() }, body: JSON.stringify({ status, adminNote:note }) });
+    const data = await res.json();
+    ssToast(data.message, status==="approved"?"success":"error");
+    loadReturns();
+  } catch(err) { ssToast("Failed to update return", "error"); }
+}
+
+/* SUPPLIERS */
+async function loadSuppliers() {
+  const el = document.getElementById("suppliersList");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/supplier-scores", { headers: getAuthHeaders() });
+    const data = await res.json();
+    if (!data.suppliers?.length) { el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">No suppliers found. Add a supplier field to your products first.</div>'; return; }
+    el.innerHTML = data.suppliers.map(s => `
+      <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:16px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <span style="font-weight:700;font-size:0.95rem">🏭 ${s.name}</span>
+          <span style="font-size:1.2rem;font-weight:800;color:${s.avgScore>=4?'#22c55e':s.avgScore>=3?'#f59e0b':'#ef4444'}">${s.avgScore||"—"} ⭐</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">
+          ${["deliveryRating","qualityRating","priceRating"].map((field,i) => `
+            <div>
+              <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:4px">${["Delivery","Quality","Price"][i]}</div>
+              <div style="display:flex;gap:3px">${[1,2,3,4,5].map(n=>`<span style="cursor:pointer;font-size:1rem;opacity:${(s[field]||0)>=n?1:0.3}" onclick="rateSupplier('${s.name}','${field}',${n})">⭐</span>`).join("")}</div>
+            </div>`).join("")}
+        </div>
+        <input type="text" id="snote-${s.name.replace(/\s/g,'_')}" placeholder="Notes about this supplier..." value="${s.notes||""}" style="width:100%;padding:8px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);font-size:0.82rem">
+        <button class="btn-primary" style="margin-top:8px;padding:8px 16px;font-size:0.82rem" onclick="saveSupplierRating('${s.name}')">Save Rating</button>
+      </div>`).join("");
+  } catch(err) { document.getElementById("suppliersList").innerHTML = "Failed to load"; }
+}
+
+let pendingRatings = {};
+function rateSupplier(name, field, value) {
+  if (!pendingRatings[name]) pendingRatings[name] = {};
+  pendingRatings[name][field] = value;
+  loadSuppliers();
+}
+async function saveSupplierRating(name) {
+  const noteEl = document.getElementById(`snote-${name.replace(/\s/g,'_')}`);
+  const ratings = pendingRatings[name] || {};
+  try {
+    const res = await fetch("/admin/supplier-scores", { method:"POST", headers:{ "Content-Type":"application/json", ...getAuthHeaders() }, body: JSON.stringify({ supplierName:name, deliveryRating:ratings.deliveryRating||3, qualityRating:ratings.qualityRating||3, priceRating:ratings.priceRating||3, notes:noteEl?.value||"" }) });
+    const data = await res.json();
+    ssToast(`${name} rated successfully`, "success");
+    loadSuppliers();
+  } catch(err) { ssToast("Failed to save rating", "error"); }
+}
+
+/* INVENTORY AGING */
+async function loadAgingReport() {
+  const el = document.getElementById("agingList");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/inventory-aging", { headers: getAuthHeaders() });
+    const data = await res.json();
+    const catColors = { dead:"#ef4444", slow:"#f97316", moderate:"#f59e0b", fast:"#22c55e" };
+    el.innerHTML = `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">
+      <thead><tr style="border-bottom:1px solid var(--border-color)">${["Product","Stock","Daily Sales","Days Left","Category","Recommended Action"].map(h=>`<th style="padding:10px 12px;text-align:left;font-size:0.8rem;color:var(--text-muted)">${h}</th>`).join("")}</tr></thead>
+      <tbody>${data.items.map(i=>`<tr style="border-bottom:1px solid var(--border-color)">
+        <td style="padding:10px 12px;font-size:0.875rem;font-weight:600">${i.name}</td>
+        <td style="padding:10px 12px;font-size:0.875rem">${i.stock}</td>
+        <td style="padding:10px 12px;font-size:0.875rem">${i.avgDailySales}</td>
+        <td style="padding:10px 12px;font-size:0.875rem">${i.daysOfStock||"∞"}</td>
+        <td style="padding:10px 12px"><span style="padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;background:${catColors[i.category]}20;color:${catColors[i.category]}">${i.category.toUpperCase()}</span></td>
+        <td style="padding:10px 12px;font-size:0.8rem;color:var(--text-muted)">${i.action}</td>
+      </tr>`).join("")}</tbody>
+    </table></div>`;
+  } catch(err) { document.getElementById("agingList").innerHTML = "Failed to load"; }
+}
+
+/* SYSTEM HEALTH */
+async function loadSystemHealth() {
+  const grid = document.getElementById("healthGrid");
+  const details = document.getElementById("healthDetails");
+  if (!grid) return;
+  try {
+    const res = await fetch("/admin/system-health", { headers: getAuthHeaders() });
+    const d = await res.json();
+    grid.innerHTML = `
+      <div style="background:var(--bg-secondary);border:1px solid ${d.database.connected?'#22c55e':'#ef4444'};border-radius:12px;padding:20px">
+        <div style="font-size:1.8rem;font-weight:800;color:${d.database.connected?'#22c55e':'#ef4444'}">${d.database.connected?'✅':'❌'}</div>
+        <div style="font-weight:700;margin:4px 0">MongoDB</div>
+        <div style="font-size:0.78rem;color:var(--text-muted)">${d.database.status} · Ping: ${d.database.ping}</div>
+      </div>
+      <div style="background:var(--bg-secondary);border:1px solid var(--accent);border-radius:12px;padding:20px">
+        <div style="font-size:1.8rem;font-weight:800;color:var(--accent)">${d.node.uptimeHuman}</div>
+        <div style="font-weight:700;margin:4px 0">Server Uptime</div>
+        <div style="font-size:0.78rem;color:var(--text-muted)">Node ${d.node.version} · ${d.node.platform}</div>
+      </div>
+      <div style="background:var(--bg-secondary);border:1px solid #a78bfa;border-radius:12px;padding:20px">
+        <div style="font-size:1.8rem;font-weight:800;color:#a78bfa">${d.memory.heapUsed}MB</div>
+        <div style="font-weight:700;margin:4px 0">Heap Used</div>
+        <div style="font-size:0.78rem;color:var(--text-muted)">of ${d.memory.heapTotal}MB total · RSS: ${d.memory.rss}MB</div>
+      </div>
+      <div style="background:var(--bg-secondary);border:1px solid #22c55e;border-radius:12px;padding:20px">
+        <div style="font-size:1.8rem;font-weight:800;color:#22c55e">${d.agents.running}/${d.agents.total}</div>
+        <div style="font-weight:700;margin:4px 0">Agents Running</div>
+        <div style="font-size:0.78rem;color:var(--text-muted)">${d.agents.paused} paused · ${d.security.blacklistedTokens} blacklisted tokens</div>
+      </div>`;
+    if (details) details.innerHTML = `<h2>🔒 Security State</h2><p style="color:var(--text-muted);font-size:0.875rem">Blacklisted JWT tokens: <strong>${d.security.blacklistedTokens}</strong> · Active OTP sessions: <strong>${d.security.otpSessions}</strong> · Paused agents: <strong>${d.agents.paused}</strong></p>`;
+  } catch(err) { grid.innerHTML = '<div style="color:var(--danger);padding:20px">Failed to load system health</div>'; }
+}
+
+/* WHAT-IF SIMULATOR */
+async function loadWhatIfProducts() {
+  try {
+    const res = await fetch("/admin-data", { headers: getAuthHeaders() });
+    const data = await res.json();
+    const sel = document.getElementById("whatIfProduct");
+    if (!sel || !data.items) return;
+    sel.innerHTML = data.items.map(i=>`<option value="${i.key}">${i.name} (${i.stock} units)</option>`).join("");
+  } catch(err){}
+}
+async function runWhatIf() {
+  const key = document.getElementById("whatIfProduct")?.value;
+  const discount = document.getElementById("whatIfDiscount")?.value;
+  const stock = document.getElementById("whatIfStock")?.value;
+  const el = document.getElementById("whatIfResults");
+  if (!key) { ssToast("Select a product first","warning"); return; }
+  try {
+    const res = await fetch("/admin/what-if", { method:"POST", headers:{ "Content-Type":"application/json",...getAuthHeaders() }, body: JSON.stringify({ itemKey:key, discountPercent:discount?parseFloat(discount):undefined, stockChange:stock?parseInt(stock):undefined }) });
+    const data = await res.json();
+    let html = `<div style="background:var(--bg-secondary);border:1px solid var(--accent);border-radius:12px;padding:20px;margin-top:16px"><h3 style="margin:0 0 16px">🔮 Simulation Results for: ${data.item}</h3>`;
+    if (data.results.discount) {
+      const d = data.results.discount;
+      const rev = parseFloat(d.revenueChange);
+      html += `<div style="background:var(--bg-tertiary);border-radius:10px;padding:14px;margin-bottom:12px">
+        <div style="font-weight:700;margin-bottom:10px">💰 Discount Impact (${d.discountPercent}% off)</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div><div style="font-size:0.75rem;color:var(--text-muted)">New Price</div><div style="font-weight:700">₹${d.newPrice}</div></div>
+          <div><div style="font-size:0.75rem;color:var(--text-muted)">Projected Daily Sales</div><div style="font-weight:700">${d.projectedDailySales} units</div></div>
+          <div><div style="font-size:0.75rem;color:var(--text-muted)">Current Daily Revenue</div><div style="font-weight:700">₹${d.currentRevenue}</div></div>
+          <div><div style="font-size:0.75rem;color:var(--text-muted)">Projected Daily Revenue</div><div style="font-weight:700;color:${rev>=0?'#22c55e':'#ef4444'}">₹${d.projectedRevenue} (${rev>=0?'+':''}${d.revenueChange}%)</div></div>
+          ${d.daysUntilStockout?`<div style="grid-column:1/-1"><div style="font-size:0.75rem;color:var(--text-muted)">Days Until Stockout at New Rate</div><div style="font-weight:700;color:#f59e0b">${d.daysUntilStockout} days</div></div>`:""}
+        </div></div>`;
+    }
+    if (data.results.stock) {
+      const s = data.results.stock;
+      html += `<div style="background:var(--bg-tertiary);border-radius:10px;padding:14px">
+        <div style="font-weight:700;margin-bottom:10px">📦 Stock Change Impact</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div><div style="font-size:0.75rem;color:var(--text-muted)">Current Stock</div><div style="font-weight:700">${s.currentStock}</div></div>
+          <div><div style="font-size:0.75rem;color:var(--text-muted)">New Stock</div><div style="font-weight:700">${s.newStock}</div></div>
+          ${s.daysLeft?`<div><div style="font-size:0.75rem;color:var(--text-muted)">Days of Stock</div><div style="font-weight:700">${s.daysLeft} days</div></div>`:""}
+          <div><div style="font-size:0.75rem;color:var(--text-muted)">Alert Status</div><div style="font-weight:700;color:${s.alertTriggered?'#ef4444':'#22c55e'}">${s.alertTriggered?"⚠️ Alert Would Trigger":"✅ Above Threshold"}</div></div>
+        </div></div>`;
+    }
+    html += "</div>";
+    el.innerHTML = html;
+  } catch(err) { ssToast("Simulation failed","error"); }
+}
+
+/* MAINTENANCE MODE */
+async function loadMaintenanceStatus() {
+  try {
+    const res = await fetch("/admin/maintenance", { headers: getAuthHeaders() });
+    const data = await res.json();
+    const el = document.getElementById("maintenanceStatus");
+    if (el) el.innerHTML = `Status: <strong style="color:${data.active?'#ef4444':'#22c55e'}">${data.active?'🔴 ACTIVE':'🟢 OFF'}</strong> · Message: "${data.message}"`;
+    if (data.active) ssToast("⚠️ Maintenance mode is currently ACTIVE","warning");
+  } catch(err){}
+}
+async function toggleMaintenance(active) {
+  const msg = document.getElementById("maintenanceMsg")?.value;
+  try {
+    const res = await fetch("/admin/maintenance", { method:"POST", headers:{ "Content-Type":"application/json",...getAuthHeaders() }, body: JSON.stringify({ active, message:msg }) });
+    const data = await res.json();
+    ssToast(`Maintenance mode ${active?'enabled':'disabled'}`, active?"warning":"success");
+    loadMaintenanceStatus();
+  } catch(err) { ssToast("Failed","error"); }
+}
+
+/* ANNOUNCEMENTS */
+async function loadAnnouncements() {
+  const el = document.getElementById("announcementsList");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/announcements", { headers: getAuthHeaders() });
+    const data = await res.json();
+    if (!data.announcements?.length) { el.innerHTML = '<div style="color:var(--text-muted);font-size:0.85rem">No announcements yet.</div>'; return; }
+    el.innerHTML = data.announcements.map(a=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg-tertiary);border-radius:8px;margin-bottom:6px">
+        <span style="flex:1;font-size:0.875rem">${a.message}</span>
+        <span style="font-size:0.72rem;padding:3px 8px;border-radius:6px;background:var(--accent-light);color:var(--accent)">${a.type}</span>
+        <button onclick="deleteAnnouncement('${a._id}')" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:1rem">🗑️</button>
+      </div>`).join("");
+  } catch(err){}
+}
+async function createAnnouncement() {
+  const msg = document.getElementById("announcementMsg")?.value;
+  const type = document.getElementById("announcementType")?.value;
+  if (!msg) { ssToast("Enter a message","warning"); return; }
+  try {
+    await fetch("/admin/announcements", { method:"POST", headers:{ "Content-Type":"application/json",...getAuthHeaders() }, body: JSON.stringify({ message:msg, type }) });
+    ssToast("Announcement posted","success");
+    document.getElementById("announcementMsg").value = "";
+    loadAnnouncements();
+  } catch(err) { ssToast("Failed","error"); }
+}
+async function deleteAnnouncement(id) {
+  try {
+    await fetch(`/admin/announcements/${id}`, { method:"DELETE", headers: getAuthHeaders() });
+    ssToast("Deleted","info");
+    loadAnnouncements();
+  } catch(err){}
+}
+
+/* INVENTORY SNAPSHOTS */
+async function loadSnapshots() {
+  const el = document.getElementById("snapshotsList");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/snapshots", { headers: getAuthHeaders() });
+    const data = await res.json();
+    if (!data.snapshots?.length) { el.innerHTML = '<div style="color:var(--text-muted);font-size:0.85rem">No snapshots saved yet.</div>'; return; }
+    el.innerHTML = data.snapshots.map(s=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg-tertiary);border-radius:8px;margin-bottom:6px">
+        <span style="flex:1;font-size:0.875rem">💾 ${s.name}</span>
+        <span style="font-size:0.72rem;color:var(--text-muted)">${new Date(s.createdAt).toLocaleDateString("en-IN")}</span>
+        <button onclick="restoreSnapshot('${s._id}','${s.name}')" style="padding:5px 12px;background:var(--accent);color:white;border:none;border-radius:6px;cursor:pointer;font-size:0.78rem">Restore</button>
+      </div>`).join("");
+  } catch(err){}
+}
+async function saveSnapshot() {
+  const name = document.getElementById("snapshotName")?.value;
+  try {
+    const res = await fetch("/admin/snapshot", { method:"POST", headers:{ "Content-Type":"application/json",...getAuthHeaders() }, body: JSON.stringify({ name }) });
+    const data = await res.json();
+    ssToast(`Snapshot "${data.name}" saved`,"success");
+    document.getElementById("snapshotName").value = "";
+    loadSnapshots();
+  } catch(err) { ssToast("Failed to save snapshot","error"); }
+}
+async function restoreSnapshot(id, name) {
+  if (!confirm(`Restore snapshot "${name}"? This will reset stock & prices.`)) return;
+  try {
+    const res = await fetch(`/admin/snapshot/${id}/restore`, { method:"POST", headers: getAuthHeaders() });
+    const data = await res.json();
+    ssToast(data.message,"success");
+    loadAdmin();
+  } catch(err) { ssToast("Restore failed","error"); }
+}
+
+/* BULK PRICE UPDATE */
+async function bulkUpdatePrice() {
+  const category = document.getElementById("bulkPriceCategory")?.value;
+  const changePercent = parseFloat(document.getElementById("bulkPriceChange")?.value);
+  if (isNaN(changePercent)) { ssToast("Enter a valid percentage","warning"); return; }
+  if (!confirm(`Update all ${category} prices by ${changePercent>0?"+":""}${changePercent}%?`)) return;
+  try {
+    const res = await fetch("/admin/bulk-price-category", { method:"POST", headers:{ "Content-Type":"application/json",...getAuthHeaders() }, body: JSON.stringify({ category, changePercent }) });
+    const data = await res.json();
+    ssToast(data.message,"success");
+    loadAdmin();
+  } catch(err) { ssToast("Failed","error"); }
+}
+
+/* WEBHOOKS */
+async function loadWebhooks() {
+  const el = document.getElementById("webhooksList");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/webhooks", { headers: getAuthHeaders() });
+    const data = await res.json();
+    if (!data.webhooks?.length) { el.innerHTML = '<div style="color:var(--text-muted);font-size:0.85rem">No webhooks configured.</div>'; return; }
+    el.innerHTML = data.webhooks.map(w=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg-tertiary);border-radius:8px;margin-bottom:6px">
+        <div style="flex:1"><div style="font-size:0.82rem;font-weight:600">${w.url}</div><div style="font-size:0.72rem;color:var(--text-muted)">${w.events?.join(", ")}</div></div>
+        <button onclick="deleteWebhook('${w._id}')" style="background:none;border:none;color:var(--danger);cursor:pointer">🗑️</button>
+      </div>`).join("");
+  } catch(err){}
+}
+async function createWebhook() {
+  const url = document.getElementById("webhookUrl")?.value;
+  const sel = document.getElementById("webhookEvents");
+  const events = sel ? [...sel.selectedOptions].map(o=>o.value) : [];
+  if (!url || !events.length) { ssToast("Enter URL and select at least one event","warning"); return; }
+  try {
+    const res = await fetch("/admin/webhooks", { method:"POST", headers:{ "Content-Type":"application/json",...getAuthHeaders() }, body: JSON.stringify({ url, events }) });
+    const data = await res.json();
+    ssToast(`Webhook created! Secret: ${data.secret?.substring(0,8)}...`,"success");
+    document.getElementById("webhookUrl").value = "";
+    loadWebhooks();
+  } catch(err) { ssToast("Failed","error"); }
+}
+async function deleteWebhook(id) {
+  try {
+    await fetch(`/admin/webhooks/${id}`, { method:"DELETE", headers: getAuthHeaders() });
+    ssToast("Webhook deleted","info");
+    loadWebhooks();
+  } catch(err){}
+}
+
+/* COMMAND PALETTE (Cmd+K) */
+const commandPaletteItems = [
+  { label:"📊 Overview", action:()=>showPage("overview") },
+  { label:"📦 Inventory", action:()=>showPage("inventory") },
+  { label:"🤖 AI Agents", action:()=>showPage("agents") },
+  { label:"🧠 Explainable AI", action:()=>showPage("xai") },
+  { label:"📉 Stockout Risk", action:()=>showPage("stockout") },
+  { label:"🔴 Attack Simulator", action:()=>showPage("attack-sim") },
+  { label:"↩️ Returns", action:()=>showPage("returns") },
+  { label:"🏭 Suppliers", action:()=>showPage("suppliers") },
+  { label:"📅 Aging Report", action:()=>showPage("aging") },
+  { label:"💻 System Health", action:()=>showPage("system-health") },
+  { label:"🔮 What-If Simulator", action:()=>showPage("what-if") },
+  { label:"🛡️ Security", action:()=>showPage("security") },
+  { label:"📊 Analytics", action:()=>showPage("analytics") },
+  { label:"⚙️ Advanced Settings", action:()=>showPage("settings-advanced") },
+  { label:"🔊 Read Alerts Aloud", action:()=>speakAlerts() },
+  { label:"🔔 Show Notifications", action:()=>toggleNotifPanel() },
+  { label:"🚪 Logout", action:()=>logout() },
+];
+
+document.addEventListener("keydown", e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === "k") { e.preventDefault(); toggleCommandPalette(); }
+  if (e.key === "Escape") closeCommandPalette();
+});
+
+function toggleCommandPalette() {
+  let palette = document.getElementById("commandPalette");
+  if (!palette) {
+    palette = document.createElement("div");
+    palette.id = "commandPalette";
+    palette.innerHTML = `
+      <div style="position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);z-index:99999;display:flex;align-items:flex-start;justify-content:center;padding-top:15vh">
+        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:16px;width:100%;max-width:520px;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,0.5)">
+          <div style="display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--border-color)">
+            <span style="font-size:1.1rem">⌨️</span>
+            <input id="cmdInput" placeholder="Type a command or page name..." autofocus style="flex:1;background:none;border:none;outline:none;color:var(--text-primary);font-size:1rem" oninput="filterCommands(this.value)">
+            <kbd style="font-size:0.72rem;padding:2px 6px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:4px;color:var(--text-muted)">ESC</kbd>
+          </div>
+          <div id="cmdList" style="max-height:340px;overflow-y:auto;padding:8px"></div>
+        </div>
+      </div>`;
+    palette.onclick = e => { if (e.target === palette.firstElementChild) closeCommandPalette(); };
+    document.body.appendChild(palette);
+  } else {
+    palette.style.display = palette.style.display === "none" ? "block" : "none";
+  }
+  filterCommands("");
+  setTimeout(() => document.getElementById("cmdInput")?.focus(), 50);
+}
+
+function closeCommandPalette() {
+  const p = document.getElementById("commandPalette");
+  if (p) p.style.display = "none";
+}
+
+function filterCommands(q) {
+  const list = document.getElementById("cmdList");
+  if (!list) return;
+  const filtered = commandPaletteItems.filter(i => i.label.toLowerCase().includes(q.toLowerCase()));
+  list.innerHTML = filtered.map((item, i) => `
+    <div onclick="execCommand(${commandPaletteItems.indexOf(item)})" style="display:flex;align-items:center;padding:10px 16px;border-radius:8px;cursor:pointer;margin:2px 0;transition:background 0.1s" onmouseover="this.style.background='var(--bg-tertiary)'" onmouseout="this.style.background='transparent'">
+      <span style="font-size:0.9rem">${item.label}</span>
+    </div>`).join("") || '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:0.875rem">No commands found</div>';
+}
+
+function execCommand(index) {
+  closeCommandPalette();
+  commandPaletteItems[index]?.action();
+}
+
+/* HOOK NEW PAGES INTO showPage */
+const _origShowPage = window.showPage;
+const pageLoaders = {
+  xai: loadXAI,
+  stockout: loadStockoutRisk,
+  returns: loadReturns,
+  suppliers: loadSuppliers,
+  aging: loadAgingReport,
+  "system-health": loadSystemHealth,
+  "what-if": () => { loadWhatIfProducts(); },
+  "settings-advanced": () => { loadMaintenanceStatus(); loadAnnouncements(); loadSnapshots(); loadWebhooks(); }
+};
+const origShowPage = typeof showPage === "function" ? showPage : null;
+// Extend existing showPage to call loaders
+document.addEventListener("DOMContentLoaded", () => {
+  const allBtns = document.querySelectorAll("[data-page]");
+  allBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const page = btn.dataset.page;
+      if (pageLoaders[page]) setTimeout(() => pageLoaders[page](), 100);
+    });
+  });
+});
 
 /* ===== INIT ===== */
 loadAdmin();
