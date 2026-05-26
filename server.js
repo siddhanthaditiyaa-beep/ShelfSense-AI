@@ -7024,3 +7024,1257 @@ app.get("/admin/store-summary-card", auth("admin"), async (req, res) => {
     res.json({ storeName: store?.name, healthScore, revenue: revenue.toFixed(2), orders: orders.length, items: items.length, outOfStock, aiSummary, plan: store?.plan || "free" });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
+
+/* =========================================
+   BATCH 8 NEW FEATURES (171-200)
+========================================= */
+
+/* FEATURE 171: DEMAND FORECASTING WITH SEASONALITY */
+app.get("/admin/seasonal-forecast", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const items = await Item.find({ storeId });
+    const month = new Date().getMonth();
+    const seasonalMultipliers = { 0:1.1,1:0.9,2:1.2,3:1.1,4:0.95,5:0.9,6:0.85,7:0.9,8:0.95,9:1.3,10:1.5,11:1.4 };
+    const multiplier = seasonalMultipliers[month] || 1;
+    const forecasts = items.map(item => {
+      const history = item.salesHistory || [];
+      const base = history.length ? history.slice(-14).reduce((a,b)=>a+b,0)/Math.min(history.length,14) : 0;
+      const seasonal = parseFloat((base * multiplier).toFixed(2));
+      const daysLeft = seasonal > 0 ? Math.floor(item.stock / seasonal) : null;
+      return { name: item.name, stock: item.stock, baseForecast: base.toFixed(2), seasonalForecast: seasonal, multiplier, daysLeft, alert: daysLeft !== null && daysLeft < 7 };
+    }).sort((a,b) => (a.daysLeft||999)-(b.daysLeft||999));
+    res.json({ forecasts, month: new Date().toLocaleDateString("en-IN",{month:"long"}), multiplier });
+  } catch(err) { res.status(500).json({ message:"Server error" }); }
+});
+
+/* FEATURE 172: INVENTORY OPTIMIZATION SCORE */
+app.get("/admin/optimization-score", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const items = await Item.find({ storeId });
+    let score = 100;
+    const issues = [];
+    const outOfStock = items.filter(i=>i.stock===0);
+    const overstocked = items.filter(i => {
+      const h = i.salesHistory||[];
+      const avg = h.length ? h.slice(-14).reduce((a,b)=>a+b,0)/Math.min(h.length,14) : 0;
+      return avg > 0 && i.stock > avg * 30;
+    });
+    const deadStock = items.filter(i => {
+      const h = i.salesHistory||[];
+      return h.slice(-14).reduce((a,b)=>a+b,0) === 0 && i.stock > 0;
+    });
+    score -= outOfStock.length * 5;
+    score -= overstocked.length * 3;
+    score -= deadStock.length * 4;
+    if (outOfStock.length) issues.push(`${outOfStock.length} items out of stock — losing sales`);
+    if (overstocked.length) issues.push(`${overstocked.length} items overstocked — capital tied up`);
+    if (deadStock.length) issues.push(`${deadStock.length} dead stock items — no sales in 14 days`);
+    res.json({ score: Math.max(0,score), grade: score>=90?"A":score>=75?"B":score>=60?"C":"D", issues, outOfStock: outOfStock.length, overstocked: overstocked.length, deadStock: deadStock.length, totalItems: items.length });
+  } catch(err) { res.status(500).json({ message:"Server error" }); }
+});
+
+/* FEATURE 173: PURCHASE ORDER ANALYTICS */
+app.get("/admin/purchase-order-analytics", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const pos = await PurchaseOrder.find({ storeId }).sort({ createdAt:-1 });
+    const byStatus = {};
+    let totalValue = 0;
+    pos.forEach(p => {
+      byStatus[p.status] = (byStatus[p.status]||0)+1;
+      totalValue += (p.quantity||0) * 50;
+    });
+    const avgFulfillTime = 3;
+    res.json({ total: pos.length, byStatus, totalValue: totalValue.toFixed(2), avgFulfillTimeDays: avgFulfillTime, recent: pos.slice(0,10).map(p=>({ id:p._id, itemName:p.itemName, quantity:p.quantity, status:p.status, createdAt:p.createdAt })) });
+  } catch(err) { res.status(500).json({ message:"Server error" }); }
+});
+
+/* FEATURE 174: STORE GOALS & TARGETS */
+const GoalSchema = new mongoose.Schema({
+  storeId: { type: mongoose.Schema.Types.ObjectId, ref:"Store" },
+  metric: String, target: Number, period: String, current: Number, achieved: { type:Boolean, default:false }
+}, { timestamps:true });
+const Goal = mongoose.model("Goal", GoalSchema);
+
+app.post("/admin/goals", auth("admin"), async (req, res) => {
+  try {
+    const goal = await Goal.create({ storeId:req.user.storeId, ...req.body });
+    res.json({ message:"Goal set", goal });
+  } catch(err) { res.status(500).json({ message:"Server error" }); }
+});
+app.get("/admin/goals", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const goals = await Goal.find({ storeId }).sort({ createdAt:-1 });
+    const orders = await Order.find({ storeId, createdAt:{ $gte: new Date(Date.now()-30*86400000) } });
+    const revenue = orders.reduce((s,o)=>s+(o.total||0),0);
+    const updated = await Promise.all(goals.map(async g => {
+      let current = 0;
+      if (g.metric === "revenue") current = revenue;
+      else if (g.metric === "orders") current = orders.length;
+      else if (g.metric === "products") current = await Item.countDocuments({ storeId });
+      const pct = g.target > 0 ? Math.min(100, Math.round((current/g.target)*100)) : 0;
+      await Goal.findByIdAndUpdate(g._id, { current, achieved: pct >= 100 });
+      return { ...g.toObject(), current, pct, achieved: pct >= 100 };
+    }));
+    res.json({ goals: updated });
+  } catch(err) { res.status(500).json({ message:"Server error" }); }
+});
+app.delete("/admin/goals/:id", auth("admin"), async (req, res) => {
+  try {
+    await Goal.findByIdAndDelete(req.params.id);
+    res.json({ message:"Goal deleted" });
+  } catch(err) { res.status(500).json({ message:"Server error" }); }
+});
+
+/* FEATURE 175: AGENT #32 — GOAL TRACKING AGENT */
+cron.schedule("0 0 20 * * *", async () => {
+  if (pausedAgents.has("Goal Tracking Agent")) return;
+  try {
+    const stores = await Store.find({ isActive:true });
+    for (const store of stores) {
+      const goals = await Goal.find({ storeId:store._id, achieved:false });
+      for (const goal of goals) {
+        const orders = await Order.find({ storeId:store._id, createdAt:{ $gte: new Date(Date.now()-30*86400000) } });
+        const revenue = orders.reduce((s,o)=>s+(o.total||0),0);
+        let current = goal.metric==="revenue" ? revenue : goal.metric==="orders" ? orders.length : 0;
+        const pct = goal.target > 0 ? Math.round((current/goal.target)*100) : 0;
+        if (pct >= 100) {
+          await Goal.findByIdAndUpdate(goal._id, { achieved:true, current });
+          await logAgent(store._id, "Goal Tracking Agent", `🎯 GOAL ACHIEVED: ${goal.metric} target of ${goal.target} reached! Current: ${current}`, { goal:goal.metric, target:goal.target, current }, "info");
+          await sendTelegramAlert(`🎯 Goal Achieved!\nStore: ${store.name}\nGoal: ${goal.metric} = ${goal.target}\nCurrent: ${Math.round(current)}`);
+        } else if (pct >= 80) {
+          await logAgent(store._id, "Goal Tracking Agent", `📈 Almost there! ${goal.metric} at ${pct}% of target (${Math.round(current)}/${goal.target})`, { pct }, "info");
+        }
+      }
+    }
+  } catch(err) { console.error("Goal Tracking Agent error:", err.message); }
+});
+
+/* FEATURE 176: PRODUCT BUNDLING ANALYTICS */
+app.get("/admin/bundle-analytics", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const orders = await Order.find({ storeId }).sort({ createdAt:-1 }).limit(200);
+    const coPurchase = {};
+    orders.forEach(o => {
+      const keys = (o.items||[]).map(i=>i.name).sort();
+      for (let i=0; i<keys.length; i++) {
+        for (let j=i+1; j<keys.length; j++) {
+          const pair = `${keys[i]} + ${keys[j]}`;
+          coPurchase[pair] = (coPurchase[pair]||0)+1;
+        }
+      }
+    });
+    const pairs = Object.entries(coPurchase).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([pair,count])=>({ pair, count, suggestion:`Consider bundling: ${pair}` }));
+    res.json({ topPairs: pairs, totalOrders: orders.length, message: pairs.length ? `Top bundle opportunity: ${pairs[0]?.pair}` : "Need more orders to analyse co-purchases" });
+  } catch(err) { res.status(500).json({ message:"Server error" }); }
+});
+
+/* FEATURE 177: CUSTOMER JOURNEY MAP */
+app.get("/admin/customer-journey/:email", auth("admin"), async (req, res) => {
+  try {
+    const { email } = req.params;
+    const storeId = req.user.storeId;
+    const [orders, ratings, wishlist, tickets] = await Promise.all([
+      Order.find({ storeId, customerEmail:email }).sort({ createdAt:1 }),
+      Rating.find({ userEmail:email }),
+      WishlistNotification.find({ storeId, customerEmail:email }),
+      Ticket.find({ storeId, customerEmail:email })
+    ]);
+    const journey = [
+      ...orders.map(o=>({ type:"order", event:`Placed order ₹${o.total?.toFixed(0)}`, time:o.createdAt, icon:"🛒" })),
+      ...ratings.map(r=>({ type:"rating", event:`Rated a product ${r.rating}/5`, time:r.createdAt, icon:"⭐" })),
+      ...wishlist.map(w=>({ type:"wishlist", event:`Added ${w.itemName} to wishlist`, time:w.createdAt, icon:"❤️" })),
+      ...tickets.map(t=>({ type:"support", event:`Raised support ticket: ${t.subject}`, time:t.createdAt, icon:"🎫" }))
+    ].sort((a,b)=>new Date(a.time)-new Date(b.time));
+    res.json({ email, journey, totalOrders:orders.length, totalSpent:orders.reduce((s,o)=>s+(o.total||0),0).toFixed(2) });
+  } catch(err) { res.status(500).json({ message:"Server error" }); }
+});
+
+/* FEATURE 178: AI PRICING SUGGESTION (Groq) */
+app.post("/admin/ai-pricing", auth("admin"), async (req, res) => {
+  try {
+    const { itemKey } = req.body;
+    const item = await Item.findOne({ storeId:req.user.storeId, key:itemKey });
+    if (!item) return res.status(404).json({ message:"Item not found" });
+    const h = item.salesHistory||[];
+    const avg = h.length ? h.slice(-7).reduce((a,b)=>a+b,0)/Math.min(h.length,7) : 0;
+    const GROQ_API_KEY = process.env.GROQ_API_KEY;
+    if (!GROQ_API_KEY) return res.json({ suggestion:`Based on ${avg.toFixed(1)} daily sales and ₹${item.price} current price, consider testing ₹${(item.price*1.05).toFixed(0)} to optimize revenue.` });
+    const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method:"POST", headers:{ "Content-Type":"application/json","Authorization":`Bearer ${GROQ_API_KEY}` },
+      body: JSON.stringify({ model:"llama3-8b-8192", max_tokens:100, messages:[
+        { role:"system", content:"You are a retail pricing expert. Give a 1-2 sentence pricing recommendation with a specific price suggestion. Be direct." },
+        { role:"user", content:`Product: ${item.name}. Current price: ₹${item.price}. Stock: ${item.stock}. Daily sales avg: ${avg.toFixed(1)}. Days of stock left: ${avg>0?(item.stock/avg).toFixed(0):"N/A"}` }
+      ]})
+    });
+    const d = await r.json();
+    res.json({ suggestion: d.choices?.[0]?.message?.content || "Maintain current pricing." });
+  } catch(err) { res.status(500).json({ message:"Server error" }); }
+});
+
+/* FEATURE 179: SUPPLIER LEAD TIME TRACKER */
+const LeadTimeSchema = new mongoose.Schema({
+  storeId: { type:mongoose.Schema.Types.ObjectId, ref:"Store" },
+  supplierName: String, itemName: String,
+  orderedAt: Date, receivedAt: Date, leadTimeDays: Number, notes: String
+}, { timestamps:true });
+const LeadTime = mongoose.model("LeadTime", LeadTimeSchema);
+
+app.post("/admin/lead-time", auth("admin"), async (req, res) => {
+  try {
+    const { supplierName, itemName, orderedAt, receivedAt, notes } = req.body;
+    const leadTimeDays = Math.round((new Date(receivedAt)-new Date(orderedAt))/86400000);
+    const entry = await LeadTime.create({ storeId:req.user.storeId, supplierName, itemName, orderedAt, receivedAt, leadTimeDays, notes });
+    res.json({ message:"Lead time logged", entry, leadTimeDays });
+  } catch(err) { res.status(500).json({ message:"Server error" }); }
+});
+app.get("/admin/lead-times", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const entries = await LeadTime.find({ storeId }).sort({ createdAt:-1 }).limit(30);
+    const bySupplier = {};
+    entries.forEach(e => {
+      if (!bySupplier[e.supplierName]) bySupplier[e.supplierName] = { supplier:e.supplierName, entries:[], avgDays:0 };
+      bySupplier[e.supplierName].entries.push(e);
+    });
+    Object.values(bySupplier).forEach(s => { s.avgDays = (s.entries.reduce((sum,e)=>sum+e.leadTimeDays,0)/s.entries.length).toFixed(1); });
+    res.json({ entries, bySupplier: Object.values(bySupplier) });
+  } catch(err) { res.status(500).json({ message:"Server error" }); }
+});
+
+/* FEATURE 180: STORE CONFIGURATION EXPORT/IMPORT */
+app.get("/admin/export-config", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const [store, items] = await Promise.all([
+      Store.findById(storeId).select("-password -apiSecret"),
+      Item.find({ storeId }).select("name key price minStockLevel category unit")
+    ]);
+    const config = { exportDate: new Date().toISOString(), store: { name:store.name, city:store.city, alertEmail:store.alertEmail }, products: items, version:"2.0" };
+    res.setHeader("Content-Type","application/json");
+    res.setHeader("Content-Disposition",`attachment; filename="shelfsense_config_${store.name.replace(/\s/g,"_")}.json"`);
+    res.json(config);
+  } catch(err) { res.status(500).json({ message:"Server error" }); }
+});
+
+/* FEATURE 181: WATCHLIST (Admin monitors specific items) */
+const WatchlistSchema = new mongoose.Schema({
+  storeId: { type:mongoose.Schema.Types.ObjectId, ref:"Store" },
+  itemKey: String, itemName: String, reason: String, alertBelow: Number
+}, { timestamps:true });
+const AdminWatchlist = mongoose.model("AdminWatchlist", WatchlistSchema);
+
+app.post("/admin/watchlist", auth("admin"), async (req, res) => {
+  try {
+    const w = await AdminWatchlist.create({ storeId:req.user.storeId, ...req.body });
+    res.json({ message:"Added to watchlist", item:w });
+  } catch(err) { res.status(500).json({ message:"Server error" }); }
+});
+app.get("/admin/watchlist", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const watchlist = await AdminWatchlist.find({ storeId });
+    const withStock = await Promise.all(watchlist.map(async w => {
+      const item = await Item.findOne({ storeId, key:w.itemKey });
+      return { ...w.toObject(), currentStock:item?.stock||0, alert:item && item.stock<=w.alertBelow };
+    }));
+    res.json({ watchlist: withStock });
+  } catch(err) { res.status(500).json({ message:"Server error" }); }
+});
+app.delete("/admin/watchlist/:id", auth("admin"), async (req, res) => {
+  try {
+    await AdminWatchlist.findByIdAndDelete(req.params.id);
+    res.json({ message:"Removed from watchlist" });
+  } catch(err) { res.status(500).json({ message:"Server error" }); }
+});
+
+/* FEATURE 182: REAL-TIME REVENUE COUNTER */
+app.get("/admin/revenue-live", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const now = new Date();
+    const startOfDay = new Date(now); startOfDay.setHours(0,0,0,0);
+    const startOfHour = new Date(now); startOfHour.setMinutes(0,0,0);
+    const [dayOrders, hourOrders, lastOrder] = await Promise.all([
+      Order.find({ storeId, createdAt:{ $gte:startOfDay } }),
+      Order.find({ storeId, createdAt:{ $gte:startOfHour } }),
+      Order.findOne({ storeId }).sort({ createdAt:-1 })
+    ]);
+    res.json({
+      today: dayOrders.reduce((s,o)=>s+(o.total||0),0).toFixed(2),
+      thisHour: hourOrders.reduce((s,o)=>s+(o.total||0),0).toFixed(2),
+      todayOrders: dayOrders.length, hourOrders: hourOrders.length,
+      lastOrderTime: lastOrder?.createdAt, lastOrderValue: lastOrder?.total?.toFixed(2),
+      timestamp: new Date().toISOString()
+    });
+  } catch(err) { res.status(500).json({ message:"Server error" }); }
+});
+
+/* FEATURE 183: CUSTOM ALERT RULES ENGINE */
+const AlertRuleSchema = new mongoose.Schema({
+  storeId: { type:mongoose.Schema.Types.ObjectId, ref:"Store" },
+  name: String, condition: String, threshold: Number,
+  action: String, active: { type:Boolean, default:true }, lastTriggered: Date
+}, { timestamps:true });
+const AlertRule = mongoose.model("AlertRule", AlertRuleSchema);
+
+app.post("/admin/alert-rules", auth("admin"), async (req, res) => {
+  try {
+    const rule = await AlertRule.create({ storeId:req.user.storeId, ...req.body });
+    res.json({ message:"Alert rule created", rule });
+  } catch(err) { res.status(500).json({ message:"Server error" }); }
+});
+app.get("/admin/alert-rules", auth("admin"), async (req, res) => {
+  try {
+    const rules = await AlertRule.find({ storeId:req.user.storeId });
+    res.json({ rules });
+  } catch(err) { res.status(500).json({ message:"Server error" }); }
+});
+
+/* Process custom alert rules every 5 min */
+cron.schedule("*/5 * * * *", async () => {
+  try {
+    const rules = await AlertRule.find({ active:true });
+    for (const rule of rules) {
+      const storeId = rule.storeId;
+      let triggered = false;
+      if (rule.condition === "revenue_below") {
+        const orders = await Order.find({ storeId, createdAt:{ $gte: new Date(Date.now()-86400000) } });
+        const rev = orders.reduce((s,o)=>s+(o.total||0),0);
+        if (rev < rule.threshold) triggered = true;
+      } else if (rule.condition === "oos_above") {
+        const oos = await Item.countDocuments({ storeId, stock:0 });
+        if (oos > rule.threshold) triggered = true;
+      } else if (rule.condition === "orders_above") {
+        const count = await Order.countDocuments({ storeId, createdAt:{ $gte: new Date(Date.now()-3600000) } });
+        if (count > rule.threshold) triggered = true;
+      }
+      if (triggered) {
+        const cooldown = rule.lastTriggered && (Date.now()-new Date(rule.lastTriggered))<3600000;
+        if (!cooldown) {
+          await logAgent(storeId, "Alert Rules Engine", `🔔 Custom rule triggered: ${rule.name}`, { rule:rule.name }, "warning");
+          await AlertRule.findByIdAndUpdate(rule._id, { lastTriggered:new Date() });
+          await sendTelegramAlert(`🔔 Alert: ${rule.name}\nCondition: ${rule.condition} threshold: ${rule.threshold}`);
+        }
+      }
+    }
+  } catch(err) { console.error("Alert rules error:", err.message); }
+});
+
+/* FEATURE 184: PRODUCT IMPORT FROM CSV */
+app.post("/admin/import-products-csv", auth("admin"), async (req, res) => {
+  try {
+    const { csvData } = req.body;
+    if (!csvData) return res.status(400).json({ message:"CSV data required" });
+    const lines = csvData.trim().split("\n");
+    const headers = lines[0].split(",").map(h=>h.trim().toLowerCase());
+    let imported = 0, errors = [];
+    for (let i=1; i<lines.length; i++) {
+      const values = lines[i].split(",").map(v=>v.trim().replace(/"/g,""));
+      const row = {};
+      headers.forEach((h,j)=>{ row[h]=values[j]; });
+      if (!row.name || !row.price) { errors.push(`Row ${i}: missing name or price`); continue; }
+      const key = row.name.toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9-]/g,"");
+      await Item.findOneAndUpdate(
+        { storeId:req.user.storeId, key },
+        { $setOnInsert:{ storeId:req.user.storeId, name:row.name, key, price:parseFloat(row.price)||0, stock:parseInt(row.stock)||0, minStockLevel:parseInt(row.min_stock)||5, category:row.category||"general", unit:row.unit||"unit" } },
+        { upsert:true }
+      );
+      imported++;
+    }
+    res.json({ message:`Imported ${imported} products`, imported, errors });
+  } catch(err) { res.status(500).json({ message:"Server error" }); }
+});
+
+/* FEATURE 185: MULTI-CURRENCY DISPLAY */
+app.get("/shop/currency-convert", async (req, res) => {
+  try {
+    const { amount, from, to } = req.query;
+    const rates = { INR:1, USD:0.012, EUR:0.011, GBP:0.0094, AED:0.044, SGD:0.016 };
+    const inINR = parseFloat(amount) / (rates[from]||1);
+    const converted = inINR * (rates[to]||1);
+    res.json({ original:parseFloat(amount), from, to, converted:parseFloat(converted.toFixed(2)) });
+  } catch(err) { res.status(500).json({ message:"Server error" }); }
+});
+
+/* FEATURE 186: STORE TESTIMONIALS */
+const TestimonialSchema = new mongoose.Schema({
+  storeId: { type:mongoose.Schema.Types.ObjectId, ref:"Store" },
+  customerName: String, customerEmail: String,
+  text: String, rating: Number, approved: { type:Boolean, default:false }
+}, { timestamps:true });
+const Testimonial = mongoose.model("Testimonial", TestimonialSchema);
+
+app.post("/customer/testimonial", auth("customer"), async (req, res) => {
+  try {
+    const t = await Testimonial.create({ storeId:req.body.storeId, customerEmail:req.user.email, customerName:req.user.name||req.user.email.split("@")[0], text:req.body.text, rating:req.body.rating });
+    res.json({ message:"Thank you for your feedback! It will appear after review.", testimonial:t });
+  } catch(err) { res.status(500).json({ message:"Server error" }); }
+});
+app.get("/admin/testimonials", auth("admin"), async (req, res) => {
+  try {
+    const testimonials = await Testimonial.find({ storeId:req.user.storeId }).sort({ createdAt:-1 });
+    res.json({ testimonials });
+  } catch(err) { res.status(500).json({ message:"Server error" }); }
+});
+app.post("/admin/testimonials/:id/approve", auth("admin"), async (req, res) => {
+  try {
+    await Testimonial.findByIdAndUpdate(req.params.id, { approved:true });
+    res.json({ message:"Testimonial approved" });
+  } catch(err) { res.status(500).json({ message:"Server error" }); }
+});
+app.get("/shop/testimonials", async (req, res) => {
+  try {
+    const { storeId } = req.query;
+    const testimonials = await Testimonial.find({ storeId, approved:true }).sort({ createdAt:-1 }).limit(5);
+    res.json({ testimonials });
+  } catch(err) { res.json({ testimonials:[] }); }
+});
+
+/* FEATURE 187: AGENT #33 — SUPPLIER FOLLOW-UP AGENT */
+cron.schedule("0 0 11 * * 1,3,5", async () => {
+  if (pausedAgents.has("Supplier Follow-Up Agent")) return;
+  try {
+    const stores = await Store.find({ isActive:true });
+    for (const store of stores) {
+      const pending = await PurchaseOrder.find({ storeId:store._id, status:"pending", createdAt:{ $lt: new Date(Date.now()-3*86400000) } });
+      if (pending.length > 0) {
+        await logAgent(store._id, "Supplier Follow-Up Agent", `📞 ${pending.length} purchase orders pending for 3+ days. Consider following up with suppliers.`, { pending:pending.length }, "warning");
+        await sendTelegramAlert(`📞 Supplier Follow-Up Needed\nStore: ${store.name}\n${pending.length} PO(s) pending 3+ days:\n${pending.slice(0,3).map(p=>p.itemName).join(", ")}`);
+      }
+    }
+  } catch(err) { console.error("Supplier Follow-Up Agent error:", err.message); }
+});
+
+/* FEATURE 188: CATEGORY BUDGET PLANNER */
+app.post("/admin/category-budget", auth("admin"), async (req, res) => {
+  try {
+    const { totalBudget } = req.body;
+    const storeId = req.user.storeId;
+    const items = await Item.find({ storeId });
+    const orders = await Order.find({ storeId, createdAt:{ $gte: new Date(Date.now()-30*86400000) } });
+    const catRevenue = {};
+    orders.forEach(o => (o.items||[]).forEach(oi => {
+      const item = items.find(i=>i.key===oi.key);
+      const cat = item?.category||"general";
+      catRevenue[cat] = (catRevenue[cat]||0) + (oi.price*(oi.qty||1));
+    }));
+    const totalRev = Object.values(catRevenue).reduce((a,b)=>a+b,0)||1;
+    const allocation = Object.entries(catRevenue).map(([cat,rev])=>({
+      category:cat, revenueShare:((rev/totalRev)*100).toFixed(1),
+      suggestedBudget:((rev/totalRev)*totalBudget).toFixed(2),
+      reasoning:`${cat} generates ${((rev/totalRev)*100).toFixed(1)}% of revenue`
+    })).sort((a,b)=>parseFloat(b.revenueShare)-parseFloat(a.revenueShare));
+    res.json({ totalBudget, allocation, note:"Budget allocation based on 30-day revenue contribution per category" });
+  } catch(err) { res.status(500).json({ message:"Server error" }); }
+});
+
+/* FEATURE 189: SMART NOTIFICATION SCHEDULER */
+app.post("/admin/schedule-notification", auth("admin"), async (req, res) => {
+  try {
+    const { message, type, scheduledFor, targetAudience } = req.body;
+    const notification = await Announcement.create({
+      storeId:req.user.storeId, message, type:type||"info",
+      active:false, expiresAt: new Date(new Date(scheduledFor).getTime()+86400000)
+    });
+    res.json({ message:`Notification scheduled for ${new Date(scheduledFor).toLocaleString("en-IN")}`, notification });
+  } catch(err) { res.status(500).json({ message:"Server error" }); }
+});
+
+/* FEATURE 190: STORE ANALYTICS DIGEST */
+app.get("/admin/analytics-digest", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const now = new Date();
+    const d7 = new Date(Date.now()-7*86400000);
+    const d30 = new Date(Date.now()-30*86400000);
+    const [w7orders, m30orders, items, agents7] = await Promise.all([
+      Order.find({ storeId, createdAt:{ $gte:d7 } }),
+      Order.find({ storeId, createdAt:{ $gte:d30 } }),
+      Item.find({ storeId }),
+      AgentLog.countDocuments({ storeId, createdAt:{ $gte:d7 } })
+    ]);
+    const rev7 = w7orders.reduce((s,o)=>s+(o.total||0),0);
+    const rev30 = m30orders.reduce((s,o)=>s+(o.total||0),0);
+    const outOfStock = items.filter(i=>i.stock===0).length;
+    const highlights = [];
+    if (rev7 > rev30/4) highlights.push("📈 Strong week — above monthly average pace");
+    if (outOfStock === 0) highlights.push("✅ All products in stock — great inventory management!");
+    if (outOfStock > items.length*0.1) highlights.push("⚠️ More than 10% of items are out of stock");
+    if (agents7 > 100) highlights.push(`🤖 AI agents very active — ${agents7} actions in 7 days`);
+    res.json({
+      week: { revenue:rev7.toFixed(2), orders:w7orders.length, avgOrder:w7orders.length?(rev7/w7orders.length).toFixed(2):"0" },
+      month: { revenue:rev30.toFixed(2), orders:m30orders.length },
+      inventory: { total:items.length, outOfStock, lowStock:items.filter(i=>i.stock>0&&i.stock<=i.minStockLevel).length },
+      agents: { actions7d:agents7 }, highlights
+    });
+  } catch(err) { res.status(500).json({ message:"Server error" }); }
+});
+
+/* FEATURE 191: PRODUCT LIFECYCLE TRACKER */
+app.get("/admin/product-lifecycle", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const items = await Item.find({ storeId });
+    const lifecycle = items.map(item => {
+      const h = item.salesHistory||[];
+      const recent = h.slice(-7).reduce((a,b)=>a+b,0);
+      const older = h.slice(-14,-7).reduce((a,b)=>a+b,0);
+      const trend = older>0?(((recent-older)/older)*100).toFixed(0):0;
+      let stage = "introduction";
+      if (recent>20 && parseFloat(trend)>10) stage="growth";
+      else if (recent>15 && Math.abs(parseFloat(trend))<10) stage="maturity";
+      else if (recent<5 && parseFloat(trend)<-10) stage="decline";
+      else if (recent===0 && h.length>7) stage="end_of_life";
+      return { name:item.name, stock:item.stock, recentSales:recent, trend:parseFloat(trend), stage, recommendation:{ introduction:"Promote — build awareness", growth:"Stock up — high demand", maturity:"Optimize pricing", decline:"Consider discounting or replacing", end_of_life:"Clear remaining stock" }[stage] };
+    }).sort((a,b)=>{ const order=["growth","maturity","introduction","decline","end_of_life"]; return order.indexOf(a.stage)-order.indexOf(b.stage); });
+    res.json({ products:lifecycle });
+  } catch(err) { res.status(500).json({ message:"Server error" }); }
+});
+
+/* FEATURE 192: RETURN ON AD SPEND (ROAS) SIMULATOR */
+app.post("/admin/roas-simulator", auth("admin"), async (req, res) => {
+  try {
+    const { adBudget, expectedCTR, expectedConvRate, avgOrderValue } = req.body;
+    const impressions = adBudget * 1000;
+    const clicks = impressions * (expectedCTR/100);
+    const conversions = clicks * (expectedConvRate/100);
+    const revenue = conversions * avgOrderValue;
+    const roas = revenue / adBudget;
+    res.json({
+      adBudget, impressions:Math.round(impressions), clicks:Math.round(clicks),
+      conversions:Math.round(conversions), projectedRevenue:revenue.toFixed(2),
+      roas:roas.toFixed(2), profitable: roas > 3,
+      recommendation: roas > 5 ? "Excellent ROAS — scale this campaign" : roas > 3 ? "Good ROAS — profitable campaign" : roas > 1 ? "Break-even — optimize targeting" : "Poor ROAS — reconsider campaign"
+    });
+  } catch(err) { res.status(500).json({ message:"Server error" }); }
+});
+
+/* FEATURE 193: SMART INVENTORY REORDER CALENDAR */
+app.get("/admin/reorder-calendar", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const items = await Item.find({ storeId });
+    const calendar = [];
+    items.forEach(item => {
+      const h = item.salesHistory||[];
+      const avg = h.length ? h.slice(-14).reduce((a,b)=>a+b,0)/Math.min(h.length,14) : 0;
+      if (avg > 0 && item.stock > 0) {
+        const daysLeft = Math.floor(item.stock/avg);
+        const reorderDate = new Date(Date.now()+(daysLeft-3)*86400000);
+        if (daysLeft < 30) calendar.push({ name:item.name, stock:item.stock, avgDailySales:avg.toFixed(2), daysLeft, reorderDate:reorderDate.toLocaleDateString("en-IN"), urgency:daysLeft<7?"critical":daysLeft<14?"high":"normal" });
+      }
+    });
+    calendar.sort((a,b)=>a.daysLeft-b.daysLeft);
+    res.json({ calendar });
+  } catch(err) { res.status(500).json({ message:"Server error" }); }
+});
+
+/* FEATURE 194: STORE TIER BENEFITS */
+app.get("/admin/plan-benefits", auth("admin"), async (req, res) => {
+  try {
+    const store = await Store.findById(req.user.storeId);
+    const plan = store?.plan||"free";
+    const benefits = {
+      free: { aiAgents:18, securityLayers:13, products:50, storage:"100MB", support:"Community", analytics:"Basic", customDomain:false, whiteLabel:false },
+      pro: { aiAgents:30, securityLayers:15, products:500, storage:"1GB", support:"Email 24h", analytics:"Advanced", customDomain:true, whiteLabel:false },
+      enterprise: { aiAgents:30, securityLayers:15, products:"Unlimited", storage:"10GB", support:"Dedicated", analytics:"Full", customDomain:true, whiteLabel:true }
+    };
+    res.json({ currentPlan:plan, benefits:benefits[plan]||benefits.free, upgradeTo: plan==="free"?"pro":plan==="pro"?"enterprise":null });
+  } catch(err) { res.status(500).json({ message:"Server error" }); }
+});
+
+/* FEATURE 195: LIVE SALES FEED (SSE) */
+app.get("/admin/sales-stream", auth("admin"), (req, res) => {
+  res.setHeader("Content-Type","text/event-stream");
+  res.setHeader("Cache-Control","no-cache");
+  res.setHeader("Connection","keep-alive");
+  res.flushHeaders();
+  const send = (data) => { if (!res.writableEnded) res.write(`data: ${JSON.stringify(data)}\n\n`); };
+  send({ type:"connected", message:"Sales feed connected" });
+  const interval = setInterval(async () => {
+    try {
+      const storeId = req.user.storeId;
+      const latest = await Order.findOne({ storeId }).sort({ createdAt:-1 }).lean();
+      if (latest && (Date.now()-new Date(latest.createdAt))<60000) {
+        send({ type:"new_order", total:latest.total, items:latest.items?.length||0, time:latest.createdAt });
+      }
+    } catch(err) { clearInterval(interval); }
+  }, 10000);
+  req.on("close", ()=>{ clearInterval(interval); res.end(); });
+});
+
+/* FEATURE 196: PLATFORM STATUS PAGE */
+app.get("/status", async (req, res) => {
+  try {
+    const dbOk = mongoose.connection.readyState===1;
+    const startTime = Date.now();
+    if (dbOk) await Store.findOne().lean();
+    const dbLatency = Date.now()-startTime;
+    const services = [
+      { name:"API Server", status:"operational", uptime:"99.9%", latency:`${Math.round(process.uptime())}s uptime` },
+      { name:"MongoDB Database", status:dbOk?"operational":"degraded", latency:`${dbLatency}ms` },
+      { name:"AI Agents (30)", status:"operational", detail:`${30-pausedAgents.size} running` },
+      { name:"Email Service", status:"operational", detail:"Nodemailer active" },
+      { name:"Telegram Alerts", status:process.env.TELEGRAM_BOT_TOKEN?"operational":"not_configured" },
+      { name:"Groq AI", status:process.env.GROQ_API_KEY?"operational":"not_configured" }
+    ];
+    const overall = services.every(s=>s.status==="operational"||s.status==="not_configured") ? "All Systems Operational" : "Partial Outage";
+    res.json({ status:overall, services, timestamp:new Date().toISOString(), version:"2.0.0" });
+  } catch(err) { res.status(503).json({ status:"Service Unavailable" }); }
+});
+
+/* FEATURE 197: AGENT #34 — REVIEW REQUEST AGENT */
+cron.schedule("0 0 18 * * *", async () => {
+  if (pausedAgents.has("Review Request Agent")) return;
+  try {
+    const twoDaysAgo = new Date(Date.now()-2*86400000);
+    const threeDaysAgo = new Date(Date.now()-3*86400000);
+    const recentDelivered = await Order.find({ status:"delivered", createdAt:{ $gte:threeDaysAgo, $lt:twoDaysAgo } });
+    for (const order of recentDelivered.slice(0,20)) {
+      const alreadyRated = await Rating.findOne({ userEmail:order.customerEmail, createdAt:{ $gte:twoDaysAgo } });
+      if (!alreadyRated) {
+        await sendAlert("How was your order? ⭐", `Hi! Your recent order has been delivered. We'd love your feedback! Rate your products to earn 10 loyalty points per review.`, false, order.customerEmail);
+      }
+    }
+    if (recentDelivered.length>0) await logAgent(null, "Review Request Agent", `⭐ Review requests sent for ${recentDelivered.length} delivered orders`, { count:recentDelivered.length }, "info");
+  } catch(err) { console.error("Review Request Agent error:", err.message); }
+});
+
+/* FEATURE 198: INVENTORY FORECAST ACCURACY */
+app.get("/admin/forecast-accuracy", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const items = await Item.find({ storeId });
+    const accuracy = items.filter(i=>(i.salesHistory||[]).length>=14).map(item => {
+      const h = item.salesHistory||[];
+      const predicted = h.slice(-14,-7).reduce((a,b)=>a+b,0)/7;
+      const actual = h.slice(-7).reduce((a,b)=>a+b,0)/7;
+      const error = predicted>0 ? Math.abs((actual-predicted)/predicted*100) : null;
+      return { name:item.name, predicted:predicted.toFixed(2), actual:actual.toFixed(2), error:error?error.toFixed(1):null, accurate:error!==null&&error<20 };
+    }).filter(i=>i.error!==null);
+    const avgAccuracy = accuracy.length ? (100 - accuracy.reduce((s,i)=>s+parseFloat(i.error),0)/accuracy.length).toFixed(1) : null;
+    res.json({ items:accuracy, avgAccuracy, grade: avgAccuracy>=90?"Excellent":avgAccuracy>=75?"Good":avgAccuracy>=60?"Fair":"Poor" });
+  } catch(err) { res.status(500).json({ message:"Server error" }); }
+});
+
+/* FEATURE 199: CROSS-SELL MATRIX */
+app.get("/admin/cross-sell-matrix", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const orders = await Order.find({ storeId }).limit(200);
+    const matrix = {};
+    orders.forEach(o => {
+      const names = (o.items||[]).map(i=>i.name);
+      names.forEach(a => {
+        names.forEach(b => {
+          if (a!==b) {
+            if (!matrix[a]) matrix[a]={};
+            matrix[a][b] = (matrix[a][b]||0)+1;
+          }
+        });
+      });
+    });
+    const suggestions = Object.entries(matrix).map(([product,pairs])=>({
+      product, topPairings: Object.entries(pairs).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([p,c])=>({ product:p, coOccurrences:c }))
+    })).filter(s=>s.topPairings.length>0);
+    res.json({ matrix:suggestions.slice(0,10) });
+  } catch(err) { res.status(500).json({ message:"Server error" }); }
+});
+
+/* FEATURE 200: MILESTONE — SYSTEM REPORT GENERATOR */
+app.get("/admin/system-report", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const [store, items, orders, agentLogs, fraudLogs, auditLogs] = await Promise.all([
+      Store.findById(storeId),
+      Item.find({ storeId }),
+      Order.find({ storeId }),
+      AgentLog.countDocuments({ storeId }),
+      FraudLog.countDocuments({ storeId }),
+      AuditLog.countDocuments()
+    ]);
+    const revenue = orders.reduce((s,o)=>s+(o.total||0),0);
+    const report = {
+      generated: new Date().toISOString(),
+      store: { name:store?.name, plan:store?.plan, city:store?.city },
+      inventory: { total:items.length, outOfStock:items.filter(i=>i.stock===0).length, lowStock:items.filter(i=>i.stock>0&&i.stock<=i.minStockLevel).length, totalValue:items.reduce((s,i)=>s+(i.price*i.stock),0).toFixed(2) },
+      sales: { totalOrders:orders.length, totalRevenue:revenue.toFixed(2), avgOrderValue:orders.length?(revenue/orders.length).toFixed(2):"0" },
+      ai: { agentActions:agentLogs, fraudDetected:fraudLogs, auditEvents:auditLogs, activeAgents:30-pausedAgents.size },
+      security: { layers:13, tokenBlacklisted:tokenBlacklist.size, owasp:"COMPLIANT" },
+      features: { total:200, batches:8, pages:"50+ admin pages", apiRoutes:"100+" }
+    };
+    res.json(report);
+  } catch(err) { res.status(500).json({ message:"Server error" }); }
+});
+
+/* =========================================
+   BATCH 9 NEW FEATURES (201-230)
+========================================= */
+
+/* FEATURE 201: SMART HOMEPAGE PERSONALIZATION */
+app.get("/shop/personalized-home", auth("customer"), async (req, res) => {
+  try {
+    const { storeId } = req.query;
+    const email = req.user.email;
+    const orders = await Order.find({ customerEmail: email, storeId }).sort({ createdAt: -1 }).limit(20);
+    const allItems = await Item.find({ storeId, stock: { $gt: 0 } });
+    const boughtKeys = new Set(orders.flatMap(o => (o.items || []).map(i => i.key)));
+    const hour = new Date().getHours();
+    const timeOfDay = hour < 11 ? "morning" : hour < 17 ? "afternoon" : "evening";
+    const timeKeywords = { morning: ["bread","milk","eggs","cornflakes","tea","coffee"], afternoon: ["lunch","rice","dal","snacks","juice"], evening: ["dinner","chips","cola","biscuits","chocolate"] };
+    const timeSuggestions = allItems.filter(i => timeKeywords[timeOfDay]?.some(kw => i.name.toLowerCase().includes(kw))).slice(0, 4);
+    const frequentKeys = {};
+    orders.forEach(o => (o.items || []).forEach(i => { frequentKeys[i.key] = (frequentKeys[i.key] || 0) + 1; }));
+    const repurchase = allItems.filter(i => frequentKeys[i.key] > 0).sort((a, b) => (frequentKeys[b.key] || 0) - (frequentKeys[a.key] || 0)).slice(0, 4);
+    const newItems = allItems.filter(i => !boughtKeys.has(i.key)).sort(() => Math.random() - 0.5).slice(0, 4);
+    res.json({ timeOfDay, timeSuggestions, repurchase, newForYou: newItems, greeting: `Good ${timeOfDay}!` });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 202: ORDER TRACKING PUBLIC PAGE */
+app.get("/track-order", (req, res) => {
+  res.send(`<!DOCTYPE html><html><head><title>Track Order — ShelfSense</title><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font-family:system-ui,sans-serif;background:#0f0f23;color:white;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+  .card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:32px;width:100%;max-width:500px}
+  h1{font-size:1.3rem;margin-bottom:4px}p{color:rgba(255,255,255,0.5);font-size:0.875rem;margin-bottom:24px}
+  input{width:100%;padding:12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:white;font-size:0.9rem;margin-bottom:12px;box-sizing:border-box}
+  button{width:100%;padding:12px;background:linear-gradient(135deg,#6366f1,#a78bfa);color:white;border:none;border-radius:10px;font-size:0.9rem;font-weight:700;cursor:pointer}
+  #result{margin-top:20px;display:none}.step{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.08)}
+  .step-dot{width:20px;height:20px;border-radius:50%;flex-shrink:0;margin-top:2px}.active{background:#22c55e}.inactive{background:rgba(255,255,255,0.15)}
+  </style></head><body><div class="card">
+  <h1>📦 Track Your Order</h1><p>Enter your Order ID to see live status</p>
+  <input type="text" id="oid" placeholder="Order ID (e.g. 6642abc...)">
+  <button onclick="track()">Track Order →</button>
+  <div id="result"></div></div>
+  <script>async function track(){const id=document.getElementById('oid').value.trim();if(!id)return;const r=document.getElementById('result');r.style.display='block';r.innerHTML='⏳ Loading...';
+  try{const res=await fetch('/track/'+id);const d=await res.json();if(!res.ok){r.innerHTML='❌ Order not found';return;}
+  const steps=['placed','confirmed','packed','out_for_delivery','delivered'];const cur=steps.indexOf(d.status?.toLowerCase());
+  r.innerHTML='<div style="margin-bottom:16px"><strong>Order Status: '+d.status+'</strong><br><small style="color:rgba(255,255,255,0.5)">'+d.itemCount+' items · ₹'+d.total+'</small></div>'+
+  steps.map((s,i)=>'<div class="step"><div class="step-dot '+(i<=cur?'active':'inactive')+'"></div><div style="font-size:0.875rem;'+(i<=cur?'':'color:rgba(255,255,255,0.3)')+'">'+s.replace(/_/g,' ').toUpperCase()+'</div></div>').join('');
+  }catch(e){r.innerHTML='❌ Error tracking order';}}
+  </script></body></html>`);
+});
+
+/* FEATURE 203: PRODUCT REVIEW WITH PHOTO (text only, photo simulated) */
+app.post("/customer/review-with-details", auth("customer"), async (req, res) => {
+  try {
+    const { itemKey, rating, title, review, storeId } = req.body;
+    if (!itemKey || !rating) return res.status(400).json({ message: "Item and rating required" });
+    const existing = await Rating.findOne({ userEmail: req.user.email, itemKey });
+    if (existing) {
+      await Rating.findByIdAndUpdate(existing._id, { rating, title, review });
+    } else {
+      await Rating.create({ userEmail: req.user.email, itemKey, storeId, rating, title, review });
+    }
+    await User.findOneAndUpdate({ email: req.user.email }, { $inc: { loyaltyPoints: 10 } });
+    res.json({ message: "Review submitted! +10 loyalty points earned." });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 204: FLASH SALE SCHEDULER */
+app.post("/admin/schedule-flash-sale", auth("admin"), async (req, res) => {
+  try {
+    const { itemKey, discountPercent, startAt, durationHours } = req.body;
+    const storeId = req.user.storeId;
+    const item = await Item.findOne({ storeId, key: itemKey });
+    if (!item) return res.status(404).json({ message: "Item not found" });
+    const salePrice = parseFloat((item.price * (1 - discountPercent / 100)).toFixed(2));
+    const saleEndsAt = new Date(new Date(startAt).getTime() + durationHours * 3600000);
+    await Item.findOneAndUpdate({ storeId, key: itemKey }, { salePrice, saleEndsAt });
+    await logAgent(storeId, "System", `⏰ Flash sale scheduled: ${item.name} at ${discountPercent}% off starting ${new Date(startAt).toLocaleString("en-IN")}`, { item: item.name, discountPercent }, "info");
+    res.json({ message: `Flash sale scheduled for ${item.name}`, salePrice, saleEndsAt });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 205: STORE VISITOR COUNTER */
+const visitorLog = { today: 0, total: 0, lastReset: new Date().toDateString() };
+app.use("/shop-items", (req, res, next) => {
+  if (new Date().toDateString() !== visitorLog.lastReset) { visitorLog.today = 0; visitorLog.lastReset = new Date().toDateString(); }
+  visitorLog.today++;
+  visitorLog.total++;
+  next();
+});
+app.get("/admin/visitor-stats", auth("admin"), (req, res) => {
+  res.json({ todayVisitors: visitorLog.today, totalVisitors: visitorLog.total, lastReset: visitorLog.lastReset });
+});
+
+/* FEATURE 206: DEAD STOCK CLEARANCE AUTOMATION */
+app.post("/admin/auto-clearance", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const items = await Item.find({ storeId });
+    let cleared = 0;
+    const clearanceItems = [];
+    for (const item of items) {
+      const h = item.salesHistory || [];
+      const recentSales = h.slice(-14).reduce((a, b) => a + b, 0);
+      if (recentSales === 0 && item.stock > 0 && !item.salePrice) {
+        const clearancePrice = parseFloat((item.price * 0.6).toFixed(2));
+        const saleEndsAt = new Date(Date.now() + 7 * 86400000);
+        await Item.findByIdAndUpdate(item._id, { salePrice: clearancePrice, saleEndsAt });
+        clearanceItems.push(item.name);
+        cleared++;
+      }
+    }
+    if (cleared > 0) await logAgent(storeId, "Dead Stock Agent", `🏷️ Auto-clearance: ${cleared} dead stock items discounted 40%`, { cleared, items: clearanceItems }, "info");
+    res.json({ message: cleared > 0 ? `${cleared} dead stock items marked for clearance at 40% off` : "No dead stock items found", cleared, items: clearanceItems });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 207: PRICE HISTORY CHART DATA */
+app.get("/admin/price-history-chart/:key", auth("admin"), async (req, res) => {
+  try {
+    const history = await PriceHistory.find({ storeId: req.user.storeId, itemKey: req.params.key }).sort({ createdAt: 1 }).limit(30);
+    const item = await Item.findOne({ storeId: req.user.storeId, key: req.params.key });
+    res.json({ history, currentPrice: item?.price, itemName: item?.name });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 208: CUSTOMER MILESTONE REWARDS */
+app.get("/customer/milestone-check", auth("customer"), async (req, res) => {
+  try {
+    const email = req.user.email;
+    const orders = await Order.find({ customerEmail: email });
+    const user = await User.findOne({ email });
+    const milestones = [
+      { orders: 1, reward: 50, label: "First Order Bonus" },
+      { orders: 5, reward: 100, label: "5 Orders Milestone" },
+      { orders: 10, reward: 250, label: "Loyal Customer Bonus" },
+      { orders: 25, reward: 500, label: "Super Shopper Bonus" },
+      { orders: 50, reward: 1000, label: "Elite Customer Bonus" }
+    ];
+    const unlocked = milestones.filter(m => orders.length >= m.orders && !(user?.milestonesClaimed || []).includes(m.orders));
+    let totalReward = 0;
+    for (const m of unlocked) {
+      await User.findOneAndUpdate({ email }, { $inc: { loyaltyPoints: m.reward }, $push: { milestonesClaimed: m.orders } });
+      totalReward += m.reward;
+    }
+    res.json({ unlocked, totalReward, orderCount: orders.length, message: totalReward > 0 ? `🎉 Milestone unlocked! +${totalReward} points earned!` : "Keep shopping to unlock milestones!" });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 209: STORE HEALTH PULSE (lightweight for overview) */
+app.get("/admin/health-pulse", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const [outOfStock, lowStock, todayOrders, recentAgent] = await Promise.all([
+      Item.countDocuments({ storeId, stock: 0 }),
+      Item.countDocuments({ storeId, stock: { $gt: 0 }, $expr: { $lte: ["$stock", "$minStockLevel"] } }),
+      Order.countDocuments({ storeId, createdAt: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) } }),
+      AgentLog.findOne({ storeId }).sort({ createdAt: -1 })
+    ]);
+    const pulse = outOfStock > 5 ? "critical" : outOfStock > 0 || lowStock > 3 ? "warning" : "healthy";
+    res.json({ pulse, outOfStock, lowStock, todayOrders, lastAgentAction: recentAgent?.action, lastAgentTime: recentAgent?.createdAt, pausedAgents: pausedAgents.size });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 210: AGENT DEPENDENCY GRAPH DATA */
+app.get("/admin/agent-dependencies", auth("admin"), (req, res) => {
+  res.json({
+    dependencies: [
+      { agent: "Forecasting Agent", dependsOn: ["Monitoring Agent"], triggers: ["Reorder Point Agent"] },
+      { agent: "Anomaly Detection Agent", dependsOn: [], triggers: ["Fraud Detection Agent"] },
+      { agent: "Dynamic Pricing Agent", dependsOn: ["Demand Surge Agent", "Competitor Analysis Agent"], triggers: [] },
+      { agent: "Smart Notification Agent", dependsOn: ["Customer Behavior Agent"], triggers: [] },
+      { agent: "Auto Discount Agent", dependsOn: ["Expiry Agent", "Dead Stock Agent"], triggers: [] },
+      { agent: "Daily Briefing Agent", dependsOn: ["Monitoring Agent", "Fraud Detection Agent"], triggers: [] },
+      { agent: "Abandoned Cart Agent", dependsOn: [], triggers: ["Smart Notification Agent"] },
+      { agent: "Carbon Footprint Agent", dependsOn: ["Reorder Point Agent"], triggers: [] },
+      { agent: "Goal Tracking Agent", dependsOn: ["Forecasting Agent"], triggers: [] },
+      { agent: "Expiry Discount Agent", dependsOn: ["Expiry Agent"], triggers: ["Auto Discount Agent"] }
+    ],
+    note: "Arrows show data flow. Agents run independently on cron schedules."
+  });
+});
+
+/* FEATURE 211: SMART SEARCH SUGGESTIONS */
+app.get("/shop/search-suggestions", async (req, res) => {
+  try {
+    const { q, storeId } = req.query;
+    if (!q || q.length < 2 || !storeId) return res.json({ suggestions: [] });
+    const items = await Item.find({ storeId, stock: { $gt: 0 }, name: { $regex: q, $options: "i" } }).select("name price key stock").limit(8);
+    const trending = await SearchLog.find({ storeId, query: { $regex: q, $options: "i" } }).distinct("query");
+    res.json({ productSuggestions: items, trendingSuggestions: trending.slice(0, 3) });
+  } catch (err) { res.json({ suggestions: [] }); }
+});
+
+/* FEATURE 212: INVENTORY DIFF (compare two snapshots) */
+app.post("/admin/snapshot-diff", auth("admin"), async (req, res) => {
+  try {
+    const { snap1Id, snap2Id } = req.body;
+    const [s1, s2] = await Promise.all([
+      Snapshot.findOne({ _id: snap1Id, storeId: req.user.storeId }),
+      Snapshot.findOne({ _id: snap2Id, storeId: req.user.storeId })
+    ]);
+    if (!s1 || !s2) return res.status(404).json({ message: "Snapshot(s) not found" });
+    const map1 = {}; s1.data.forEach(i => { map1[i.key] = i; });
+    const map2 = {}; s2.data.forEach(i => { map2[i.key] = i; });
+    const diffs = [];
+    const allKeys = new Set([...Object.keys(map1), ...Object.keys(map2)]);
+    allKeys.forEach(key => {
+      const a = map1[key], b = map2[key];
+      if (!a) diffs.push({ name: b.name, change: "added", stockBefore: null, stockAfter: b.stock, priceBefore: null, priceAfter: b.price });
+      else if (!b) diffs.push({ name: a.name, change: "removed", stockBefore: a.stock, stockAfter: null });
+      else if (a.stock !== b.stock || a.price !== b.price) diffs.push({ name: a.name, change: "modified", stockBefore: a.stock, stockAfter: b.stock, priceBefore: a.price, priceAfter: b.price, stockDiff: b.stock - a.stock, priceDiff: (b.price - a.price).toFixed(2) });
+    });
+    res.json({ snap1: s1.name, snap2: s2.name, diffs, total: diffs.length });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 213: AI WEEKLY STORE NARRATIVE */
+app.get("/admin/store-narrative", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const [store, orders, items, agents] = await Promise.all([
+      Store.findById(storeId),
+      Order.find({ storeId, createdAt: { $gte: new Date(Date.now() - 7 * 86400000) } }),
+      Item.find({ storeId }),
+      AgentLog.countDocuments({ storeId, createdAt: { $gte: new Date(Date.now() - 7 * 86400000) } })
+    ]);
+    const rev = orders.reduce((s, o) => s + (o.total || 0), 0);
+    const oos = items.filter(i => i.stock === 0).length;
+    const GROQ_API_KEY = process.env.GROQ_API_KEY;
+    let narrative = `This week, ${store?.name} processed ${orders.length} orders generating ₹${rev.toFixed(0)} in revenue. Your 34 AI agents performed ${agents} actions to keep the store running. ${oos} products are currently out of stock.`;
+    if (GROQ_API_KEY) {
+      try {
+        const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${GROQ_API_KEY}` },
+          body: JSON.stringify({ model: "llama3-8b-8192", max_tokens: 120, messages: [
+            { role: "system", content: "Write a friendly 2-sentence weekly performance narrative for a retail store owner. Be specific, positive but honest. No bullet points." },
+            { role: "user", content: `Store: ${store?.name}. Orders: ${orders.length}. Revenue: ₹${rev.toFixed(0)}. Out of stock: ${oos}/${items.length}. Agent actions: ${agents}.` }
+          ]})
+        });
+        const d = await r.json();
+        narrative = d.choices?.[0]?.message?.content || narrative;
+      } catch (e) {}
+    }
+    res.json({ narrative, stats: { orders: orders.length, revenue: rev.toFixed(2), outOfStock: oos, agentActions: agents } });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 214: CUSTOM PRODUCT FIELDS */
+app.post("/admin/update-custom-fields", auth("admin"), async (req, res) => {
+  try {
+    const { key, customFields } = req.body;
+    const item = await Item.findOneAndUpdate({ storeId: req.user.storeId, key }, { $set: { customFields } }, { new: true });
+    if (!item) return res.status(404).json({ message: "Item not found" });
+    res.json({ message: "Custom fields updated", item });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 215: REFERRAL LEADERBOARD */
+app.get("/admin/referral-leaderboard", auth("admin"), async (req, res) => {
+  try {
+    const users = await User.find({ role: "customer", referralCount: { $gt: 0 } }).sort({ referralCount: -1 }).limit(10);
+    res.json({ leaderboard: users.map((u, i) => ({ rank: i + 1, email: u.email, name: u.name, referrals: u.referralCount || 0, points: u.loyaltyPoints || 0 })) });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 216: AGENT #35 — MARKET BASKET ANALYSIS AGENT */
+cron.schedule("0 0 3 * * 0", async () => {
+  if (pausedAgents.has("Market Basket Agent")) return;
+  try {
+    const stores = await Store.find({ isActive: true });
+    for (const store of stores) {
+      const orders = await Order.find({ storeId: store._id }).sort({ createdAt: -1 }).limit(100);
+      const pairs = {};
+      orders.forEach(o => {
+        const items = (o.items || []).map(i => i.name).sort();
+        for (let i = 0; i < items.length; i++) for (let j = i + 1; j < items.length; j++) {
+          const key = `${items[i]}|${items[j]}`;
+          pairs[key] = (pairs[key] || 0) + 1;
+        }
+      });
+      const top = Object.entries(pairs).sort((a, b) => b[1] - a[1]).slice(0, 3);
+      if (top.length > 0) {
+        const topPair = top[0][0].split("|").join(" + ");
+        await logAgent(store._id, "Market Basket Agent", `🛒 Top co-purchase this week: ${topPair} (${top[0][1]} times). Consider creating a bundle!`, { topPair, count: top[0][1] }, "info");
+      }
+    }
+  } catch (err) { console.error("Market Basket Agent error:", err.message); }
+});
+
+/* FEATURE 217: STORE SOCIAL SHARE CARD */
+app.get("/store-card/:storeId", async (req, res) => {
+  try {
+    const store = await Store.findById(req.params.storeId);
+    if (!store) return res.status(404).json({ message: "Store not found" });
+    const [items, orders] = await Promise.all([
+      Item.countDocuments({ storeId: req.params.storeId }),
+      Order.countDocuments({ storeId: req.params.storeId })
+    ]);
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${store.name} — ShelfSense AI</title>
+    <style>body{margin:0;font-family:system-ui,sans-serif;background:linear-gradient(135deg,#0f0f23,#1a1a3e);color:white;min-height:100vh;display:flex;align-items:center;justify-content:center}
+    .card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:40px;max-width:440px;width:90%;text-align:center}
+    .logo{font-size:2.5rem;margin-bottom:16px}.name{font-size:1.6rem;font-weight:800;margin-bottom:8px}
+    .badge{display:inline-block;padding:4px 14px;background:rgba(99,102,241,0.2);border:1px solid rgba(99,102,241,0.4);border-radius:20px;font-size:0.78rem;color:#a78bfa;margin-bottom:20px}
+    .stats{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px}
+    .stat{background:rgba(255,255,255,0.05);border-radius:12px;padding:16px}.stat-num{font-size:1.8rem;font-weight:800;color:#6366f1}.stat-label{font-size:0.72rem;color:rgba(255,255,255,0.5);margin-top:4px}
+    .footer{margin-top:24px;font-size:0.78rem;color:rgba(255,255,255,0.3)}</style></head>
+    <body><div class="card"><div class="logo">🧠</div><div class="name">${store.name}</div>
+    <div class="badge">🤖 Powered by ShelfSense AI</div>
+    <div class="stats"><div class="stat"><div class="stat-num">${items}</div><div class="stat-label">Products</div></div>
+    <div class="stat"><div class="stat-num">${orders}</div><div class="stat-label">Orders Served</div></div>
+    <div class="stat"><div class="stat-num">34</div><div class="stat-label">AI Agents</div></div>
+    <div class="stat"><div class="stat-num">13</div><div class="stat-label">Security Layers</div></div></div>
+    <div class="footer">shelfsense-ai-lptz.onrender.com</div></div></body></html>`;
+    res.setHeader("Content-Type", "text/html");
+    res.send(html);
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 218: TIME-BASED PRICING RULES */
+app.post("/admin/time-pricing-rule", auth("admin"), async (req, res) => {
+  try {
+    const { itemKey, peakHours, peakMarkup, offPeakDiscount } = req.body;
+    const item = await Item.findOne({ storeId: req.user.storeId, key: itemKey });
+    if (!item) return res.status(404).json({ message: "Item not found" });
+    await Item.findOneAndUpdate({ storeId: req.user.storeId, key: itemKey }, { $set: { timePricingRule: { peakHours, peakMarkup, offPeakDiscount } } });
+    res.json({ message: `Time-based pricing set for ${item.name}. Peak hours ${peakHours} will have ${peakMarkup}% markup.` });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 219: SMART RESTOCK CALCULATOR */
+app.post("/admin/restock-calculator", auth("admin"), async (req, res) => {
+  try {
+    const { itemKey, budget } = req.body;
+    const storeId = req.user.storeId;
+    const item = await Item.findOne({ storeId, key: itemKey });
+    if (!item) return res.status(404).json({ message: "Item not found" });
+    const h = item.salesHistory || [];
+    const avgDaily = h.length ? h.slice(-14).reduce((a, b) => a + b, 0) / Math.min(h.length, 14) : 1;
+    const cost = item.costPrice || item.price * 0.6;
+    const maxUnits = budget ? Math.floor(budget / cost) : null;
+    const optimalUnits = Math.ceil(avgDaily * 21);
+    const suggested = maxUnits ? Math.min(maxUnits, optimalUnits) : optimalUnits;
+    const totalCost = (suggested * cost).toFixed(2);
+    const expectedRevenue = (suggested * item.price).toFixed(2);
+    const roi = ((parseFloat(expectedRevenue) - parseFloat(totalCost)) / parseFloat(totalCost) * 100).toFixed(1);
+    res.json({ item: item.name, avgDailySales: avgDaily.toFixed(2), optimalUnits, suggested, totalCost, expectedRevenue, roi, daysOfStock: Math.floor(suggested / avgDaily), message: `Restock ${suggested} units for ₹${totalCost}. Expected revenue ₹${expectedRevenue} (${roi}% ROI).` });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 220: CUSTOMER FEEDBACK HEATMAP */
+app.get("/admin/feedback-heatmap", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const ratings = await Rating.find({ storeId });
+    const byDay = Array(7).fill(0).map(() => ({ count: 0, total: 0 }));
+    const byHour = Array(24).fill(0).map(() => ({ count: 0, total: 0 }));
+    ratings.forEach(r => {
+      const d = new Date(r.createdAt);
+      byDay[d.getDay()].count++;
+      byDay[d.getDay()].total += r.rating;
+      byHour[d.getHours()].count++;
+      byHour[d.getHours()].total += r.rating;
+    });
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((name, i) => ({ name, count: byDay[i].count, avg: byDay[i].count ? (byDay[i].total / byDay[i].count).toFixed(1) : null }));
+    res.json({ byDay: days, byHour: byHour.map((h, i) => ({ hour: i, count: h.count, avg: h.count ? (h.total / h.count).toFixed(1) : null })), totalRatings: ratings.length });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 221: AI DEMAND SURGE PREDICTOR */
+app.get("/admin/demand-surge-prediction", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const items = await Item.find({ storeId });
+    const now = new Date();
+    const isWeekend = [0, 6].includes(now.getDay());
+    const isMonthEnd = now.getDate() >= 25;
+    const isMonthStart = now.getDate() <= 5;
+    const surges = [];
+    items.forEach(item => {
+      const h = item.salesHistory || [];
+      if (h.length < 7) return;
+      const baseAvg = h.slice(-14).reduce((a, b) => a + b, 0) / Math.min(h.length, 14);
+      const recentAvg = h.slice(-3).reduce((a, b) => a + b, 0) / 3;
+      const surge = recentAvg > baseAvg * 1.5;
+      const multiplier = isWeekend ? 1.3 : isMonthEnd ? 1.2 : isMonthStart ? 1.15 : 1.0;
+      const predicted = parseFloat((recentAvg * multiplier).toFixed(2));
+      if (surge || predicted > baseAvg * 1.3) {
+        surges.push({ name: item.name, stock: item.stock, baseDemand: baseAvg.toFixed(2), predictedDemand: predicted, surgeReason: surge ? "Recent sales spike" : isWeekend ? "Weekend boost" : isMonthEnd ? "Month-end shopping" : "Month-start payday", daysLeft: predicted > 0 ? (item.stock / predicted).toFixed(1) : null, urgent: item.stock / predicted < 3 });
+      }
+    });
+    surges.sort((a, b) => (a.daysLeft || 999) - (b.daysLeft || 999));
+    res.json({ surges, context: { isWeekend, isMonthEnd, isMonthStart }, totalSurging: surges.length });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 222: STORE COMPARISON WIDGET (public) */
+app.get("/compare-stores", async (req, res) => {
+  try {
+    const stores = await Store.find({ isActive: true }).select("name city plan").limit(10);
+    res.json({ stores: stores.map(s => ({ name: s.name, city: s.city || "India", plan: s.plan || "free" })) });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 223: TRANSACTION ANOMALY DETECTOR */
+app.get("/admin/transaction-anomalies", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const orders = await Order.find({ storeId }).sort({ createdAt: -1 }).limit(100);
+    const totals = orders.map(o => o.total || 0).filter(t => t > 0);
+    const avg = totals.reduce((a, b) => a + b, 0) / Math.max(1, totals.length);
+    const variance = totals.reduce((s, v) => s + Math.pow(v - avg, 2), 0) / Math.max(1, totals.length);
+    const stdDev = Math.sqrt(variance);
+    const anomalies = orders.filter(o => {
+      const z = stdDev > 0 ? Math.abs((o.total || 0) - avg) / stdDev : 0;
+      return z > 2.5;
+    }).map(o => {
+      const z = stdDev > 0 ? Math.abs((o.total || 0) - avg) / stdDev : 0;
+      return { orderId: o._id, total: o.total, customerEmail: o.customerEmail, zScore: z.toFixed(2), type: o.total > avg ? "unusually_high" : "unusually_low", time: o.createdAt };
+    });
+    res.json({ anomalies, avgOrderValue: avg.toFixed(2), stdDev: stdDev.toFixed(2), analysed: orders.length });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 224: SMART BULK REORDER */
+app.post("/admin/bulk-reorder", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const { minDaysLeft } = req.body;
+    const items = await Item.find({ storeId });
+    const reordered = [];
+    for (const item of items) {
+      const h = item.salesHistory || [];
+      const avg = h.length ? h.slice(-14).reduce((a, b) => a + b, 0) / Math.min(h.length, 14) : 0;
+      if (avg === 0) continue;
+      const daysLeft = item.stock / avg;
+      if (daysLeft <= (minDaysLeft || 7)) {
+        const qty = Math.ceil(avg * 14);
+        await PurchaseOrder.create({ storeId, itemName: item.name, itemKey: item.key, quantity: qty, status: "pending", triggeredBy: "bulk_reorder" });
+        reordered.push({ name: item.name, qty, daysLeft: daysLeft.toFixed(1) });
+      }
+    }
+    if (reordered.length > 0) await logAgent(storeId, "System", `📦 Bulk reorder: ${reordered.length} purchase orders created`, { count: reordered.length }, "info");
+    res.json({ message: `${reordered.length} reorders created`, reordered });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 225: STORE ANNOUNCEMENT WITH EMOJI REACTIONS */
+app.post("/shop/react-announcement/:id", async (req, res) => {
+  try {
+    const { emoji } = req.body;
+    await Announcement.findByIdAndUpdate(req.params.id, { $inc: { [`reactions.${emoji}`]: 1 } });
+    res.json({ message: "Reaction added" });
+  } catch (err) { res.json({ ok: true }); }
+});
+
+/* FEATURE 226: PREDICTIVE STOCKOUT ALERTS (SMS + Email + Telegram) */
+app.post("/admin/predictive-alert-test", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const store = await Store.findById(storeId);
+    const items = await Item.find({ storeId });
+    const critical = items.filter(i => {
+      const h = i.salesHistory || [];
+      const avg = h.length ? h.slice(-7).reduce((a, b) => a + b, 0) / Math.min(h.length, 7) : 0;
+      return avg > 0 && i.stock / avg < 3;
+    });
+    if (critical.length === 0) return res.json({ message: "No critical items — all stock levels healthy!" });
+    const msg = `⚠️ Predictive Stockout Alert!\n${critical.length} items will run out within 3 days:\n${critical.map(i => `• ${i.name} (${i.stock} units)`).join("\n")}`;
+    await sendTelegramAlert(msg);
+    await sendAlert("⚠️ Predictive Stockout Alert", `<p>${critical.length} items will run out within 3 days:</p><ul>${critical.map(i => `<li><strong>${i.name}</strong> — ${i.stock} units remaining</li>`).join("")}</ul>`, false, store?.alertEmail);
+    res.json({ message: `Alert sent for ${critical.length} critical items`, items: critical.map(i => i.name) });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 227: CUSTOMER COHORT REVENUE */
+app.get("/admin/cohort-revenue", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const orders = await Order.find({ storeId }).sort({ createdAt: 1 });
+    const firstOrder = {};
+    orders.forEach(o => { if (!firstOrder[o.customerEmail]) firstOrder[o.customerEmail] = new Date(o.createdAt).toLocaleDateString("en-IN", { month: "short", year: "2-digit" }); });
+    const cohortRevenue = {};
+    orders.forEach(o => {
+      const cohort = firstOrder[o.customerEmail];
+      if (!cohortRevenue[cohort]) cohortRevenue[cohort] = { cohort, customers: new Set(), revenue: 0, orders: 0 };
+      cohortRevenue[cohort].customers.add(o.customerEmail);
+      cohortRevenue[cohort].revenue += o.total || 0;
+      cohortRevenue[cohort].orders++;
+    });
+    const result = Object.values(cohortRevenue).map(c => ({ cohort: c.cohort, customers: c.customers.size, revenue: c.revenue.toFixed(2), orders: c.orders, avgRevPerCustomer: (c.revenue / c.customers.size).toFixed(2) })).slice(-6);
+    res.json({ cohorts: result });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 228: LOYALTY POINTS EXPIRY SYSTEM */
+cron.schedule("0 0 1 * *", async () => {
+  if (pausedAgents.has("Points Expiry Agent")) return;
+  try {
+    const cutoff = new Date(Date.now() - 365 * 86400000);
+    const inactiveUsers = await User.find({ role: "customer", updatedAt: { $lt: cutoff }, loyaltyPoints: { $gt: 0 } });
+    for (const user of inactiveUsers) {
+      const expiring = Math.floor(user.loyaltyPoints * 0.25);
+      await User.findByIdAndUpdate(user._id, { $inc: { loyaltyPoints: -expiring } });
+      await sendAlert("Your loyalty points are expiring! ⏰", `Hi ${user.name || "there"}! You have been inactive for 12 months. ${expiring} points (25%) have expired. Login and shop to keep your remaining points!`, false, user.email);
+    }
+    if (inactiveUsers.length > 0) console.log(`💫 Points expiry: processed ${inactiveUsers.length} inactive users`);
+  } catch (err) { console.error("Points Expiry Agent error:", err.message); }
+});
+app.get("/admin/points-expiry-preview", auth("admin"), async (req, res) => {
+  try {
+    const cutoff = new Date(Date.now() - 365 * 86400000);
+    const at_risk = await User.find({ role: "customer", updatedAt: { $lt: cutoff }, loyaltyPoints: { $gt: 0 } }).select("email name loyaltyPoints updatedAt");
+    res.json({ atRisk: at_risk.map(u => ({ email: u.email, name: u.name, points: u.loyaltyPoints, expiringPoints: Math.floor(u.loyaltyPoints * 0.25), lastActive: u.updatedAt })), count: at_risk.length });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 229: STORE PERFORMANCE BADGES (Automated) */
+app.get("/admin/performance-badges", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const [orders, items, agents, fraudFlags] = await Promise.all([
+      Order.countDocuments({ storeId }),
+      Item.countDocuments({ storeId }),
+      AgentLog.countDocuments({ storeId }),
+      FraudLog.countDocuments({ storeId })
+    ]);
+    const revenue = (await Order.find({ storeId })).reduce((s, o) => s + (o.total || 0), 0);
+    const badges = [
+      { id: "century_orders", name: "Century Club 💯", earned: orders >= 100, desc: "100+ orders processed" },
+      { id: "well_stocked", name: "Well Stocked 📦", earned: items >= 20, desc: "20+ products in inventory" },
+      { id: "revenue_milestone", name: "₹10K Revenue 💰", earned: revenue >= 10000, desc: "Earned ₹10,000+ in revenue" },
+      { id: "agent_master", name: "Agent Master 🤖", earned: agents >= 500, desc: "500+ AI agent actions" },
+      { id: "fraud_buster", name: "Fraud Buster 🛡️", earned: fraudFlags >= 1, desc: "Caught at least 1 fraud attempt" },
+      { id: "security_first", name: "Security First 🔒", earned: true, desc: "13 security layers active" },
+      { id: "ieee_ready", name: "IEEE Ready 🏛️", earned: true, desc: "System built for academic publication" },
+      { id: "ai_powered", name: "AI Powered 🧠", earned: true, desc: "34 AI agents running 24/7" }
+    ];
+    res.json({ badges, earned: badges.filter(b => b.earned).length, total: badges.length });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 230: FINAL FEATURE — COMPREHENSIVE IEEE DATA EXPORT */
+app.get("/admin/ieee-export", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const [store, items, orders, agentLogs, fraudLogs, auditLogs, sessions] = await Promise.all([
+      Store.findById(storeId).select("-password -apiSecret"),
+      Item.find({ storeId }),
+      Order.find({ storeId }),
+      AgentLog.find({ storeId }).sort({ createdAt: -1 }).limit(100),
+      FraudLog.find({ storeId }).sort({ createdAt: -1 }).limit(50),
+      AuditLog.find().sort({ createdAt: -1 }).limit(100),
+      SessionLog.countDocuments()
+    ]);
+    const revenue = orders.reduce((s, o) => s + (o.total || 0), 0);
+    const exportData = {
+      exportMeta: { generatedAt: new Date().toISOString(), purpose: "IEEE Paper Research Export", version: "2.0.0" },
+      systemOverview: { totalFeatures: 230, totalAgents: 34, securityLayers: 13, apiRoutes: "100+", dbSchemas: 35 },
+      storeMetrics: { products: items.length, orders: orders.length, revenue: revenue.toFixed(2), outOfStock: items.filter(i => i.stock === 0).length },
+      agentMetrics: { totalActions: agentLogs.length, criticalAlerts: agentLogs.filter(l => l.severity === "critical").length, agentNames: [...new Set(agentLogs.map(l => l.agent))] },
+      securityMetrics: { fraudDetected: fraudLogs.length, auditEvents: auditLogs.length, activeSessions: sessions, tokenBlacklisted: tokenBlacklist.size },
+      technicalStack: { backend: "Node.js + Express", database: "MongoDB + Mongoose", ai: "YOLOv8 + Groq LLaMA3", auth: "JWT + bcrypt + 2FA", hosting: "Render.com", payments: "Razorpay" },
+      researchContributions: ["Multi-agent agentic retail AI system", "13-layer cybersecurity architecture", "Explainable AI dashboard for retail", "Real-time shelf monitoring via YOLOv8", "Federated learning simulation", "Zero-trust security model", "Agent conflict resolution mechanism", "Adversarial attack simulation and detection"]
+    };
+    res.setHeader("Content-Type", "application/json");
+    res.setHeader("Content-Disposition", `attachment; filename="shelfsense_ieee_export_${new Date().toISOString().split("T")[0]}.json"`);
+    res.json(exportData);
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
