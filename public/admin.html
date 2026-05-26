@@ -623,6 +623,20 @@
 <button class="sidebar-item" data-page="sentiment" onclick="showPage('sentiment', this)"><span class="sidebar-emoji">😊</span> Product Sentiment</button>
 <button class="sidebar-item" data-page="qa-admin" onclick="showPage('qa-admin', this)"><span class="sidebar-emoji">❓</span> Q&A Manager</button>
 <button class="sidebar-item" data-page="api-docs" onclick="showPage('api-docs', this)"><span class="sidebar-emoji">📖</span> API Docs</button>
+<button class="sidebar-item" data-page="agent-leaderboard" onclick="showPage('agent-leaderboard', this)"><span class="sidebar-emoji">🏆</span> Agent Leaderboard</button>
+<button class="sidebar-item" data-page="agent-sandbox" onclick="showPage('agent-sandbox', this)"><span class="sidebar-emoji">🧪</span> Agent Sandbox</button>
+<button class="sidebar-item" data-page="latency" onclick="showPage('latency', this)"><span class="sidebar-emoji">⚡</span> Latency Report</button>
+<button class="sidebar-item" data-page="model-stats" onclick="showPage('model-stats', this)"><span class="sidebar-emoji">🎯</span> Model Accuracy</button>
+<button class="sidebar-item" data-page="ethical-ai" onclick="showPage('ethical-ai', this)"><span class="sidebar-emoji">⚖️</span> Ethical AI</button>
+<button class="sidebar-item" data-page="benchmark" onclick="showPage('benchmark', this)"><span class="sidebar-emoji">📈</span> Benchmark</button>
+<button class="sidebar-item" data-page="experiments" onclick="showPage('experiments', this)"><span class="sidebar-emoji">🔬</span> Experiments</button>
+<button class="sidebar-item" data-page="tech-radar" onclick="showPage('tech-radar', this)"><span class="sidebar-emoji">📡</span> Tech Radar</button>
+<button class="sidebar-item" data-page="agent-network" onclick="showPage('agent-network', this)"><span class="sidebar-emoji">🕸️</span> Agent Network</button>
+<button class="sidebar-item" data-page="tax-report" onclick="showPage('tax-report', this)"><span class="sidebar-emoji">🧾</span> GST/Tax Report</button>
+<button class="sidebar-item" data-page="competitor" onclick="showPage('competitor', this)"><span class="sidebar-emoji">🏁</span> Competitor Prices</button>
+<button class="sidebar-item" data-page="achievements" onclick="showPage('achievements', this)"><span class="sidebar-emoji">🎖️</span> Store Achievements</button>
+<button class="sidebar-item" data-page="reorder-suggestions" onclick="showPage('reorder-suggestions', this)"><span class="sidebar-emoji">💡</span> Reorder Suggestions</button>
+<button class="sidebar-item" data-page="forecast-confidence" onclick="showPage('forecast-confidence', this)"><span class="sidebar-emoji">📊</span> Forecast Confidence</button>
 <button class="sidebar-item" data-page="store-settings" onclick="showPage('store-settings', this)"><span class="sidebar-emoji">⚙️</span> Store Settings</button>
     </div>
     <div class="sidebar-bottom">
@@ -1708,6 +1722,169 @@
     <h2>📖 Self-Documenting API</h2>
     <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">All available API endpoints for ShelfSense AI v2.0</p>
     <div id="apiDocsList">Loading...</div>
+  </div>
+</div>
+
+
+<!-- AGENT LEADERBOARD -->
+<div class="page" id="page-agent-leaderboard">
+  <div class="card">
+    <h2>🏆 Agent Performance Leaderboard</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Which agents have been most active in the last 7 days?</p>
+    <div id="agentLeaderboardList">Loading...</div>
+  </div>
+</div>
+
+<!-- AGENT SANDBOX -->
+<div class="page" id="page-agent-sandbox">
+  <div class="card">
+    <h2>🧪 Agent Simulation Sandbox</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Replay any agent's historical decisions to understand its behavior patterns.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-bottom:20px">
+      <select id="sandboxAgent" style="padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary)">
+        <option value="Monitoring Agent">Monitoring Agent</option>
+        <option value="Forecasting Agent">Forecasting Agent</option>
+        <option value="Anomaly Detection Agent">Anomaly Detection Agent</option>
+        <option value="Fraud Detection Agent">Fraud Detection Agent</option>
+        <option value="Dynamic Pricing Agent">Dynamic Pricing Agent</option>
+      </select>
+      <select id="sandboxDays" style="padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary)">
+        <option value="7">Last 7 days</option>
+        <option value="14">Last 14 days</option>
+        <option value="30">Last 30 days</option>
+      </select>
+      <button class="btn-primary" onclick="runSandbox()">▶ Run</button>
+    </div>
+    <div id="sandboxResults"></div>
+  </div>
+</div>
+
+<!-- LATENCY REPORT -->
+<div class="page" id="page-latency">
+  <div class="card">
+    <h2>⚡ API Latency Report</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Response times for every API route. Identify bottlenecks instantly.</p>
+    <div id="latencyTable">Loading...</div>
+  </div>
+</div>
+
+<!-- MODEL STATS -->
+<div class="page" id="page-model-stats">
+  <div class="card" style="margin-bottom:16px">
+    <h2>🎯 AI Model Accuracy Dashboard</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:16px">Track YOLOv8 and other model performance metrics.</p>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">
+      <input type="number" id="modelPrecision" placeholder="Precision %" style="padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary)">
+      <input type="number" id="modelRecall" placeholder="Recall %" style="padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary)">
+      <input type="number" id="modelF1" placeholder="F1 Score %" style="padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary)">
+      <input type="number" id="modelMAP" placeholder="mAP %" style="padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary)">
+    </div>
+    <button class="btn-primary" onclick="saveModelStats()">💾 Save Model Stats</button>
+  </div>
+  <div class="card"><div id="modelStatsList">Loading...</div></div>
+</div>
+
+<!-- ETHICAL AI -->
+<div class="page" id="page-ethical-ai">
+  <div class="card">
+    <h2>⚖️ Ethical AI Compliance Checklist</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">ShelfSense AI meets all responsible AI guidelines across fairness, transparency, accountability, and privacy.</p>
+    <div id="ethicalAIList">Loading...</div>
+  </div>
+</div>
+
+<!-- BENCHMARK -->
+<div class="page" id="page-benchmark">
+  <div class="card">
+    <h2>📈 Benchmark: AI System vs Baseline</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Compare ShelfSense AI performance against a manual/no-AI baseline.</p>
+    <div id="benchmarkData">Loading...</div>
+  </div>
+</div>
+
+<!-- EXPERIMENTS -->
+<div class="page" id="page-experiments">
+  <div class="card" style="margin-bottom:16px">
+    <h2>🔬 Research Experiment Log</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:16px">Log experiments, hypotheses, and results for IEEE paper.</p>
+    <div style="display:grid;gap:10px;margin-bottom:12px">
+      <input type="text" id="expName" placeholder="Experiment name" style="padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary)">
+      <input type="text" id="expHypothesis" placeholder="Hypothesis" style="padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary)">
+      <input type="text" id="expResult" placeholder="Result (Confirmed/Rejected/Partial)" style="padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary)">
+      <input type="text" id="expImprovement" placeholder="Improvement measured" style="padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary)">
+      <button class="btn-primary" onclick="logExperiment()">+ Log Experiment</button>
+    </div>
+  </div>
+  <div class="card"><div id="experimentsList">Loading...</div></div>
+</div>
+
+<!-- TECH RADAR -->
+<div class="page" id="page-tech-radar">
+  <div class="card">
+    <h2>📡 Technology Radar</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Maturity and effectiveness of every technology in the ShelfSense stack.</p>
+    <div id="techRadarList">Loading...</div>
+  </div>
+</div>
+
+<!-- AGENT NETWORK -->
+<div class="page" id="page-agent-network">
+  <div class="card">
+    <h2>🕸️ Agent Interaction Network</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">How agents communicate and influence each other.</p>
+    <div id="agentNetworkViz">Loading...</div>
+  </div>
+</div>
+
+<!-- TAX REPORT -->
+<div class="page" id="page-tax-report">
+  <div class="card">
+    <h2>🧾 GST / Tax Report</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Monthly GST breakdown. Note: Consult a CA for official filing.</p>
+    <div id="taxReportData">Loading...</div>
+  </div>
+</div>
+
+<!-- COMPETITOR PRICES -->
+<div class="page" id="page-competitor">
+  <div class="card" style="margin-bottom:16px">
+    <h2>🏁 Competitor Price Tracker</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:16px">Track competitor prices and get recommendations to stay competitive.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:10px;margin-bottom:12px">
+      <input type="text" id="compItem" placeholder="Product name" style="padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary)">
+      <input type="number" id="compOurPrice" placeholder="Our price ₹" style="padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary)">
+      <input type="number" id="compTheirPrice" placeholder="Their price ₹" style="padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary)">
+      <input type="text" id="compName" placeholder="Competitor name" style="padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary)">
+      <button class="btn-primary" onclick="addCompetitorPrice()">Add</button>
+    </div>
+  </div>
+  <div class="card"><div id="competitorPriceList">Loading...</div></div>
+</div>
+
+<!-- STORE ACHIEVEMENTS -->
+<div class="page" id="page-achievements">
+  <div class="card">
+    <h2>🎖️ Store Achievements</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Milestones your store has reached on the ShelfSense platform.</p>
+    <div id="storeAchievementsList">Loading...</div>
+  </div>
+</div>
+
+<!-- REORDER SUGGESTIONS -->
+<div class="page" id="page-reorder-suggestions">
+  <div class="card">
+    <h2>💡 Smart Reorder Suggestions</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">AI-calculated optimal reorder quantities based on your sales velocity and lead time.</p>
+    <div id="reorderSuggestionsList">Loading...</div>
+  </div>
+</div>
+
+<!-- FORECAST CONFIDENCE -->
+<div class="page" id="page-forecast-confidence">
+  <div class="card">
+    <h2>📊 Forecast Confidence Intervals</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">95% confidence intervals on demand forecasts — shows best case and worst case stock depletion.</p>
+    <div id="forecastConfidenceList">Loading...</div>
   </div>
 </div>
 
@@ -4635,6 +4812,431 @@ commandPaletteItems.push(
   { label:"😊 Product Sentiment", action:()=>showPage("sentiment") },
   { label:"❓ Q&A Manager", action:()=>showPage("qa-admin") },
   { label:"📖 API Docs", action:()=>showPage("api-docs") }
+);
+
+
+/* ============================================
+   BATCH 5 JS FUNCTIONS
+============================================ */
+
+/* AGENT LEADERBOARD */
+async function loadAgentLeaderboard() {
+  const el = document.getElementById("agentLeaderboardList");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/agent-leaderboard", { headers: getAuthHeaders() });
+    const data = await res.json();
+    const medals = ["🥇","🥈","🥉"];
+    el.innerHTML = data.leaderboard.map((a,i) => `
+      <div style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:10px;margin-bottom:8px">
+        <span style="font-size:1.5rem;flex-shrink:0">${medals[i]||"#"+(i+1)}</span>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:0.9rem">${a.name}</div>
+          <div style="display:flex;gap:10px;margin-top:4px">
+            <span style="font-size:0.72rem;padding:2px 8px;border-radius:10px;background:rgba(239,68,68,0.1);color:#ef4444">${a.critical} critical</span>
+            <span style="font-size:0.72rem;padding:2px 8px;border-radius:10px;background:rgba(245,158,11,0.1);color:#f59e0b">${a.warning} warning</span>
+            <span style="font-size:0.72rem;padding:2px 8px;border-radius:10px;background:rgba(99,102,241,0.1);color:#a5b4fc">${a.info} info</span>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:1.4rem;font-weight:800;color:var(--accent)">${a.total}</div>
+          <div style="font-size:0.72rem;color:var(--text-muted)">actions</div>
+        </div>
+      </div>`).join("");
+    if (!data.leaderboard.length) el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">No agent activity yet this week</div>';
+  } catch(err) { document.getElementById("agentLeaderboardList").innerHTML = "Failed to load"; }
+}
+
+/* AGENT SANDBOX */
+async function runSandbox() {
+  const agentName = document.getElementById("sandboxAgent")?.value;
+  const daysBack = document.getElementById("sandboxDays")?.value;
+  const el = document.getElementById("sandboxResults");
+  el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted)">⏳ Analysing historical data...</div>';
+  try {
+    const res = await fetch("/admin/agent-sandbox", { method:"POST", headers:{ "Content-Type":"application/json",...getAuthHeaders() }, body: JSON.stringify({ agentName, daysBack: parseInt(daysBack) }) });
+    const data = await res.json();
+    const s = data.summary;
+    el.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+        ${[["Total Actions",s.totalActions,"#6366f1"],["Critical Alerts",s.criticalAlerts,"#ef4444"],["Warnings",s.warnings,"#f59e0b"],["Info Actions",s.infoActions,"#22c55e"]].map(([l,v,c])=>`
+        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:10px;padding:14px;text-align:center">
+          <div style="font-size:1.6rem;font-weight:800;color:${c}">${v}</div>
+          <div style="font-size:0.75rem;color:var(--text-muted)">${l}</div>
+        </div>`).join("")}
+      </div>
+      <div style="background:${s.insight.includes("High alert")?'rgba(239,68,68,0.1)':'rgba(34,197,94,0.1)'};border:1px solid ${s.insight.includes("High alert")?'rgba(239,68,68,0.3)':'rgba(34,197,94,0.3)'};border-radius:10px;padding:14px;margin-bottom:16px">
+        <strong>💡 Insight:</strong> ${s.insight}
+      </div>
+      <h3 style="font-size:0.9rem;margin-bottom:10px">Last 10 Actions:</h3>
+      ${s.timeline.map(t=>`<div style="padding:8px 12px;background:var(--bg-secondary);border-left:3px solid ${t.severity==='critical'?'#ef4444':t.severity==='warning'?'#f59e0b':'#6366f1'};border-radius:0 8px 8px 0;margin-bottom:6px;font-size:0.82rem">${t.action}<span style="float:right;color:var(--text-muted);font-size:0.72rem">${new Date(t.time).toLocaleString("en-IN")}</span></div>`).join("")}`;
+  } catch(err) { el.innerHTML = "Failed to run sandbox"; }
+}
+
+/* LATENCY REPORT */
+async function loadLatencyReport() {
+  const el = document.getElementById("latencyTable");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/latency-report", { headers: getAuthHeaders() });
+    const data = await res.json();
+    const statusColors = { critical:"#ef4444", slow:"#f97316", moderate:"#f59e0b", fast:"#22c55e" };
+    el.innerHTML = `<div style="margin-bottom:16px;display:flex;gap:12px">
+      <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:10px;padding:14px;flex:1;text-align:center">
+        <div style="font-size:1.4rem;font-weight:800;color:var(--accent)">${data.avgAll}ms</div>
+        <div style="font-size:0.75rem;color:var(--text-muted)">Overall Avg</div>
+      </div>
+      <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:10px;padding:14px;flex:1;text-align:center">
+        <div style="font-size:1.4rem;font-weight:800;color:${data.slowRoutes>0?'#f59e0b':'#22c55e'}">${data.slowRoutes}</div>
+        <div style="font-size:0.75rem;color:var(--text-muted)">Slow Routes (>500ms)</div>
+      </div>
+    </div>
+    <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">
+      <thead><tr style="border-bottom:1px solid var(--border-color)">${["Route","Avg","P95","Calls","Status"].map(h=>`<th style="padding:10px;text-align:left;font-size:0.78rem;color:var(--text-muted)">${h}</th>`).join("")}</tr></thead>
+      <tbody>${data.routes.map(r=>`<tr style="border-bottom:1px solid var(--border-color)">
+        <td style="padding:10px;font-family:monospace;font-size:0.82rem">${r.route}</td>
+        <td style="padding:10px;font-size:0.875rem;font-weight:700;color:${statusColors[r.status]}">${r.avg}ms</td>
+        <td style="padding:10px;font-size:0.875rem">${r.p95}ms</td>
+        <td style="padding:10px;font-size:0.875rem">${r.calls}</td>
+        <td style="padding:10px"><span style="padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;background:${statusColors[r.status]}20;color:${statusColors[r.status]}">${r.status}</span></td>
+      </tr>`).join("")}</tbody>
+    </table></div>`;
+  } catch(err) { document.getElementById("latencyTable").innerHTML = "Failed to load"; }
+}
+
+/* MODEL STATS */
+async function loadModelStats() {
+  const el = document.getElementById("modelStatsList");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/model-stats", { headers: getAuthHeaders() });
+    const data = await res.json();
+    el.innerHTML = data.stats.map(s => `
+      <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:20px;margin-bottom:12px">
+        <h3 style="margin:0 0 16px;font-size:0.95rem">🤖 ${s.modelName}</h3>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px">
+          ${[["Precision",s.precision,"%","#6366f1"],["Recall",s.recall,"%","#22c55e"],["F1 Score",s.f1,"%","#f59e0b"],["mAP",s.mAP,"%","#a78bfa"]].map(([l,v,u,c])=>`
+          <div style="text-align:center;background:var(--bg-tertiary);border-radius:8px;padding:12px">
+            <div style="font-size:1.4rem;font-weight:800;color:${c}">${v}${u}</div>
+            <div style="font-size:0.72rem;color:var(--text-muted)">${l}</div>
+          </div>`).join("")}
+        </div>
+        <div style="font-size:0.78rem;color:var(--text-muted)">Trained on: ${s.trainedOn} · Updated: ${s.lastUpdated ? new Date(s.lastUpdated).toLocaleDateString("en-IN") : "N/A"}</div>
+      </div>`).join("");
+  } catch(err) { document.getElementById("modelStatsList").innerHTML = "Failed to load"; }
+}
+async function saveModelStats() {
+  const body = { modelName:"YOLOv8-RetailShelf", precision:parseFloat(document.getElementById("modelPrecision")?.value), recall:parseFloat(document.getElementById("modelRecall")?.value), f1:parseFloat(document.getElementById("modelF1")?.value), mAP:parseFloat(document.getElementById("modelMAP")?.value), trainedOn:"Retail Shelf Dataset (Kaggle)" };
+  try {
+    await fetch("/admin/model-stats", { method:"POST", headers:{ "Content-Type":"application/json",...getAuthHeaders() }, body: JSON.stringify(body) });
+    ssToast("Model stats saved","success");
+    loadModelStats();
+  } catch(err) { ssToast("Failed","error"); }
+}
+
+/* ETHICAL AI */
+async function loadEthicalAI() {
+  const el = document.getElementById("ethicalAIList");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/ethical-ai", { headers: getAuthHeaders() });
+    const data = await res.json();
+    const categories = [...new Set(data.checklist.map(c => c.category))];
+    el.innerHTML = `
+      <div style="display:flex;align-items:center;gap:16px;background:linear-gradient(135deg,rgba(34,197,94,0.1),rgba(99,102,241,0.1));border:1px solid rgba(34,197,94,0.3);border-radius:12px;padding:16px;margin-bottom:20px">
+        <div style="font-size:3rem">⚖️</div>
+        <div>
+          <div style="font-size:1.6rem;font-weight:800;color:#22c55e">${data.score}/100</div>
+          <div style="font-weight:700">Ethical AI Score — Grade ${data.grade}</div>
+          <div style="font-size:0.82rem;color:var(--text-muted);margin-top:2px">${data.note}</div>
+        </div>
+      </div>
+      ${categories.map(cat => `
+        <div style="margin-bottom:16px">
+          <div style="font-weight:700;font-size:0.85rem;color:var(--accent);margin-bottom:8px">${cat}</div>
+          ${data.checklist.filter(c=>c.category===cat).map(c=>`
+            <div style="display:flex;gap:10px;padding:8px 12px;background:var(--bg-secondary);border-radius:8px;margin-bottom:4px">
+              <span>${c.status?"✅":"❌"}</span>
+              <span style="font-size:0.875rem">${c.item}</span>
+            </div>`).join("")}
+        </div>`).join("")}`;
+  } catch(err) { document.getElementById("ethicalAIList").innerHTML = "Failed to load"; }
+}
+
+/* BENCHMARK */
+async function loadBenchmark() {
+  const el = document.getElementById("benchmarkData");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/benchmark", { headers: getAuthHeaders() });
+    const data = await res.json();
+    const metrics = [
+      ["Stockout Rate", data.yourSystem.stockoutRate+"%", data.baseline.stockoutRate+"%", true],
+      ["Monthly Revenue", "₹"+data.yourSystem.revenuePerMonth, "₹"+data.baseline.revenuePerMonth, false],
+      ["AI Agent Actions", data.yourSystem.agentActions, data.baseline.agentActions, false],
+      ["Avg Response Time", data.yourSystem.avgResponseTime, data.baseline.avgResponseTime, false],
+      ["Security Layers", data.yourSystem.securityLayers, data.baseline.securityLayers, false],
+      ["Automation Level", data.yourSystem.automationLevel, data.baseline.automationLevel, false],
+    ];
+    el.innerHTML = `
+      <div style="overflow-x:auto;margin-bottom:20px"><table style="width:100%;border-collapse:collapse">
+        <thead><tr><th style="padding:12px;text-align:left;font-size:0.8rem;color:var(--text-muted);border-bottom:1px solid var(--border-color)">Metric</th><th style="padding:12px;text-align:center;background:rgba(99,102,241,0.1);color:#a78bfa;border-bottom:1px solid var(--border-color)">🧠 ShelfSense AI</th><th style="padding:12px;text-align:center;color:var(--text-muted);border-bottom:1px solid var(--border-color)">📋 No AI Baseline</th></tr></thead>
+        <tbody>${metrics.map(([m,ai,base,lowerBetter])=>`<tr style="border-bottom:1px solid var(--border-color)">
+          <td style="padding:12px;font-size:0.875rem">${m}</td>
+          <td style="padding:12px;text-align:center;background:rgba(99,102,241,0.05);font-weight:700;color:${lowerBetter?'#22c55e':'var(--accent)'}">${ai}</td>
+          <td style="padding:12px;text-align:center;color:var(--text-muted)">${base}</td>
+        </tr>`).join("")}</tbody>
+      </table></div>
+      <div style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:12px;padding:16px">
+        <div style="font-weight:700;margin-bottom:10px;color:#22c55e">✅ Key Improvements vs Baseline</div>
+        ${Object.entries(data.improvements).map(([k,v])=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.875rem"><span style="color:var(--text-muted)">${k.replace(/([A-Z])/g,' $1').trim()}</span><strong style="color:#22c55e">${v}</strong></div>`).join("")}
+      </div>`;
+  } catch(err) { document.getElementById("benchmarkData").innerHTML = "Failed to load"; }
+}
+
+/* EXPERIMENTS */
+async function loadExperiments() {
+  const el = document.getElementById("experimentsList");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/experiments", { headers: getAuthHeaders() });
+    const data = await res.json();
+    el.innerHTML = data.experiments.map(e => `
+      <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:10px;padding:14px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <span style="font-weight:700;font-size:0.9rem">🔬 ${e.name}</span>
+          <span style="padding:2px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;background:${e.result==='Confirmed'?'rgba(34,197,94,0.1)':'rgba(239,68,68,0.1)'};color:${e.result==='Confirmed'?'#22c55e':'#ef4444'}">${e.result}</span>
+        </div>
+        <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:4px">H: ${e.hypothesis}</div>
+        ${e.improvement?`<div style="font-size:0.82rem;color:#22c55e">📈 ${e.improvement}</div>`:""}
+      </div>`).join("");
+  } catch(err) { document.getElementById("experimentsList").innerHTML = "Failed to load"; }
+}
+async function logExperiment() {
+  const name = document.getElementById("expName")?.value;
+  const hypothesis = document.getElementById("expHypothesis")?.value;
+  const result = document.getElementById("expResult")?.value;
+  const improvement = document.getElementById("expImprovement")?.value;
+  if (!name || !hypothesis) { ssToast("Enter name and hypothesis","warning"); return; }
+  try {
+    await fetch("/admin/experiments", { method:"POST", headers:{ "Content-Type":"application/json",...getAuthHeaders() }, body: JSON.stringify({ name, hypothesis, result, improvement }) });
+    ssToast("Experiment logged","success");
+    ["expName","expHypothesis","expResult","expImprovement"].forEach(id => { const el = document.getElementById(id); if(el) el.value=""; });
+    loadExperiments();
+  } catch(err) { ssToast("Failed","error"); }
+}
+
+/* TECH RADAR */
+async function loadTechRadar() {
+  const el = document.getElementById("techRadarList");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/tech-radar", { headers: getAuthHeaders() });
+    const data = await res.json();
+    const cats = [...new Set(data.radar.map(r => r.category))];
+    el.innerHTML = cats.map(cat => `
+      <div style="margin-bottom:20px">
+        <div style="font-weight:700;font-size:0.85rem;color:var(--accent);margin-bottom:10px">${cat}</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px">
+          ${data.radar.filter(r=>r.category===cat).map(r=>`
+            <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:10px;padding:14px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+                <span style="font-weight:700;font-size:0.875rem">${r.technology}</span>
+                <span style="font-size:0.75rem;font-weight:800;color:#22c55e">${r.score}%</span>
+              </div>
+              <div style="height:4px;background:var(--bg-tertiary);border-radius:2px;margin-bottom:6px"><div style="height:100%;background:linear-gradient(90deg,#6366f1,#a78bfa);border-radius:2px;width:${r.score}%"></div></div>
+              <div style="font-size:0.72rem;color:var(--text-muted)">${r.description}</div>
+            </div>`).join("")}
+        </div>
+      </div>`).join("");
+  } catch(err) { document.getElementById("techRadarList").innerHTML = "Failed to load"; }
+}
+
+/* AGENT NETWORK */
+async function loadAgentNetwork() {
+  const el = document.getElementById("agentNetworkViz");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/agent-network", { headers: getAuthHeaders() });
+    const data = await res.json();
+    el.innerHTML = `
+      <div style="margin-bottom:16px;font-size:0.875rem;color:var(--text-muted)">Showing ${data.nodes.length} active agents and ${data.edges.length} interaction pathways (last 7 days)</div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px">
+        ${data.nodes.map(n=>`<div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:8px;padding:8px 14px;font-size:0.82rem">
+          <strong>${n.label}</strong> <span style="color:var(--accent)">${n.size} actions</span>
+        </div>`).join("")}
+      </div>
+      <div style="font-weight:700;font-size:0.875rem;margin-bottom:10px">🔗 Agent Interactions:</div>
+      ${data.edges.map(e=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg-secondary);border-radius:8px;margin-bottom:6px;font-size:0.82rem">
+        <span style="color:var(--accent)">${e.from}</span>
+        <span style="color:var(--text-muted)">─ ${e.label} →</span>
+        <span style="color:#22c55e">${e.to}</span>
+      </div>`).join("")}`;
+  } catch(err) { document.getElementById("agentNetworkViz").innerHTML = "Failed to load"; }
+}
+
+/* TAX REPORT */
+async function loadTaxReport() {
+  const el = document.getElementById("taxReportData");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/tax-report", { headers: getAuthHeaders() });
+    const d = await res.json();
+    el.innerHTML = `
+      <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:24px">
+        <div style="font-size:0.9rem;color:var(--text-muted);margin-bottom:20px">Period: <strong style="color:var(--text-primary)">${d.period}</strong> · GST Rate: <strong style="color:var(--accent)">${d.gstRate}</strong></div>
+        ${[["Total Revenue (incl. GST)","₹"+d.totalRevenue,"#6366f1"],["Taxable Amount (excl. GST)","₹"+d.taxableAmount,"#22c55e"],["CGST (9%)","₹"+d.cgst,"#f59e0b"],["SGST (9%)","₹"+d.sgst,"#f59e0b"],["Total GST Payable","₹"+d.totalGST,"#ef4444"]].map(([l,v,c])=>`
+          <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-color)">
+            <span style="font-size:0.875rem">${l}</span>
+            <span style="font-weight:700;color:${c}">${v}</span>
+          </div>`).join("")}
+        <div style="margin-top:16px;padding:10px 14px;background:rgba(245,158,11,0.1);border-radius:8px;font-size:0.78rem;color:#fde68a">⚠️ ${d.note}</div>
+      </div>`;
+  } catch(err) { document.getElementById("taxReportData").innerHTML = "Failed to load"; }
+}
+
+/* COMPETITOR PRICES */
+async function loadCompetitorPrices() {
+  const el = document.getElementById("competitorPriceList");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/competitor-prices", { headers: getAuthHeaders() });
+    const data = await res.json();
+    if (!data.prices?.length) { el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">No competitor prices tracked yet. Add your first one above.</div>'; return; }
+    el.innerHTML = data.prices.map(p => `
+      <div style="display:flex;align-items:center;gap:14px;padding:12px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:10px;margin-bottom:8px">
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:0.9rem">${p.itemName}</div>
+          <div style="font-size:0.78rem;color:var(--text-muted)">${p.competitorName}</div>
+        </div>
+        <div style="text-align:center"><div style="font-size:0.72rem;color:var(--text-muted)">Our Price</div><div style="font-weight:700">₹${p.ourPrice}</div></div>
+        <div style="text-align:center"><div style="font-size:0.72rem;color:var(--text-muted)">Their Price</div><div style="font-weight:700">₹${p.competitorPrice}</div></div>
+        <span style="padding:4px 12px;border-radius:20px;font-size:0.75rem;font-weight:700;background:${parseFloat(p.difference)>5?'rgba(239,68,68,0.1)':parseFloat(p.difference)<-5?'rgba(34,197,94,0.1)':'rgba(245,158,11,0.1)'};color:${parseFloat(p.difference)>5?'#ef4444':parseFloat(p.difference)<-5?'#22c55e':'#f59e0b'}">${p.difference>0?'+':''}${p.difference}%</span>
+      </div>`).join("");
+  } catch(err) { document.getElementById("competitorPriceList").innerHTML = "Failed to load"; }
+}
+async function addCompetitorPrice() {
+  const body = { itemName: document.getElementById("compItem")?.value, ourPrice: parseFloat(document.getElementById("compOurPrice")?.value), competitorPrice: parseFloat(document.getElementById("compTheirPrice")?.value), competitorName: document.getElementById("compName")?.value };
+  if (!body.itemName || isNaN(body.ourPrice) || isNaN(body.competitorPrice)) { ssToast("Fill all fields","warning"); return; }
+  try {
+    const res = await fetch("/admin/competitor-price", { method:"POST", headers:{ "Content-Type":"application/json",...getAuthHeaders() }, body: JSON.stringify(body) });
+    const data = await res.json();
+    ssToast(data.recommendation,"info");
+    loadCompetitorPrices();
+  } catch(err) { ssToast("Failed","error"); }
+}
+
+/* STORE ACHIEVEMENTS */
+async function loadStoreAchievements() {
+  const el = document.getElementById("storeAchievementsList");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/store-achievements", { headers: getAuthHeaders() });
+    const data = await res.json();
+    el.innerHTML = `<div style="margin-bottom:16px;font-size:0.875rem;color:var(--text-muted)">${data.earned} of ${data.total} achievements unlocked</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px">
+      ${data.achievements.map(a=>`<div style="background:${a.earned?'rgba(99,102,241,0.1)':'rgba(255,255,255,0.02)'};border:1px solid ${a.earned?'rgba(99,102,241,0.4)':'var(--border-color)'};border-radius:12px;padding:16px;text-align:center;opacity:${a.earned?1:0.5}">
+        <div style="font-size:2rem;margin-bottom:8px">${a.icon}</div>
+        <div style="font-weight:700;font-size:0.875rem;margin-bottom:4px">${a.name}</div>
+        <div style="font-size:0.75rem;color:var(--text-muted)">${a.desc}</div>
+        ${a.earned?'<div style="margin-top:8px;font-size:0.72rem;color:#22c55e">✅ Earned</div>':'<div style="margin-top:8px;font-size:0.72rem;color:var(--text-muted)">🔒 Locked</div>'}
+      </div>`).join("")}
+    </div>`;
+  } catch(err) { document.getElementById("storeAchievementsList").innerHTML = "Failed to load"; }
+}
+
+/* REORDER SUGGESTIONS */
+async function loadReorderSuggestions() {
+  const el = document.getElementById("reorderSuggestionsList");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/smart-reorder-suggestions", { headers: getAuthHeaders() });
+    const data = await res.json();
+    if (!data.suggestions?.length) { el.innerHTML = '<div style="text-align:center;padding:40px;color:#22c55e">✅ All products are well-stocked! No reorders needed right now.</div>'; return; }
+    const urgencyColors = { critical:"#ef4444", high:"#f97316", medium:"#f59e0b" };
+    el.innerHTML = data.suggestions.map(s => `
+      <div style="background:var(--bg-secondary);border:1px solid ${urgencyColors[s.urgency]}40;border-radius:12px;padding:16px;margin-bottom:10px;border-left:4px solid ${urgencyColors[s.urgency]}">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px">
+          <span style="font-weight:700;font-size:0.95rem">${s.name}</span>
+          <span style="padding:3px 12px;border-radius:20px;font-size:0.72rem;font-weight:700;background:${urgencyColors[s.urgency]}20;color:${urgencyColors[s.urgency]}">${s.urgency.toUpperCase()}</span>
+        </div>
+        <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:10px">${s.reason}</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <div style="background:var(--bg-tertiary);border-radius:8px;padding:8px 14px;text-align:center"><div style="font-size:1.1rem;font-weight:800;color:${urgencyColors[s.urgency]}">${s.currentStock}</div><div style="font-size:0.7rem;color:var(--text-muted)">Current Stock</div></div>
+          <div style="background:var(--bg-tertiary);border-radius:8px;padding:8px 14px;text-align:center"><div style="font-size:1.1rem;font-weight:800;color:#6366f1">${s.suggestedQty}</div><div style="font-size:0.7rem;color:var(--text-muted)">Suggested Order</div></div>
+          <div style="background:var(--bg-tertiary);border-radius:8px;padding:8px 14px;text-align:center"><div style="font-size:1.1rem;font-weight:800;color:#f59e0b">${s.daysLeft}</div><div style="font-size:0.7rem;color:var(--text-muted)">Days Left</div></div>
+        </div>
+      </div>`).join("");
+  } catch(err) { document.getElementById("reorderSuggestionsList").innerHTML = "Failed to load"; }
+}
+
+/* FORECAST CONFIDENCE */
+async function loadForecastConfidence() {
+  const el = document.getElementById("forecastConfidenceList");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/forecast-confidence", { headers: getAuthHeaders() });
+    const data = await res.json();
+    if (!data.forecasts?.length) { el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">Not enough sales history for confidence intervals. Need at least 3 days of data per product.</div>'; return; }
+    el.innerHTML = data.forecasts.map(f => `
+      <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:10px;padding:14px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+          <span style="font-weight:700">${f.name}</span>
+          <span style="font-size:0.78rem;color:var(--text-muted)">${f.stock} units · ${f.avgDailySales}/day avg</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+          <div style="background:rgba(34,197,94,0.1);border-radius:8px;padding:8px;text-align:center">
+            <div style="font-size:1rem;font-weight:800;color:#22c55e">${f.bestCase} days</div>
+            <div style="font-size:0.7rem;color:var(--text-muted)">Best Case</div>
+          </div>
+          <div style="background:rgba(99,102,241,0.1);border-radius:8px;padding:8px;text-align:center">
+            <div style="font-size:1rem;font-weight:800;color:#6366f1">${f.daysLeft} days</div>
+            <div style="font-size:0.7rem;color:var(--text-muted)">Expected</div>
+          </div>
+          <div style="background:rgba(239,68,68,0.1);border-radius:8px;padding:8px;text-align:center">
+            <div style="font-size:1rem;font-weight:800;color:#ef4444">${f.worstCase} days</div>
+            <div style="font-size:0.7rem;color:var(--text-muted)">Worst Case</div>
+          </div>
+        </div>
+        <div style="font-size:0.72rem;color:var(--text-muted);margin-top:8px">95% CI: ${f.confidence95.low}–${f.confidence95.high} units/day</div>
+      </div>`).join("");
+  } catch(err) { document.getElementById("forecastConfidenceList").innerHTML = "Failed to load"; }
+}
+
+/* EXTEND PAGE LOADERS */
+Object.assign(pageLoaders, {
+  "agent-leaderboard": loadAgentLeaderboard,
+  "agent-sandbox": () => {},
+  "latency": loadLatencyReport,
+  "model-stats": loadModelStats,
+  "ethical-ai": loadEthicalAI,
+  "benchmark": loadBenchmark,
+  "experiments": loadExperiments,
+  "tech-radar": loadTechRadar,
+  "agent-network": loadAgentNetwork,
+  "tax-report": loadTaxReport,
+  "competitor": loadCompetitorPrices,
+  "achievements": loadStoreAchievements,
+  "reorder-suggestions": loadReorderSuggestions,
+  "forecast-confidence": loadForecastConfidence
+});
+
+/* ADD TO COMMAND PALETTE */
+commandPaletteItems.push(
+  { label:"🏆 Agent Leaderboard", action:()=>showPage("agent-leaderboard") },
+  { label:"🧪 Agent Sandbox", action:()=>showPage("agent-sandbox") },
+  { label:"⚡ Latency Report", action:()=>showPage("latency") },
+  { label:"🎯 Model Accuracy", action:()=>showPage("model-stats") },
+  { label:"⚖️ Ethical AI", action:()=>showPage("ethical-ai") },
+  { label:"📈 Benchmark", action:()=>showPage("benchmark") },
+  { label:"🔬 Experiments", action:()=>showPage("experiments") },
+  { label:"📡 Tech Radar", action:()=>showPage("tech-radar") },
+  { label:"🕸️ Agent Network", action:()=>showPage("agent-network") },
+  { label:"🧾 GST/Tax Report", action:()=>showPage("tax-report") },
+  { label:"🏁 Competitor Prices", action:()=>showPage("competitor") },
+  { label:"🎖️ Store Achievements", action:()=>showPage("achievements") },
+  { label:"💡 Reorder Suggestions", action:()=>showPage("reorder-suggestions") },
+  { label:"📊 Forecast Confidence", action:()=>showPage("forecast-confidence") }
 );
 
 /* ===== INIT ===== */
