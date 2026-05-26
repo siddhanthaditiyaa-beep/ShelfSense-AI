@@ -185,7 +185,7 @@
       <div class="hero-badge-dot"></div>
       18 AI Agents Running 24/7
     </div>
-    <h1>The Smartest Way to Manage Your Retail Store</h1>
+    <h1 id="heroHeadline">The Smartest Way to Manage Your Retail Store</h1>
     <p>ShelfSense AI monitors your shelves, predicts demand, detects theft, analyzes sentiment, detects fraud and more — all automatically with 18 intelligent AI agents.</p>
     <div class="hero-actions">
       <a href="register.html" class="btn btn-primary btn-large">🚀 Start Free Trial</a>
@@ -719,6 +719,91 @@ function renderActivityFeed() {
 loadLiveStats();
 renderActivityFeed();
 setInterval(loadLiveStats, 30000);
+
+/* ============================================
+   BATCH 1: TYPEWRITER HEADLINE EFFECT
+============================================ */
+const headlines = [
+  "The Smartest Way to Manage Your Retail Store",
+  "Predict Stockouts Before They Happen",
+  "Detect Fraud Automatically with AI",
+  "Automate Reorders — Never Run Out Again",
+  "18 AI Agents Working 24/7 For Your Store",
+  "Turn Your Inventory Data Into Intelligence"
+];
+let hlIndex = 0, charIndex = 0, isDeleting = false;
+const heroEl = document.getElementById("heroHeadline");
+
+function typeWriter() {
+  if (!heroEl) return;
+  const current = headlines[hlIndex];
+  if (isDeleting) {
+    heroEl.textContent = current.substring(0, charIndex - 1);
+    charIndex--;
+    if (charIndex === 0) { isDeleting = false; hlIndex = (hlIndex + 1) % headlines.length; setTimeout(typeWriter, 400); return; }
+    setTimeout(typeWriter, 40);
+  } else {
+    heroEl.textContent = current.substring(0, charIndex + 1);
+    charIndex++;
+    if (charIndex === current.length) { isDeleting = true; setTimeout(typeWriter, 2500); return; }
+    setTimeout(typeWriter, 65);
+  }
+}
+setTimeout(typeWriter, 2000);
+
+/* ============================================
+   BATCH 1: ANIMATED STAT COUNTERS
+============================================ */
+function animateCounter(el, target, prefix = "", suffix = "", duration = 1800) {
+  const start = 0;
+  const startTime = performance.now();
+  function update(currentTime) {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3); // ease out cubic
+    const current = Math.floor(eased * target);
+    el.textContent = prefix + current.toLocaleString("en-IN") + suffix;
+    if (progress < 1) requestAnimationFrame(update);
+    else el.textContent = prefix + target.toLocaleString("en-IN") + suffix;
+  }
+  requestAnimationFrame(update);
+}
+
+function initCounters() {
+  const counters = document.querySelectorAll("[data-counter]");
+  counters.forEach(el => {
+    const target = parseInt(el.dataset.counter);
+    const prefix = el.dataset.prefix || "";
+    const suffix = el.dataset.suffix || "";
+    animateCounter(el, target, prefix, suffix);
+  });
+}
+
+/* ============================================
+   BATCH 1: SCROLL-TRIGGERED ANIMATIONS (enhanced)
+============================================ */
+const scrollObserver = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => {
+        entry.target.classList.add("visible");
+        // Trigger counters when they come into view
+        const counters = entry.target.querySelectorAll("[data-counter]");
+        counters.forEach(el => {
+          const target = parseInt(el.dataset.counter);
+          const prefix = el.dataset.prefix || "";
+          const suffix = el.dataset.suffix || "";
+          animateCounter(el, target, prefix, suffix);
+        });
+      }, i * 80);
+      scrollObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.12 });
+
+document.querySelectorAll('.fade-in, .agent-card, .feature-card, .pricing-card').forEach(el => {
+  scrollObserver.observe(el);
+});
 
 const observer = new IntersectionObserver((entries) => {
   entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });

@@ -444,7 +444,94 @@
 
 @media (max-width: 480px) {
   .chatbot-panel { width: calc(100vw - 32px); left: 16px; }
-}  
+}
+
+/* ============================================
+   BATCH 1 NEW FEATURE CSS
+   Toast, Notification Centre, Skeleton, Kill Switch, NLQ, Voice
+============================================ */
+
+/* UNIFIED TOAST SYSTEM */
+.ss-toast-container { position: fixed; top: 20px; right: 20px; z-index: 99999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+.ss-toast { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-radius: 12px; font-size: 0.875rem; font-weight: 600; min-width: 280px; max-width: 380px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); pointer-events: all; animation: ssToastIn 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards; backdrop-filter: blur(12px); }
+.ss-toast.removing { animation: ssToastOut 0.25s ease forwards; }
+.ss-toast.success { background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.4); color: #86efac; }
+.ss-toast.error { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4); color: #fca5a5; }
+.ss-toast.warning { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.4); color: #fde68a; }
+.ss-toast.info { background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.4); color: #a5b4fc; }
+.ss-toast-icon { font-size: 1.1rem; flex-shrink: 0; }
+.ss-toast-close { margin-left: auto; background: none; border: none; color: inherit; cursor: pointer; opacity: 0.6; font-size: 1rem; padding: 0; flex-shrink: 0; }
+.ss-toast-close:hover { opacity: 1; }
+@keyframes ssToastIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes ssToastOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(120%); opacity: 0; } }
+
+/* NOTIFICATION CENTRE */
+.notif-bell-btn { position: relative; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 10px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.1rem; transition: all 0.2s; color: var(--text-primary); }
+.notif-bell-btn:hover { border-color: var(--accent); background: var(--bg-tertiary); }
+.notif-badge { position: absolute; top: -6px; right: -6px; background: #ef4444; color: white; font-size: 0.6rem; font-weight: 800; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid var(--bg-primary); animation: pulse 2s infinite; }
+.notif-panel { position: fixed; top: 70px; right: 20px; width: 380px; max-height: 520px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); z-index: 9998; display: none; flex-direction: column; overflow: hidden; }
+.notif-panel.open { display: flex; animation: slideDown 0.25s ease; }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+.notif-header { padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; }
+.notif-header-title { font-weight: 700; font-size: 0.95rem; }
+.notif-header-count { font-size: 0.75rem; color: var(--text-muted); }
+.notif-clear-btn { font-size: 0.75rem; color: var(--accent); cursor: pointer; background: none; border: none; font-weight: 600; }
+.notif-list { overflow-y: auto; flex: 1; padding: 8px; }
+.notif-list::-webkit-scrollbar { width: 4px; }
+.notif-list::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
+.notif-item { display: flex; gap: 12px; padding: 12px; border-radius: 10px; cursor: pointer; transition: background 0.15s; margin-bottom: 4px; border-left: 3px solid transparent; }
+.notif-item:hover { background: var(--bg-tertiary); }
+.notif-item.danger { border-left-color: #ef4444; }
+.notif-item.warning { border-left-color: #f59e0b; }
+.notif-item.info { border-left-color: #6366f1; }
+.notif-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 2px; }
+.notif-title { font-size: 0.8rem; font-weight: 700; color: var(--text-primary); }
+.notif-msg { font-size: 0.78rem; color: var(--text-muted); line-height: 1.4; margin-top: 2px; }
+.notif-time { font-size: 0.7rem; color: var(--text-muted); margin-top: 4px; }
+.notif-empty { text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 0.875rem; }
+
+/* SKELETON LOADING */
+.skeleton { background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--bg-secondary) 50%, var(--bg-tertiary) 75%); background-size: 200% 100%; animation: skeletonShimmer 1.5s infinite; border-radius: 8px; }
+@keyframes skeletonShimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.skeleton-card { padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 12px; }
+.skeleton-line { height: 14px; margin-bottom: 10px; border-radius: 6px; }
+.skeleton-line.short { width: 40%; }
+.skeleton-line.medium { width: 70%; }
+.skeleton-line.long { width: 90%; }
+.skeleton-title { height: 20px; width: 55%; margin-bottom: 14px; border-radius: 6px; }
+.skeleton-stat { height: 60px; border-radius: 10px; margin-bottom: 8px; }
+
+/* AGENT KILL SWITCH STYLES */
+.kill-switch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.kill-switch-card { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; display: flex; align-items: center; gap: 14px; transition: all 0.2s; }
+.kill-switch-card:hover { border-color: var(--accent); }
+.kill-switch-card.paused { border-color: #ef4444; background: rgba(239,68,68,0.05); }
+.kill-switch-info { flex: 1; }
+.kill-switch-name { font-size: 0.85rem; font-weight: 700; color: var(--text-primary); }
+.kill-switch-status { font-size: 0.72rem; color: var(--text-muted); margin-top: 3px; }
+.kill-switch-status.running { color: #22c55e; }
+.kill-switch-status.paused { color: #ef4444; }
+.toggle-switch { width: 44px; height: 24px; background: #22c55e; border-radius: 12px; cursor: pointer; position: relative; transition: background 0.3s; border: none; flex-shrink: 0; }
+.toggle-switch.off { background: #ef4444; }
+.toggle-switch::after { content: ''; position: absolute; width: 18px; height: 18px; background: white; border-radius: 50%; top: 3px; left: 3px; transition: transform 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+.toggle-switch.off::after { transform: translateX(20px); }
+
+/* NLQ PANEL */
+.nlq-panel { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; margin-bottom: 20px; }
+.nlq-input-row { display: flex; gap: 10px; margin-bottom: 16px; }
+.nlq-input { flex: 1; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 16px; color: var(--text-primary); font-size: 0.9rem; transition: border 0.2s; }
+.nlq-input:focus { outline: none; border-color: var(--accent); }
+.nlq-btn { background: linear-gradient(135deg, #6366f1, #a78bfa); color: white; border: none; border-radius: 10px; padding: 12px 20px; font-weight: 600; cursor: pointer; font-size: 0.85rem; white-space: nowrap; }
+.nlq-btn:hover { opacity: 0.9; }
+.nlq-answer { background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; font-size: 0.875rem; color: var(--text-primary); line-height: 1.6; min-height: 60px; border-left: 3px solid #6366f1; }
+.nlq-suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.nlq-chip { padding: 6px 12px; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.3); border-radius: 20px; font-size: 0.78rem; color: #a5b4fc; cursor: pointer; transition: all 0.2s; }
+.nlq-chip:hover { background: rgba(99,102,241,0.25); }
+
+/* VOICE ALERT BUTTON */
+.voice-alert-btn { display: flex; align-items: center; gap: 8px; padding: 10px 18px; background: linear-gradient(135deg, #6366f1, #a78bfa); color: white; border: none; border-radius: 10px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.voice-alert-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+.voice-alert-btn.speaking { background: linear-gradient(135deg, #22c55e, #16a34a); animation: pulse 1s infinite; }
   </style>
 </head>
 <body>
@@ -466,9 +553,31 @@
     <button class="topbar-nav-item" data-page="store-settings" onclick="showPage('store-settings', this)">Settings</button>
   </nav>
   <div class="topbar-right">
+    <!-- VOICE ALERT BUTTON -->
+    <button class="voice-alert-btn" id="voiceAlertBtn" onclick="speakAlerts()" title="Read alerts aloud">🔊 Alerts</button>
+    <!-- NOTIFICATION BELL -->
+    <button class="notif-bell-btn" id="notifBellBtn" onclick="toggleNotifPanel()" title="Notifications">
+      🔔
+      <span class="notif-badge" id="notifBadge" style="display:none">0</span>
+    </button>
     <button class="logout-btn" onclick="logout()">Logout</button>
   </div>
 </div>
+
+<!-- NOTIFICATION PANEL -->
+<div class="notif-panel" id="notifPanel">
+  <div class="notif-header">
+    <span class="notif-header-title">🔔 Notifications</span>
+    <span class="notif-header-count" id="notifCount">Loading...</span>
+    <button class="notif-clear-btn" onclick="clearNotifications()">Clear all</button>
+  </div>
+  <div class="notif-list" id="notifList">
+    <div class="notif-empty">Loading notifications...</div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="ss-toast-container" id="ssToastContainer"></div>
 
 <!-- MAIN AREA -->
 <div class="main-area">
@@ -806,6 +915,39 @@
 
     <!-- AI AGENTS PAGE -->
     <div class="page" id="page-agents">
+
+      <!-- NATURAL LANGUAGE QUERY PANEL -->
+      <div class="card" style="margin-bottom:20px">
+        <h2>🧠 Ask AI About Your Store</h2>
+        <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:16px">Type any question in plain English and get instant answers from your live store data.</p>
+        <div class="nlq-suggestions">
+          <span class="nlq-chip" onclick="askNLQ('Which products will run out this week?')">Which products run out this week?</span>
+          <span class="nlq-chip" onclick="askNLQ('What is my total revenue today?')">Total revenue today?</span>
+          <span class="nlq-chip" onclick="askNLQ('Which items are out of stock right now?')">Out of stock items?</span>
+          <span class="nlq-chip" onclick="askNLQ('What are my top selling products?')">Top selling products?</span>
+          <span class="nlq-chip" onclick="askNLQ('How many pending reorders do I have?')">Pending reorders?</span>
+          <span class="nlq-chip" onclick="askNLQ('Which agent has been most active today?')">Most active agent?</span>
+        </div>
+        <div class="nlq-input-row">
+          <input type="text" class="nlq-input" id="nlqInput" placeholder="Ask anything... e.g. Which products will run out this weekend?" onkeydown="if(event.key==='Enter') askNLQ()" />
+          <button class="nlq-btn" onclick="askNLQ()" id="nlqBtn">🔍 Ask AI</button>
+        </div>
+        <div class="nlq-answer" id="nlqAnswer" style="display:none"></div>
+      </div>
+
+      <!-- AGENT KILL SWITCH -->
+      <div class="card" style="margin-bottom:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <h2 style="margin:0">⚡ Agent Control Panel</h2>
+          <div style="font-size:0.8rem;color:var(--text-muted)">Toggle agents on/off without restarting server</div>
+        </div>
+        <div class="kill-switch-grid" id="killSwitchGrid">
+          <div class="skeleton skeleton-stat" style="height:70px;border-radius:12px"></div>
+          <div class="skeleton skeleton-stat" style="height:70px;border-radius:12px"></div>
+          <div class="skeleton skeleton-stat" style="height:70px;border-radius:12px"></div>
+        </div>
+      </div>
+
       <div class="agents-grid" id="agentsGrid"></div>
       <div class="card">
         <h2>📋 Agent Activity Log</h2>
@@ -1653,7 +1795,7 @@ function renderLogs(logs, id, type) {
 }
 
 /* ===== AGENT DASHBOARD ===== */
-async function loadAgentDashboard() { await loadAgentCards(); await loadAgentLogs("all"); }
+async function loadAgentDashboard() { await loadAgentCards(); await loadAgentLogs("all"); await loadKillSwitches(); }
 
 async function loadAgentCards() {
   try {
@@ -3167,40 +3309,23 @@ async function sendChat() {
   document.getElementById("chatSuggestions").style.display = "none";
 
   appendMessage(question, "user");
-
   const typingDiv = appendMessage("⏳ Thinking...", "typing");
 
   try {
     const storeContext = await getStoreContext();
-
     chatHistory.push({ role: "user", content: question });
 
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
+    const response = await fetch("/admin/groq-chat", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1000,
-        system: `You are ShelfSense AI Assistant — a smart retail store management AI. You help store owners understand their inventory, sales, and AI agent activity.
-
-${storeContext}
-
-Guidelines:
-- Be concise and helpful — max 3-4 sentences
-- Use emojis sparingly for readability
-- Give specific numbers from the store context when relevant
-- If asked about something not in context, say you don't have that data right now
-- Always respond in the same language the user writes in`,
-        messages: chatHistory.slice(-6)
-      })
+      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+      body: JSON.stringify({ messages: chatHistory.slice(-6), storeContext })
     });
 
     const data = await response.json();
-    const reply = data.content?.[0]?.text || "Sorry, I couldn't process that. Please try again.";
+    const reply = data.reply || "Sorry, I couldn't process that. Please try again.";
 
     typingDiv.remove();
     appendMessage(reply, "bot");
-
     chatHistory.push({ role: "assistant", content: reply });
     if (chatHistory.length > 12) chatHistory = chatHistory.slice(-12);
 
@@ -3213,12 +3338,210 @@ Guidelines:
   input.focus();
 }
 
+/* ============================================
+   BATCH 1 NEW FEATURE JS
+============================================ */
+
+/* UNIFIED TOAST SYSTEM */
+function ssToast(message, type = "success", duration = 4000) {
+  const icons = { success: "✅", error: "❌", warning: "⚠️", info: "ℹ️" };
+  const container = document.getElementById("ssToastContainer");
+  const toast = document.createElement("div");
+  toast.className = `ss-toast ${type}`;
+  toast.innerHTML = `<span class="ss-toast-icon">${icons[type]}</span><span>${message}</span><button class="ss-toast-close" onclick="this.parentElement.remove()">✕</button>`;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.classList.add("removing");
+    setTimeout(() => toast.remove(), 250);
+  }, duration);
+}
+
+// Override old showToast to use new system
+function showToast(msg, type = "success") { ssToast(msg, type); }
+
+/* NOTIFICATION CENTRE */
+let notifData = [];
+async function loadNotifications() {
+  try {
+    const res = await fetch("/admin/notifications", { headers: getAuthHeaders() });
+    const data = await res.json();
+    notifData = data.notifications || [];
+    const badge = document.getElementById("notifBadge");
+    const count = notifData.length;
+    if (count > 0) {
+      badge.textContent = count > 99 ? "99+" : count;
+      badge.style.display = "flex";
+    } else {
+      badge.style.display = "none";
+    }
+    document.getElementById("notifCount").textContent = `${count} alerts`;
+    renderNotifications();
+  } catch(err) { console.error("Notifications error:", err); }
+}
+
+function renderNotifications() {
+  const list = document.getElementById("notifList");
+  if (!notifData.length) { list.innerHTML = '<div class="notif-empty">🎉 No alerts in the last 24 hours!</div>'; return; }
+  list.innerHTML = notifData.slice(0, 30).map(n => `
+    <div class="notif-item ${n.type}">
+      <div class="notif-icon">${n.icon}</div>
+      <div style="flex:1;min-width:0">
+        <div class="notif-title">${n.title}</div>
+        <div class="notif-msg">${n.message.substring(0, 100)}${n.message.length > 100 ? "..." : ""}</div>
+        <div class="notif-time">${timeAgo(new Date(n.time))}</div>
+      </div>
+    </div>`).join("");
+}
+
+function toggleNotifPanel() {
+  const panel = document.getElementById("notifPanel");
+  panel.classList.toggle("open");
+  if (panel.classList.contains("open")) loadNotifications();
+}
+
+function clearNotifications() {
+  notifData = [];
+  document.getElementById("notifBadge").style.display = "none";
+  document.getElementById("notifCount").textContent = "0 alerts";
+  document.getElementById("notifList").innerHTML = '<div class="notif-empty">🎉 All cleared!</div>';
+  ssToast("Notifications cleared", "info");
+}
+
+function timeAgo(date) {
+  const seconds = Math.floor((new Date() - date) / 1000);
+  if (seconds < 60) return "just now";
+  if (seconds < 3600) return `${Math.floor(seconds/60)}m ago`;
+  if (seconds < 86400) return `${Math.floor(seconds/3600)}h ago`;
+  return `${Math.floor(seconds/86400)}d ago`;
+}
+
+// Close notif panel when clicking outside
+document.addEventListener("click", (e) => {
+  const panel = document.getElementById("notifPanel");
+  const btn = document.getElementById("notifBellBtn");
+  if (panel && btn && !panel.contains(e.target) && !btn.contains(e.target)) {
+    panel.classList.remove("open");
+  }
+});
+
+/* AGENT KILL SWITCH */
+const AGENT_ICONS = {
+  "Monitoring Agent": "👁️", "Forecasting Agent": "📊", "Anomaly Detection Agent": "🛡️",
+  "Dynamic Pricing Agent": "💰", "Competitor Analysis Agent": "🏆", "Supplier Agent": "🔄",
+  "Customer Behavior Agent": "👥", "Weather Agent": "🌦️", "Expiry Agent": "📅",
+  "Route Optimization Agent": "🗺️", "Sentiment Analysis Agent": "😊", "Demand Surge Agent": "📈",
+  "Fraud Detection Agent": "🚨", "Auto Discount Agent": "🏷️", "Smart Notification Agent": "🔔",
+  "Peak Hours Agent": "⏰", "Price Elasticity Agent": "📉", "Reorder Point Agent": "📦"
+};
+
+async function loadKillSwitches() {
+  try {
+    const res = await fetch("/admin/agent-status", { headers: getAuthHeaders() });
+    const data = await res.json();
+    const grid = document.getElementById("killSwitchGrid");
+    if (!grid) return;
+    grid.innerHTML = data.statuses.map(agent => `
+      <div class="kill-switch-card ${agent.paused ? 'paused' : ''}" id="ks-${agent.name.replace(/\s/g,'_')}">
+        <span style="font-size:1.5rem">${AGENT_ICONS[agent.name] || "🤖"}</span>
+        <div class="kill-switch-info">
+          <div class="kill-switch-name">${agent.name}</div>
+          <div class="kill-switch-status ${agent.paused ? 'paused' : 'running'}">${agent.paused ? "⏸ Paused" : "▶ Running"}</div>
+        </div>
+        <button class="toggle-switch ${agent.paused ? 'off' : ''}" onclick="toggleAgent('${agent.name}')" title="${agent.paused ? 'Resume' : 'Pause'} agent"></button>
+      </div>`).join("");
+  } catch(err) { console.error("Kill switch error:", err); }
+}
+
+async function toggleAgent(agentName) {
+  try {
+    const res = await fetch("/admin/agent-toggle", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+      body: JSON.stringify({ agentName })
+    });
+    const data = await res.json();
+    ssToast(`${agentName}: ${data.paused ? "⏸ Paused" : "▶ Resumed"}`, data.paused ? "warning" : "success");
+    loadKillSwitches();
+  } catch(err) { ssToast("Failed to toggle agent", "error"); }
+}
+
+/* NATURAL LANGUAGE QUERY */
+async function askNLQ(prefill) {
+  const input = document.getElementById("nlqInput");
+  if (prefill) input.value = prefill;
+  const question = input.value.trim();
+  if (!question) { ssToast("Please enter a question", "warning"); return; }
+
+  const btn = document.getElementById("nlqBtn");
+  const answerDiv = document.getElementById("nlqAnswer");
+  btn.textContent = "⏳ Thinking...";
+  btn.disabled = true;
+  answerDiv.style.display = "block";
+  answerDiv.innerHTML = '<div class="skeleton skeleton-line long"></div><div class="skeleton skeleton-line medium" style="margin-top:8px"></div>';
+
+  try {
+    const res = await fetch("/admin/nlq", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+      body: JSON.stringify({ question })
+    });
+    const data = await res.json();
+    answerDiv.innerHTML = `<strong>🧠 AI Answer:</strong><br><br>${data.answer || data.message}`;
+  } catch(err) {
+    answerDiv.innerHTML = "❌ Could not process query. Please try again.";
+  }
+
+  btn.textContent = "🔍 Ask AI";
+  btn.disabled = false;
+}
+
+/* VOICE ALERT SYSTEM */
+let isSpeaking = false;
+async function speakAlerts() {
+  if (!("speechSynthesis" in window)) { ssToast("Voice not supported in this browser", "warning"); return; }
+  if (isSpeaking) { window.speechSynthesis.cancel(); isSpeaking = false; document.getElementById("voiceAlertBtn").classList.remove("speaking"); document.getElementById("voiceAlertBtn").textContent = "🔊 Alerts"; return; }
+
+  try {
+    const res = await fetch("/admin/voice-alerts", { headers: getAuthHeaders() });
+    const data = await res.json();
+
+    if (data.count === 0) { ssToast("No active alerts to read", "info"); const utter = new SpeechSynthesisUtterance("All clear! No active stock alerts right now."); window.speechSynthesis.speak(utter); return; }
+
+    const btn = document.getElementById("voiceAlertBtn");
+    btn.classList.add("speaking");
+    btn.textContent = "🔇 Stop";
+    isSpeaking = true;
+
+    const text = `You have ${data.count} stock alert${data.count > 1 ? "s" : ""}. ${data.alerts.join(" ")}`;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+    utterance.onend = () => { isSpeaking = false; btn.classList.remove("speaking"); btn.textContent = "🔊 Alerts"; };
+    window.speechSynthesis.speak(utterance);
+  } catch(err) { ssToast("Could not fetch alerts", "error"); }
+}
+
+/* SKELETON LOADING HELPER */
+function showSkeleton(containerId, rows = 3) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = Array(rows).fill(0).map(() => `
+    <div class="skeleton-card">
+      <div class="skeleton skeleton-title"></div>
+      <div class="skeleton skeleton-line long"></div>
+      <div class="skeleton skeleton-line medium"></div>
+      <div class="skeleton skeleton-line short"></div>
+    </div>`).join("");
+}
+
 /* ===== INIT ===== */
 loadAdmin();
 loadSidebarUser();
 loadMLUrl();
 load2FAStatus();
+loadNotifications();
 setInterval(loadAdmin, 15000);
+setInterval(loadNotifications, 60000);
 setInterval(() => { if (currentPage === "agents") loadAgentDashboard(); }, 30000);
 </script>
 
