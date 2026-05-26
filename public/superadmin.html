@@ -375,5 +375,117 @@ loadStats();
 loadStores();
 setInterval(() => { loadStats(); loadStores(); }, 30000);
 </script>
+
+  <!-- STORE RANKINGS -->
+  <div class="section" style="margin-top:24px">
+    <div class="section-header">
+      <div class="section-title">🏆 Store Performance Rankings</div>
+    </div>
+    <div id="storeRankings">Loading...</div>
+  </div>
+
+  <!-- ABUSE DETECTION -->
+  <div class="section" style="margin-top:24px">
+    <div class="section-header">
+      <div class="section-title">🚨 Abuse Detection</div>
+    </div>
+    <div id="abuseList">Loading...</div>
+  </div>
+
+  <!-- BULK EMAIL -->
+  <div class="section" style="margin-top:24px">
+    <div class="section-header">
+      <div class="section-title">📧 Bulk Communication</div>
+    </div>
+    <div style="display:grid;gap:12px">
+      <input type="text" id="bulkSubject" placeholder="Email subject..." style="padding:10px 14px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit;font-size:0.875rem">
+      <textarea id="bulkMessage" placeholder="Message to all store owners..." rows="3" style="padding:10px 14px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit;font-size:0.875rem;resize:vertical"></textarea>
+      <div style="display:flex;gap:10px;align-items:center">
+        <select id="bulkPlan" style="padding:8px 12px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit">
+          <option value="all">All Stores</option>
+          <option value="free">Free Plan Only</option>
+          <option value="pro">Pro Plan Only</option>
+          <option value="enterprise">Enterprise Only</option>
+        </select>
+        <button onclick="sendBulkEmail()" style="padding:9px 20px;background:linear-gradient(135deg,#6366f1,#a78bfa);color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.875rem">📧 Send Email</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+
+/* ============================================
+   SUPERADMIN BATCH 4 NEW FEATURES
+============================================ */
+async function loadStoreRankings() {
+  try {
+    const token = localStorage.getItem("token");
+    const res = await fetch("/superadmin/store-rankings", { headers: { Authorization: token } });
+    const data = await res.json();
+    const el = document.getElementById("storeRankings");
+    if (!el) return;
+    if (!data.rankings?.length) { el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted)">No stores yet</div>'; return; }
+    el.innerHTML = `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">
+      <thead><tr>${["Rank","Store","Plan","Revenue (30d)","Orders","Score"].map(h=>`<th style="padding:10px;text-align:left;font-size:0.75rem;color:var(--muted);border-bottom:1px solid var(--border)">${h}</th>`).join("")}</tr></thead>
+      <tbody>${data.rankings.map((s,i)=>`<tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:10px;font-size:0.875rem;font-weight:800;color:${i===0?"#fbbf24":i===1?"#9ca3af":i===2?"#b45309":"var(--muted)"}">#${i+1}</td>
+        <td style="padding:10px;font-size:0.875rem;font-weight:600">${s.name}</td>
+        <td style="padding:10px"><span style="padding:2px 8px;border-radius:10px;font-size:0.72rem;font-weight:700;background:rgba(99,102,241,0.2);color:#a78bfa">${s.plan}</span></td>
+        <td style="padding:10px;font-size:0.875rem">₹${parseFloat(s.revenue).toLocaleString("en-IN")}</td>
+        <td style="padding:10px;font-size:0.875rem">${s.orders}</td>
+        <td style="padding:10px"><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:6px;background:rgba(255,255,255,0.1);border-radius:3px"><div style="height:100%;background:linear-gradient(90deg,#6366f1,#a78bfa);border-radius:3px;width:${s.score}%"></div></div><span style="font-size:0.78rem;font-weight:700">${s.score}</span></div></td>
+      </tr>`).join("")}</tbody>
+    </table></div>`;
+  } catch(err) { console.error("Rankings error:", err); }
+}
+
+async function loadAbuseDetection() {
+  try {
+    const token = localStorage.getItem("token");
+    const res = await fetch("/superadmin/abuse-detection", { headers: { Authorization: token } });
+    const data = await res.json();
+    const el = document.getElementById("abuseList");
+    if (!el) return;
+    el.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px">
+      <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:10px;padding:14px;text-align:center">
+        <div style="font-size:1.6rem;font-weight:800;color:#f87171">${data.flagged?.length||0}</div>
+        <div style="font-size:0.75rem;color:var(--muted)">Flagged Stores</div>
+      </div>
+      <div style="background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.3);border-radius:10px;padding:14px;text-align:center">
+        <div style="font-size:1.6rem;font-weight:800;color:#4ade80">${data.clean||0}</div>
+        <div style="font-size:0.75rem;color:var(--muted)">Clean Stores</div>
+      </div>
+      <div style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);border-radius:10px;padding:14px;text-align:center">
+        <div style="font-size:1.6rem;font-weight:800;color:#a78bfa">${data.total||0}</div>
+        <div style="font-size:0.75rem;color:var(--muted)">Total Stores</div>
+      </div>
+    </div>
+    ${data.flagged?.length ? data.flagged.map(s=>`
+      <div style="background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.3);border-radius:10px;padding:14px;margin-bottom:8px">
+        <div style="font-weight:700;color:#f87171;margin-bottom:8px">🚨 ${s.name} — ${s.email}</div>
+        ${s.flags.map(f=>`<div style="font-size:0.82rem;color:var(--muted);padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05)">• ${f}</div>`).join("")}
+      </div>`).join("") : '<div style="text-align:center;padding:20px;color:#4ade80">✅ No abuse detected across all stores</div>'}`;
+  } catch(err) { console.error("Abuse detection error:", err); }
+}
+
+async function sendBulkEmail() {
+  const token = localStorage.getItem("token");
+  const subject = document.getElementById("bulkSubject")?.value;
+  const message = document.getElementById("bulkMessage")?.value;
+  const plan = document.getElementById("bulkPlan")?.value;
+  if (!subject || !message) { alert("Enter subject and message"); return; }
+  if (!confirm(`Send email to all ${plan==="all"?"":"["+plan+"] "}stores?`)) return;
+  try {
+    const res = await fetch("/superadmin/bulk-email", { method:"POST", headers:{ "Content-Type":"application/json", Authorization:token }, body: JSON.stringify({ subject, message, plan }) });
+    const data = await res.json();
+    alert(data.message);
+  } catch(err) { alert("Failed to send"); }
+}
+
+// Load on page load
+loadStoreRankings();
+loadAbuseDetection();
+
+</script>
 </body>
 </html>

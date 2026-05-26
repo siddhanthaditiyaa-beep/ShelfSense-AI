@@ -614,6 +614,15 @@
 <button class="sidebar-item" data-page="system-health" onclick="showPage('system-health', this)"><span class="sidebar-emoji">💻</span> System Health</button>
 <button class="sidebar-item" data-page="what-if" onclick="showPage('what-if', this)"><span class="sidebar-emoji">🔮</span> What-If Sim</button>
 <button class="sidebar-item" data-page="settings-advanced" onclick="showPage('settings-advanced', this)"><span class="sidebar-emoji">⚙️</span> Advanced Settings</button>
+<button class="sidebar-item" data-page="search-analytics" onclick="showPage('search-analytics', this)"><span class="sidebar-emoji">🔍</span> Search Analytics</button>
+<button class="sidebar-item" data-page="funnel" onclick="showPage('funnel', this)"><span class="sidebar-emoji">📐</span> Funnel Analytics</button>
+<button class="sidebar-item" data-page="ltv" onclick="showPage('ltv', this)"><span class="sidebar-emoji">💰</span> Customer LTV</button>
+<button class="sidebar-item" data-page="turnover" onclick="showPage('turnover', this)"><span class="sidebar-emoji">🔄</span> Turnover Ratio</button>
+<button class="sidebar-item" data-page="margins" onclick="showPage('margins', this)"><span class="sidebar-emoji">📊</span> Gross Margins</button>
+<button class="sidebar-item" data-page="pl" onclick="showPage('pl', this)"><span class="sidebar-emoji">📋</span> P&L Statement</button>
+<button class="sidebar-item" data-page="sentiment" onclick="showPage('sentiment', this)"><span class="sidebar-emoji">😊</span> Product Sentiment</button>
+<button class="sidebar-item" data-page="qa-admin" onclick="showPage('qa-admin', this)"><span class="sidebar-emoji">❓</span> Q&A Manager</button>
+<button class="sidebar-item" data-page="api-docs" onclick="showPage('api-docs', this)"><span class="sidebar-emoji">📖</span> API Docs</button>
 <button class="sidebar-item" data-page="store-settings" onclick="showPage('store-settings', this)"><span class="sidebar-emoji">⚙️</span> Store Settings</button>
     </div>
     <div class="sidebar-bottom">
@@ -1609,6 +1618,99 @@
   </div>
 </div>
 
+
+<!-- SEARCH ANALYTICS PAGE -->
+<div class="page" id="page-search-analytics">
+  <div class="card">
+    <h2>🔍 Search Analytics</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">See what customers are searching for — and what searches return no results (inventory gaps).</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px" id="searchAnalyticsGrid">
+      <div class="skeleton skeleton-stat" style="height:200px;border-radius:12px"></div>
+      <div class="skeleton skeleton-stat" style="height:200px;border-radius:12px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FUNNEL ANALYTICS PAGE -->
+<div class="page" id="page-funnel">
+  <div class="card">
+    <h2>📐 Customer Funnel Analytics</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Track your customer journey from registration to repeat purchase.</p>
+    <div id="funnelChart"></div>
+  </div>
+</div>
+
+<!-- CUSTOMER LTV PAGE -->
+<div class="page" id="page-ltv">
+  <div class="card">
+    <h2>💰 Customer Lifetime Value</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Predicted annual value of each customer based on purchase history.</p>
+    <div id="ltvTable">Loading...</div>
+  </div>
+</div>
+
+<!-- TURNOVER RATIO PAGE -->
+<div class="page" id="page-turnover">
+  <div class="card">
+    <h2>🔄 Inventory Turnover Ratio</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">How efficiently each product moves through your inventory. Higher is better.</p>
+    <div id="turnoverTable">Loading...</div>
+  </div>
+</div>
+
+<!-- GROSS MARGINS PAGE -->
+<div class="page" id="page-margins">
+  <div class="card" style="margin-bottom:16px">
+    <h2>📊 Gross Margin per Product</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:16px">Set cost prices to see your actual profit margin per product.</p>
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+      <select id="costPriceItem" style="flex:1;padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary)"><option value="">Select product...</option></select>
+      <input type="number" id="costPriceValue" placeholder="Cost price ₹" style="width:140px;padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary)">
+      <button class="btn-primary" onclick="saveCostPrice()">Set Cost Price</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Margin Report</h2>
+    <div id="marginsTable">Loading...</div>
+  </div>
+</div>
+
+<!-- P&L STATEMENT PAGE -->
+<div class="page" id="page-pl">
+  <div class="card">
+    <h2>📋 Monthly P&L Statement</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Auto-generated profit & loss for the current month.</p>
+    <div id="plStatement"></div>
+  </div>
+</div>
+
+<!-- PRODUCT SENTIMENT PAGE -->
+<div class="page" id="page-sentiment">
+  <div class="card">
+    <h2>😊 Product Sentiment Analysis</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Customer ratings transformed into sentiment scores per product.</p>
+    <div id="sentimentList">Loading...</div>
+  </div>
+</div>
+
+<!-- Q&A MANAGER PAGE -->
+<div class="page" id="page-qa-admin">
+  <div class="card">
+    <h2>❓ Product Q&A Manager</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Answer customer questions about your products. Answers are shown publicly on the product page.</p>
+    <div id="qaList">Loading...</div>
+  </div>
+</div>
+
+<!-- API DOCS PAGE -->
+<div class="page" id="page-api-docs">
+  <div class="card">
+    <h2>📖 Self-Documenting API</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">All available API endpoints for ShelfSense AI v2.0</p>
+    <div id="apiDocsList">Loading...</div>
+  </div>
+</div>
+
 <button class="chatbot-fab" id="chatbotFab" onclick="toggleChatbot()">🤖</button>
 <div class="chatbot-panel" id="chatbotPanel">
   <div class="chatbot-header">
@@ -1663,6 +1765,19 @@ const role = localStorage.getItem("role");
 if (!token || role !== "admin") window.location.href = "login.html";
 
 let chart, selectedFile = null, sidebarOpen = true, currentPage = "overview";
+
+/* ===== AUTH HELPERS ===== */
+function getAuthHeaders() {
+  const t = localStorage.getItem("token");
+  return { "Authorization": t || "" };
+}
+
+function safeRedirect() {
+  // Only redirect if not already on login page
+  if (!window.location.href.includes("login.html")) {
+    window.location.href = "login.html";
+  }
+}
 
 /* ===== ALL 15 AGENTS ===== */
 const AGENT_INFO = {
@@ -1888,7 +2003,7 @@ function selectPlan(plan) {
 async function loadAdmin() {
   try {
     const res = await fetch("/admin-data", { headers: { Authorization: token } });
-    if (res.status === 401) { window.location.href = "login.html"; return; }
+    if (res.status === 401) { safeRedirect(); return; }
     const data = await res.json();
     updateStats(data.inventory);
     renderInventoryTable(data.inventory);
@@ -3537,6 +3652,8 @@ function showToast(msg, type = "success") { ssToast(msg, type); }
 let notifData = [];
 async function loadNotifications() {
   try {
+    const t = localStorage.getItem("token");
+    if (!t) return;
     const res = await fetch("/admin/notifications", { headers: getAuthHeaders() });
     const data = await res.json();
     notifData = data.notifications || [];
@@ -4220,6 +4337,305 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 });
+
+
+/* ============================================
+   BATCH 4 JS FUNCTIONS
+============================================ */
+
+/* SEARCH ANALYTICS */
+async function loadSearchAnalytics() {
+  const el = document.getElementById("searchAnalyticsGrid");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/search-analytics", { headers: getAuthHeaders() });
+    const data = await res.json();
+    el.innerHTML = `
+      <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:20px">
+        <h3 style="margin:0 0 16px;font-size:0.95rem">🔥 Top Searches (Last 7 Days)</h3>
+        ${data.topQueries?.length ? data.topQueries.map((q,i) => `
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-color)">
+            <span style="width:24px;height:24px;background:var(--accent-light);color:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:700;flex-shrink:0">${i+1}</span>
+            <span style="flex:1;font-size:0.875rem">${q.query}</span>
+            <span style="font-size:0.78rem;font-weight:700;color:var(--accent)">${q.count}x</span>
+          </div>`).join("") : '<div style="color:var(--text-muted);text-align:center;padding:20px">No search data yet</div>'}
+      </div>
+      <div style="background:var(--bg-secondary);border:1px solid #ef444430;border-radius:12px;padding:20px">
+        <h3 style="margin:0 0 16px;font-size:0.95rem;color:#ef4444">❌ Searches with No Results (Inventory Gaps)</h3>
+        ${data.topNoResults?.length ? data.topNoResults.map(q => `
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-color)">
+            <span style="flex:1;font-size:0.875rem">${q.query}</span>
+            <span style="font-size:0.78rem;font-weight:700;color:#ef4444">${q.count}x</span>
+            <span style="font-size:0.72rem;padding:2px 8px;background:rgba(239,68,68,0.1);color:#ef4444;border-radius:4px">Add to inventory?</span>
+          </div>`).join("") : '<div style="color:var(--text-muted);text-align:center;padding:20px">No zero-result searches 🎉</div>'}
+        <div style="margin-top:12px;font-size:0.78rem;color:var(--text-muted)">Total searches: ${data.totalSearches || 0}</div>
+      </div>`;
+  } catch(err) { document.getElementById("searchAnalyticsGrid").innerHTML = "Failed to load"; }
+}
+
+/* FUNNEL ANALYTICS */
+async function loadFunnelAnalytics() {
+  const el = document.getElementById("funnelChart");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/funnel-analytics", { headers: getAuthHeaders() });
+    const data = await res.json();
+    const colors = ["#6366f1","#22c55e","#f59e0b"];
+    el.innerHTML = data.funnel.map((stage, i) => `
+      <div style="margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+          <span style="font-weight:600;font-size:0.9rem">${stage.stage}</span>
+          <span style="font-size:0.875rem;color:var(--text-muted)">${stage.count} users (${stage.pct}%)</span>
+        </div>
+        <div style="height:36px;background:var(--bg-tertiary);border-radius:8px;overflow:hidden;width:${stage.pct}%">
+          <div style="height:100%;background:${colors[i]};border-radius:8px;display:flex;align-items:center;padding-left:12px">
+            <span style="font-size:0.78rem;font-weight:700;color:white">${stage.count}</span>
+          </div>
+        </div>
+        ${i < data.funnel.length-1 ? `<div style="text-align:center;color:var(--text-muted);font-size:0.75rem;margin-top:4px">↓ ${100-data.funnel[i+1]?.pct||0}% drop-off</div>` : ""}
+      </div>`).join("");
+  } catch(err) { document.getElementById("funnelChart").innerHTML = "Failed to load"; }
+}
+
+/* CUSTOMER LTV */
+async function loadLTV() {
+  const el = document.getElementById("ltvTable");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/customer-ltv", { headers: getAuthHeaders() });
+    const data = await res.json();
+    if (!data.customers?.length) { el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">No customer data yet</div>'; return; }
+    el.innerHTML = `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">
+      <thead><tr style="border-bottom:1px solid var(--border-color)">${["#","Customer","Orders","Total Spent","Avg Order","Est. Annual LTV","Last Order"].map(h=>`<th style="padding:10px;text-align:left;font-size:0.78rem;color:var(--text-muted)">${h}</th>`).join("")}</tr></thead>
+      <tbody>${data.customers.map((c,i)=>`<tr style="border-bottom:1px solid var(--border-color)">
+        <td style="padding:10px;font-size:0.85rem">${i+1}</td>
+        <td style="padding:10px;font-size:0.85rem">${c.email}</td>
+        <td style="padding:10px;font-size:0.85rem">${c.orders}</td>
+        <td style="padding:10px;font-size:0.85rem">₹${c.total}</td>
+        <td style="padding:10px;font-size:0.85rem">₹${c.avgOrder}</td>
+        <td style="padding:10px;font-size:0.85rem;font-weight:700;color:var(--accent)">₹${c.ltv}</td>
+        <td style="padding:10px;font-size:0.85rem;color:var(--text-muted)">${c.daysSinceLastOrder}d ago</td>
+      </tr>`).join("")}</tbody>
+    </table></div>`;
+  } catch(err) { document.getElementById("ltvTable").innerHTML = "Failed to load"; }
+}
+
+/* TURNOVER RATIO */
+async function loadTurnover() {
+  const el = document.getElementById("turnoverTable");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/turnover-ratio", { headers: getAuthHeaders() });
+    const data = await res.json();
+    const gradeColors = { Excellent:"#22c55e", Good:"#6366f1", Average:"#f59e0b", Poor:"#ef4444" };
+    el.innerHTML = `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">
+      <thead><tr style="border-bottom:1px solid var(--border-color)">${["Product","Current Stock","Total Sold","Turnover Rate","Grade"].map(h=>`<th style="padding:10px;text-align:left;font-size:0.78rem;color:var(--text-muted)">${h}</th>`).join("")}</tr></thead>
+      <tbody>${data.ratios.map(r=>`<tr style="border-bottom:1px solid var(--border-color)">
+        <td style="padding:10px;font-size:0.875rem;font-weight:600">${r.name}</td>
+        <td style="padding:10px;font-size:0.875rem">${r.stock}</td>
+        <td style="padding:10px;font-size:0.875rem">${r.totalSold}</td>
+        <td style="padding:10px;font-size:0.875rem;font-weight:700">${r.turnover}x</td>
+        <td style="padding:10px"><span style="padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;background:${gradeColors[r.grade]}20;color:${gradeColors[r.grade]}">${r.grade}</span></td>
+      </tr>`).join("")}</tbody>
+    </table></div>`;
+  } catch(err) { document.getElementById("turnoverTable").innerHTML = "Failed to load"; }
+}
+
+/* GROSS MARGINS */
+async function loadCostPriceItems() {
+  try {
+    const res = await fetch("/admin-data", { headers: getAuthHeaders() });
+    const data = await res.json();
+    const sel = document.getElementById("costPriceItem");
+    if (sel && data.items) sel.innerHTML = '<option value="">Select product...</option>' + data.items.map(i=>`<option value="${i.key}">${i.name} (₹${i.price})</option>`).join("");
+  } catch(err){}
+}
+async function saveCostPrice() {
+  const key = document.getElementById("costPriceItem")?.value;
+  const costPrice = parseFloat(document.getElementById("costPriceValue")?.value);
+  if (!key || isNaN(costPrice)) { ssToast("Select product and enter cost price","warning"); return; }
+  try {
+    await fetch("/admin/update-cost-price", { method:"POST", headers:{ "Content-Type":"application/json",...getAuthHeaders() }, body: JSON.stringify({ key, costPrice }) });
+    ssToast("Cost price saved","success");
+    loadGrossMargins();
+  } catch(err) { ssToast("Failed","error"); }
+}
+async function loadGrossMargins() {
+  const el = document.getElementById("marginsTable");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/gross-margins", { headers: getAuthHeaders() });
+    const data = await res.json();
+    if (!data.margins?.length) { el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">No cost prices set yet. Set cost prices above to see margins.</div>'; return; }
+    const gradeColors = { Good:"#22c55e", Average:"#f59e0b", Low:"#ef4444" };
+    el.innerHTML = `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">
+      <thead><tr style="border-bottom:1px solid var(--border-color)">${["Product","Sell Price","Cost Price","Profit","Margin %","Grade"].map(h=>`<th style="padding:10px;text-align:left;font-size:0.78rem;color:var(--text-muted)">${h}</th>`).join("")}</tr></thead>
+      <tbody>${data.margins.map(m=>`<tr style="border-bottom:1px solid var(--border-color)">
+        <td style="padding:10px;font-weight:600;font-size:0.875rem">${m.name}</td>
+        <td style="padding:10px;font-size:0.875rem">₹${m.price}</td>
+        <td style="padding:10px;font-size:0.875rem">₹${m.costPrice}</td>
+        <td style="padding:10px;font-size:0.875rem;color:#22c55e">₹${m.profit}</td>
+        <td style="padding:10px;font-size:0.875rem;font-weight:700">${m.margin}%</td>
+        <td style="padding:10px"><span style="padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;background:${gradeColors[m.grade]}20;color:${gradeColors[m.grade]}">${m.grade}</span></td>
+      </tr>`).join("")}</tbody>
+    </table></div>`;
+  } catch(err) { el.innerHTML = "Failed to load"; }
+}
+
+/* P&L STATEMENT */
+async function loadPL() {
+  const el = document.getElementById("plStatement");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/pl-statement", { headers: getAuthHeaders() });
+    const d = await res.json();
+    const profit = parseFloat(d.netProfit) >= 0;
+    el.innerHTML = `
+      <div style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(167,139,250,0.05));border:1px solid var(--accent);border-radius:16px;padding:24px">
+        <div style="text-align:center;margin-bottom:24px">
+          <div style="font-size:0.85rem;color:var(--text-muted)">Period</div>
+          <div style="font-size:1.1rem;font-weight:700">${d.period}</div>
+        </div>
+        ${[
+          { label:"📈 Total Revenue", value:`₹${d.revenue}`, color:"#22c55e" },
+          { label:"📦 Cost of Goods Sold", value:`- ₹${d.cogs}`, color:"#ef4444" },
+          { label:"💰 Gross Profit", value:`₹${d.grossProfit} (${d.grossMargin}% margin)`, color:"#6366f1", bold:true },
+          { label:"💼 Operating Cost (Platform)", value:`- ₹${d.operatingCost}`, color:"#f59e0b" },
+          { label:"🏆 Net Profit", value:`₹${d.netProfit} (${d.netMargin}% margin)`, color:profit?"#22c55e":"#ef4444", bold:true, large:true },
+        ].map(r=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border-color)">
+          <span style="font-size:0.875rem;${r.bold?'font-weight:700':''}">${r.label}</span>
+          <span style="font-size:${r.large?'1.3rem':'0.875rem'};font-weight:${r.bold?'800':'600'};color:${r.color}">${r.value}</span>
+        </div>`).join("")}
+        <div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div style="background:var(--bg-tertiary);border-radius:8px;padding:12px;text-align:center">
+            <div style="font-size:1.4rem;font-weight:800;color:var(--accent)">${d.orders}</div>
+            <div style="font-size:0.75rem;color:var(--text-muted)">Orders This Month</div>
+          </div>
+          <div style="background:var(--bg-tertiary);border-radius:8px;padding:12px;text-align:center">
+            <div style="font-size:1.4rem;font-weight:800;color:#f59e0b">${d.reorders}</div>
+            <div style="font-size:0.75rem;color:var(--text-muted)">Reorders Placed</div>
+          </div>
+        </div>
+      </div>`;
+  } catch(err) { document.getElementById("plStatement").innerHTML = "Failed to load"; }
+}
+
+/* PRODUCT SENTIMENT */
+async function loadSentiment() {
+  const el = document.getElementById("sentimentList");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/product-sentiment", { headers: getAuthHeaders() });
+    const data = await res.json();
+    const sColors = { "Positive 😊":"#22c55e", "Neutral 😐":"#f59e0b", "Negative 😞":"#ef4444", "No data":"#6b7280" };
+    el.innerHTML = data.sentiment.map(s => `
+      <div style="display:flex;align-items:center;gap:14px;padding:12px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:10px;margin-bottom:8px">
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:0.9rem">${s.name}</div>
+          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px">${s.totalRatings} ratings</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:1.4rem;font-weight:800;color:${sColors[s.sentiment]}">${s.avgRating || "—"}</div>
+          <div style="font-size:0.65rem;color:var(--text-muted)">/ 5</div>
+        </div>
+        <span style="padding:4px 12px;border-radius:20px;font-size:0.78rem;font-weight:600;background:${sColors[s.sentiment]}20;color:${sColors[s.sentiment]}">${s.sentiment}</span>
+      </div>`).join("");
+  } catch(err) { document.getElementById("sentimentList").innerHTML = "Failed to load"; }
+}
+
+/* Q&A MANAGER */
+async function loadQAAdmin() {
+  const el = document.getElementById("qaList");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/qa", { headers: getAuthHeaders() });
+    const data = await res.json();
+    if (!data.qas?.length) { el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">No questions from customers yet.</div>'; return; }
+    el.innerHTML = data.qas.map(qa => `
+      <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:10px;padding:14px;margin-bottom:10px">
+        <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+          <span style="font-size:0.78rem;font-weight:700;color:var(--accent)">${qa.itemName}</span>
+          <span style="font-size:0.72rem;color:var(--text-muted)">by ${qa.askedBy}</span>
+          <span style="font-size:0.72rem;color:var(--text-muted);margin-left:auto">${new Date(qa.createdAt).toLocaleDateString("en-IN")}</span>
+        </div>
+        <div style="font-size:0.875rem;font-weight:600;margin-bottom:8px">❓ ${qa.question}</div>
+        ${qa.answer ? `<div style="font-size:0.82rem;color:#22c55e;background:rgba(34,197,94,0.1);padding:8px 12px;border-radius:6px;border-left:3px solid #22c55e">✅ ${qa.answer}</div>` :
+        `<div style="display:flex;gap:8px">
+          <input type="text" id="qa-ans-${qa._id}" placeholder="Type your answer..." style="flex:1;padding:8px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);font-size:0.82rem">
+          <button class="btn-primary" style="padding:8px 14px;font-size:0.8rem" onclick="answerQA('${qa._id}')">Answer</button>
+        </div>`}
+      </div>`).join("");
+  } catch(err) { document.getElementById("qaList").innerHTML = "Failed to load"; }
+}
+async function answerQA(id) {
+  const answer = document.getElementById(`qa-ans-${id}`)?.value;
+  if (!answer) { ssToast("Enter an answer","warning"); return; }
+  try {
+    await fetch(`/admin/qa/${id}/answer`, { method:"POST", headers:{ "Content-Type":"application/json",...getAuthHeaders() }, body: JSON.stringify({ answer }) });
+    ssToast("Answer posted! Customer notified by email.","success");
+    loadQAAdmin();
+  } catch(err) { ssToast("Failed","error"); }
+}
+
+/* API DOCS */
+async function loadApiDocs() {
+  const el = document.getElementById("apiDocsList");
+  if (!el) return;
+  try {
+    const res = await fetch("/api-docs");
+    const data = await res.json();
+    const methodColors = { GET:"#22c55e", POST:"#6366f1", DELETE:"#ef4444", PUT:"#f59e0b" };
+    const authColors = { admin:"#6366f1", customer:"#22c55e", superadmin:"#f59e0b", none:"#6b7280" };
+    el.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px">
+        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:10px;padding:14px;text-align:center">
+          <div style="font-size:1.8rem;font-weight:800;color:var(--accent)">${data.totalRoutes}</div>
+          <div style="font-size:0.75rem;color:var(--text-muted)">Total Routes</div>
+        </div>
+        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:10px;padding:14px;text-align:center">
+          <div style="font-size:1.8rem;font-weight:800;color:#22c55e">${data.version}</div>
+          <div style="font-size:0.75rem;color:var(--text-muted)">API Version</div>
+        </div>
+        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:10px;padding:14px;text-align:center">
+          <div style="font-size:1.8rem;font-weight:800;color:#f59e0b">REST</div>
+          <div style="font-size:0.75rem;color:var(--text-muted)">API Type</div>
+        </div>
+      </div>
+      ${data.routes.map(r => `
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:8px;margin-bottom:6px">
+          <span style="padding:3px 8px;border-radius:4px;font-size:0.72rem;font-weight:800;background:${methodColors[r.method]}20;color:${methodColors[r.method]};width:46px;text-align:center;flex-shrink:0">${r.method}</span>
+          <span style="font-family:monospace;font-size:0.82rem;flex:1;color:var(--text-primary)">${r.path}</span>
+          <span style="font-size:0.78rem;color:var(--text-muted);flex:1">${r.desc}</span>
+          <span style="padding:2px 8px;border-radius:10px;font-size:0.68rem;font-weight:600;background:${authColors[r.auth]}20;color:${authColors[r.auth]}">${r.auth}</span>
+        </div>`).join("")}`;
+  } catch(err) { document.getElementById("apiDocsList").innerHTML = "Failed to load"; }
+}
+
+/* EXTEND PAGE LOADERS */
+Object.assign(pageLoaders, {
+  "search-analytics": loadSearchAnalytics,
+  "funnel": loadFunnelAnalytics,
+  "ltv": loadLTV,
+  "turnover": loadTurnover,
+  "margins": () => { loadCostPriceItems(); loadGrossMargins(); },
+  "pl": loadPL,
+  "sentiment": loadSentiment,
+  "qa-admin": loadQAAdmin,
+  "api-docs": loadApiDocs
+});
+
+/* UPDATE COMMAND PALETTE */
+commandPaletteItems.push(
+  { label:"🔍 Search Analytics", action:()=>showPage("search-analytics") },
+  { label:"📐 Funnel Analytics", action:()=>showPage("funnel") },
+  { label:"💰 Customer LTV", action:()=>showPage("ltv") },
+  { label:"🔄 Turnover Ratio", action:()=>showPage("turnover") },
+  { label:"📊 Gross Margins", action:()=>showPage("margins") },
+  { label:"📋 P&L Statement", action:()=>showPage("pl") },
+  { label:"😊 Product Sentiment", action:()=>showPage("sentiment") },
+  { label:"❓ Q&A Manager", action:()=>showPage("qa-admin") },
+  { label:"📖 API Docs", action:()=>showPage("api-docs") }
+);
 
 /* ===== INIT ===== */
 loadAdmin();

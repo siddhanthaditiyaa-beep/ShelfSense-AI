@@ -4497,3 +4497,676 @@ const changelog = [
   { version:"1.0.0", date:"2025-05-01", title:"Initial Release", changes:["18 AI Agents","13 Security Layers","Full SaaS multi-tenant","Google OAuth","Razorpay payments","YOLOv8 shelf scanning","PWA support"] }
 ];
 app.get("/changelog", (req,res)=>res.json({ changelog }));
+
+/* =========================================
+   BATCH 4 NEW FEATURES (51-80)
+========================================= */
+
+/* FEATURE 51: DAILY CHECK-IN REWARD */
+app.post("/customer/daily-checkin", auth("customer"), async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+    const now = new Date();
+    const lastCheckin = user.lastCheckin ? new Date(user.lastCheckin) : null;
+    const isNewDay = !lastCheckin || now.toDateString() !== lastCheckin.toDateString();
+    if (!isNewDay) return res.json({ message: "Already checked in today!", points: user.loyaltyPoints, alreadyDone: true });
+    const yesterday = new Date(now - 86400000);
+    const wasYesterday = lastCheckin && lastCheckin.toDateString() === yesterday.toDateString();
+    const streak = wasYesterday ? (user.checkinStreak || 0) + 1 : 1;
+    const bonusPoints = streak >= 7 ? 20 : streak >= 3 ? 10 : 5;
+    await User.findByIdAndUpdate(req.user.id, {
+      $inc: { loyaltyPoints: bonusPoints },
+      $set: { lastCheckin: now, checkinStreak: streak }
+    });
+    res.json({ message: `✅ Check-in successful! +${bonusPoints} points`, points: bonusPoints, streak, alreadyDone: false });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 52: SCRATCH CARD AFTER PURCHASE */
+app.post("/customer/scratch-card", auth("customer"), async (req, res) => {
+  try {
+    const { orderId } = req.body;
+    const order = await Order.findOne({ _id: orderId, customerEmail: req.user.email });
+    if (!order) return res.status(404).json({ message: "Order not found" });
+    if (order.scratchCardUsed) return res.json({ message: "Scratch card already used", alreadyUsed: true });
+    const rewards = [
+      { type: "points", value: 50, label: "50 Bonus Points! 🎉" },
+      { type: "points", value: 25, label: "25 Bonus Points! 🌟" },
+      { type: "discount", value: 10, label: "10% Off Next Order! 🏷️" },
+      { type: "discount", value: 5, label: "5% Off Next Order! 🎁" },
+      { type: "points", value: 100, label: "Jackpot! 100 Points! 🎰" },
+      { type: "points", value: 10, label: "10 Bonus Points! ✨" },
+    ];
+    const reward = rewards[Math.floor(Math.random() * rewards.length)];
+    if (reward.type === "points") {
+      await User.findOneAndUpdate({ email: req.user.email }, { $inc: { loyaltyPoints: reward.value } });
+    }
+    await Order.findByIdAndUpdate(orderId, { scratchCardUsed: true });
+    res.json({ reward, message: `You won: ${reward.label}` });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 53: PRICE DROP ALERTS */
+const PriceAlertSchema = new mongoose.Schema({
+  customerEmail: String, storeId: { type: mongoose.Schema.Types.ObjectId, ref: "Store" },
+  itemKey: String, itemName: String, targetPrice: Number, triggered: { type: Boolean, default: false }
+}, { timestamps: true });
+const PriceAlert = mongoose.model("PriceAlert", PriceAlertSchema);
+
+app.post("/customer/price-alert", auth("customer"), async (req, res) => {
+  try {
+    const { itemKey, itemName, targetPrice, storeId } = req.body;
+    const existing = await PriceAlert.findOne({ customerEmail: req.user.email, itemKey, triggered: false });
+    if (existing) { await PriceAlert.findByIdAndUpdate(existing._id, { targetPrice }); return res.json({ message: "Price alert updated" }); }
+    await PriceAlert.create({ customerEmail: req.user.email, storeId, itemKey, itemName, targetPrice });
+    res.json({ message: `Alert set! We'll email you when ${itemName} drops to ₹${targetPrice}` });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+app.get("/customer/price-alerts", auth("customer"), async (req, res) => {
+  try {
+    const alerts = await PriceAlert.find({ customerEmail: req.user.email, triggered: false });
+    res.json({ alerts });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* Check price alerts every hour */
+cron.schedule("0 0 * * * *", async () => {
+  try {
+    const alerts = await PriceAlert.find({ triggered: false });
+    for (const alert of alerts) {
+      const item = await Item.findOne({ storeId: alert.storeId, key: alert.itemKey });
+      if (item && item.price <= alert.targetPrice) {
+        await sendAlert(`Price Drop Alert: ${alert.itemName}!`,
+          `Great news! <strong>${alert.itemName}</strong> is now ₹${item.price} — at or below your target of ₹${alert.targetPrice}. <a href="#">Shop now!</a>`, false, alert.customerEmail);
+        await PriceAlert.findByIdAndUpdate(alert._id, { triggered: true });
+      }
+    }
+  } catch (err) { console.error("Price alert check error:", err.message); }
+});
+
+/* FEATURE 54: SUBSCRIPTION AUTO-REORDER */
+const SubscriptionSchema = new mongoose.Schema({
+  customerEmail: String, storeId: { type: mongoose.Schema.Types.ObjectId, ref: "Store" },
+  itemKey: String, itemName: String, quantity: Number, frequencyDays: Number,
+  nextOrderDate: Date, active: { type: Boolean, default: true }
+}, { timestamps: true });
+const Subscription = mongoose.model("Subscription", SubscriptionSchema);
+
+app.post("/customer/subscribe", auth("customer"), async (req, res) => {
+  try {
+    const { itemKey, itemName, quantity, frequencyDays, storeId } = req.body;
+    const nextOrderDate = new Date(Date.now() + frequencyDays * 86400000);
+    const sub = await Subscription.findOneAndUpdate(
+      { customerEmail: req.user.email, itemKey, active: true },
+      { quantity, frequencyDays, nextOrderDate, itemName, storeId },
+      { upsert: true, new: true }
+    );
+    res.json({ message: `Subscribed! Next auto-order of ${quantity}x ${itemName} in ${frequencyDays} days`, subscription: sub });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+app.get("/customer/subscriptions", auth("customer"), async (req, res) => {
+  try {
+    const subs = await Subscription.find({ customerEmail: req.user.email, active: true });
+    res.json({ subscriptions: subs });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+app.delete("/customer/subscribe/:id", auth("customer"), async (req, res) => {
+  try {
+    await Subscription.findByIdAndUpdate(req.params.id, { active: false });
+    res.json({ message: "Subscription cancelled" });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* Process subscriptions daily */
+cron.schedule("0 0 8 * * *", async () => {
+  try {
+    const due = await Subscription.find({ active: true, nextOrderDate: { $lte: new Date() } });
+    for (const sub of due) {
+      const item = await Item.findOne({ storeId: sub.storeId, key: sub.itemKey });
+      if (!item || item.stock < sub.quantity) {
+        await sendAlert("Subscription: Item Unavailable", `Your subscription for ${sub.itemName} could not be processed — insufficient stock. We'll try again soon.`, false, sub.customerEmail);
+        continue;
+      }
+      await Item.findOneAndUpdate({ storeId: sub.storeId, key: sub.itemKey }, { $inc: { stock: -sub.quantity } });
+      const nextDate = new Date(Date.now() + sub.frequencyDays * 86400000);
+      await Subscription.findByIdAndUpdate(sub._id, { nextOrderDate: nextDate });
+      await sendAlert("Subscription Order Processed! 🛒", `Your auto-order of ${sub.quantity}x ${sub.itemName} has been placed successfully! Next order in ${sub.frequencyDays} days.`, false, sub.customerEmail);
+      await logAgent(sub.storeId, "Subscription Agent", `🔄 Auto-order: ${sub.quantity}x ${sub.itemName} for ${sub.customerEmail}`, { item: sub.itemName, qty: sub.quantity }, "info");
+    }
+  } catch (err) { console.error("Subscription agent error:", err.message); }
+});
+
+/* FEATURE 55: BUDGET MODE */
+app.post("/customer/budget-cart", async (req, res) => {
+  try {
+    const { budget, storeId } = req.body;
+    if (!budget || !storeId) return res.status(400).json({ message: "Budget and storeId required" });
+    const items = await Item.find({ storeId, stock: { $gt: 0 } }).sort({ price: 1 });
+    const cart = [];
+    let total = 0;
+    for (const item of items) {
+      if (total + item.price <= budget) {
+        cart.push({ key: item.key, name: item.name, price: item.price, qty: 1 });
+        total += item.price;
+      }
+    }
+    res.json({ cart, total: total.toFixed(2), remaining: (budget - total).toFixed(2), itemCount: cart.length });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 56: REPEAT LAST ORDER */
+app.get("/customer/repeat-last-order", auth("customer"), async (req, res) => {
+  try {
+    const lastOrder = await Order.findOne({ customerEmail: req.user.email }).sort({ createdAt: -1 });
+    if (!lastOrder) return res.status(404).json({ message: "No previous orders found" });
+    res.json({ items: lastOrder.items, total: lastOrder.total, orderId: lastOrder._id });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 57: PERSONAL SAVINGS DASHBOARD */
+app.get("/customer/savings", auth("customer"), async (req, res) => {
+  try {
+    const orders = await Order.find({ customerEmail: req.user.email });
+    const user = await User.findOne({ email: req.user.email });
+    let totalSaved = 0, totalSpent = 0, discountOrders = 0;
+    orders.forEach(o => {
+      totalSpent += o.total || 0;
+      if (o.discount) { totalSaved += o.discount; discountOrders++; }
+    });
+    const pointsValue = (user?.loyaltyPoints || 0) * 0.1;
+    res.json({
+      totalSpent: totalSpent.toFixed(2),
+      totalSaved: (totalSaved + pointsValue).toFixed(2),
+      discountOrders,
+      loyaltyPoints: user?.loyaltyPoints || 0,
+      pointsValue: pointsValue.toFixed(2),
+      totalOrders: orders.length,
+      avgOrderValue: orders.length ? (totalSpent / orders.length).toFixed(2) : 0
+    });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 58: PRODUCT Q&A */
+const QASchema = new mongoose.Schema({
+  storeId: { type: mongoose.Schema.Types.ObjectId, ref: "Store" },
+  itemKey: String, itemName: String,
+  question: String, askedBy: String,
+  answer: String, answeredBy: String
+}, { timestamps: true });
+const QA = mongoose.model("QA", QASchema);
+
+app.post("/customer/qa", auth("customer"), async (req, res) => {
+  try {
+    const { itemKey, itemName, question, storeId } = req.body;
+    const qa = await QA.create({ storeId, itemKey, itemName, question, askedBy: req.user.email });
+    res.json({ message: "Question submitted! Admin will answer soon.", qa });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+app.get("/shop/qa/:itemKey", async (req, res) => {
+  try {
+    const { storeId } = req.query;
+    const qas = await QA.find({ storeId, itemKey: req.params.itemKey, answer: { $exists: true, $ne: null } }).sort({ createdAt: -1 });
+    res.json({ qas });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+app.post("/admin/qa/:id/answer", auth("admin"), async (req, res) => {
+  try {
+    const qa = await QA.findByIdAndUpdate(req.params.id, { answer: req.body.answer, answeredBy: "Store Admin" }, { new: true });
+    if (qa) await sendAlert(`Your question about ${qa.itemName} was answered!`, `Q: ${qa.question}<br><br>A: ${req.body.answer}`, false, qa.askedBy);
+    res.json({ message: "Answer posted", qa });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+app.get("/admin/qa", auth("admin"), async (req, res) => {
+  try {
+    const qas = await QA.find({ storeId: req.user.storeId }).sort({ createdAt: -1 });
+    res.json({ qas });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 59: TRENDING PRODUCTS */
+app.get("/shop/trending", async (req, res) => {
+  try {
+    const { storeId } = req.query;
+    if (!storeId) return res.status(400).json({ message: "storeId required" });
+    const items = await Item.find({ storeId, stock: { $gt: 0 } });
+    const trending = items
+      .map(i => ({ ...i.toObject(), velocity: (i.salesHistory || []).slice(-3).reduce((a, b) => a + b, 0) }))
+      .sort((a, b) => b.velocity - a.velocity)
+      .slice(0, 6);
+    res.json({ trending });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 60: FLASH DEAL OF THE HOUR */
+app.get("/shop/flash-deal", async (req, res) => {
+  try {
+    const { storeId } = req.query;
+    if (!storeId) return res.status(400).json({ message: "storeId required" });
+    const items = await Item.find({ storeId, stock: { $gt: 5 } });
+    if (!items.length) return res.json({ deal: null });
+    const hourSeed = new Date().getHours();
+    const dealItem = items[hourSeed % items.length];
+    const discountPct = 15 + (hourSeed % 3) * 5;
+    const dealPrice = (dealItem.price * (1 - discountPct / 100)).toFixed(2);
+    const expiresAt = new Date(); expiresAt.setMinutes(59, 59, 999);
+    res.json({ deal: { ...dealItem.toObject(), dealPrice: parseFloat(dealPrice), discountPct, expiresAt } });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 61: ACHIEVEMENT BADGES */
+app.get("/customer/achievements", auth("customer"), async (req, res) => {
+  try {
+    const orders = await Order.find({ customerEmail: req.user.email });
+    const user = await User.findOne({ email: req.user.email });
+    const badges = [
+      { id: "first_purchase", name: "First Purchase", icon: "🏅", desc: "Completed your first order", earned: orders.length >= 1 },
+      { id: "fifth_purchase", name: "Regular Shopper", icon: "🥈", desc: "Completed 5 orders", earned: orders.length >= 5 },
+      { id: "tenth_purchase", name: "Loyal Customer", icon: "🥇", desc: "Completed 10 orders", earned: orders.length >= 10 },
+      { id: "big_spender", name: "Big Spender", icon: "💎", desc: "Spent over ₹10,000 total", earned: orders.reduce((s, o) => s + (o.total || 0), 0) >= 10000 },
+      { id: "streak_3", name: "3-Day Streak", icon: "🔥", desc: "Checked in 3 days in a row", earned: (user?.checkinStreak || 0) >= 3 },
+      { id: "streak_7", name: "Week Warrior", icon: "⚡", desc: "Checked in 7 days in a row", earned: (user?.checkinStreak || 0) >= 7 },
+      { id: "referral_king", name: "Referral King", icon: "👑", desc: "Referred 3+ friends", earned: (user?.referralCount || 0) >= 3 },
+      { id: "reviewer", name: "Critic", icon: "⭐", desc: "Rated 5+ products", earned: false },
+    ];
+    res.json({ badges, earned: badges.filter(b => b.earned).length, total: badges.length });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 62: SMART NOTIFICATION (purchase pattern based) */
+app.get("/customer/smart-nudges", auth("customer"), async (req, res) => {
+  try {
+    const orders = await Order.find({ customerEmail: req.user.email }).sort({ createdAt: -1 }).limit(10);
+    const nudges = [];
+    if (orders.length >= 2) {
+      const daysBetween = (new Date(orders[0].createdAt) - new Date(orders[1].createdAt)) / 86400000;
+      const daysSinceLast = (Date.now() - new Date(orders[0].createdAt)) / 86400000;
+      if (daysSinceLast >= daysBetween * 0.8) {
+        nudges.push({ type: "reorder", message: `You usually shop every ${Math.round(daysBetween)} days — time to restock!`, icon: "🛒" });
+      }
+    }
+    const items = orders.flatMap(o => o.items || []);
+    const freq = {};
+    items.forEach(i => { freq[i.name] = (freq[i.name] || 0) + (i.qty || 1); });
+    const topItem = Object.entries(freq).sort((a, b) => b[1] - a[1])[0];
+    if (topItem) nudges.push({ type: "favorite", message: `Your favorite: ${topItem[0]}. Don't run out!`, icon: "❤️" });
+    res.json({ nudges });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 63: SEARCH ANALYTICS FOR ADMIN */
+const SearchLogSchema = new mongoose.Schema({
+  storeId: { type: mongoose.Schema.Types.ObjectId, ref: "Store" },
+  query: String, resultsFound: Number
+}, { timestamps: true });
+const SearchLog = mongoose.model("SearchLog", SearchLogSchema);
+
+app.post("/shop/log-search", async (req, res) => {
+  try {
+    const { storeId, query, resultsFound } = req.body;
+    if (storeId && query) await SearchLog.create({ storeId, query: query.toLowerCase().trim(), resultsFound });
+    res.json({ ok: true });
+  } catch (err) { res.json({ ok: false }); }
+});
+app.get("/admin/search-analytics", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const logs = await SearchLog.find({ storeId, createdAt: { $gte: new Date(Date.now() - 7 * 86400000) } });
+    const queryFreq = {};
+    logs.forEach(l => { queryFreq[l.query] = (queryFreq[l.query] || 0) + 1; });
+    const topQueries = Object.entries(queryFreq).sort((a, b) => b[1] - a[1]).slice(0, 20).map(([q, count]) => ({ query: q, count }));
+    const noResults = logs.filter(l => l.resultsFound === 0).map(l => l.query);
+    const noResultsFreq = {};
+    noResults.forEach(q => { noResultsFreq[q] = (noResultsFreq[q] || 0) + 1; });
+    const topNoResults = Object.entries(noResultsFreq).sort((a, b) => b[1] - a[1]).slice(0, 10).map(([q, count]) => ({ query: q, count }));
+    res.json({ topQueries, topNoResults, totalSearches: logs.length });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 64: FUNNEL ANALYTICS */
+app.get("/admin/funnel-analytics", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const [totalUsers, usersWithOrders, repeatUsers] = await Promise.all([
+      User.countDocuments({ storeId }),
+      Order.distinct("customerEmail", { storeId }),
+      Order.aggregate([{ $match: { storeId: mongoose.Types.ObjectId(storeId) } }, { $group: { _id: "$customerEmail", count: { $sum: 1 } } }, { $match: { count: { $gt: 1 } } }])
+    ]);
+    const registered = totalUsers;
+    const firstPurchase = usersWithOrders.length;
+    const repeat = repeatUsers.length;
+    res.json({
+      funnel: [
+        { stage: "Registered", count: registered, pct: 100 },
+        { stage: "First Purchase", count: firstPurchase, pct: registered ? Math.round(firstPurchase / registered * 100) : 0 },
+        { stage: "Repeat Customer", count: repeat, pct: firstPurchase ? Math.round(repeat / firstPurchase * 100) : 0 },
+      ]
+    });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 65: CUSTOMER LIFETIME VALUE */
+app.get("/admin/customer-ltv", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const orders = await Order.find({ storeId });
+    const byCustomer = {};
+    orders.forEach(o => {
+      if (!byCustomer[o.customerEmail]) byCustomer[o.customerEmail] = { email: o.customerEmail, total: 0, orders: 0, lastOrder: o.createdAt };
+      byCustomer[o.customerEmail].total += o.total || 0;
+      byCustomer[o.customerEmail].orders++;
+      if (new Date(o.createdAt) > new Date(byCustomer[o.customerEmail].lastOrder)) byCustomer[o.customerEmail].lastOrder = o.createdAt;
+    });
+    const customers = Object.values(byCustomer).map(c => ({
+      ...c, total: c.total.toFixed(2), avgOrder: (c.total / c.orders).toFixed(2),
+      daysSinceLastOrder: Math.floor((Date.now() - new Date(c.lastOrder)) / 86400000),
+      ltv: (c.total * 12 / Math.max(1, Math.floor((Date.now() - new Date(c.lastOrder)) / 86400000) / 30)).toFixed(2)
+    })).sort((a, b) => parseFloat(b.ltv) - parseFloat(a.ltv));
+    res.json({ customers: customers.slice(0, 20) });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 66: COHORT RETENTION ANALYSIS */
+app.get("/admin/cohort-analysis", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const orders = await Order.find({ storeId }).sort({ createdAt: 1 });
+    const cohorts = {};
+    orders.forEach(o => {
+      const month = new Date(o.createdAt).toLocaleDateString("en-IN", { month: "short", year: "numeric" });
+      if (!cohorts[month]) cohorts[month] = new Set();
+      cohorts[month].add(o.customerEmail);
+    });
+    const cohortList = Object.entries(cohorts).slice(-6).map(([month, customers]) => ({
+      month, newCustomers: customers.size
+    }));
+    res.json({ cohorts: cohortList });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 67: DEMAND HEATMAP ENHANCED */
+app.get("/admin/demand-heatmap-enhanced", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const orders = await Order.find({ storeId }).sort({ createdAt: -1 }).limit(500);
+    const heatmap = Array(7).fill(null).map(() => Array(24).fill(0));
+    orders.forEach(o => {
+      const d = new Date(o.createdAt);
+      heatmap[d.getDay()][d.getHours()] += o.total || 1;
+    });
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    res.json({ heatmap, days, maxValue: Math.max(...heatmap.flat()) });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 68: SUPERADMIN STORE RANKINGS */
+app.get("/superadmin/store-rankings", auth("superadmin"), async (req, res) => {
+  try {
+    const stores = await Store.find({ isActive: true });
+    const rankings = [];
+    for (const store of stores) {
+      const [orders, items, agents] = await Promise.all([
+        Order.find({ storeId: store._id, createdAt: { $gte: new Date(Date.now() - 30 * 86400000) } }),
+        Item.countDocuments({ storeId: store._id }),
+        AgentLog.countDocuments({ storeId: store._id, createdAt: { $gte: new Date(Date.now() - 7 * 86400000) } })
+      ]);
+      const revenue = orders.reduce((s, o) => s + (o.total || 0), 0);
+      const score = Math.min(100, Math.round((revenue / 10000) * 40 + (agents / 100) * 30 + (items / 50) * 30));
+      rankings.push({ storeId: store._id, name: store.name, email: store.email, revenue: revenue.toFixed(2), orders: orders.length, items, agentActivity: agents, score, plan: store.plan || "free" });
+    }
+    rankings.sort((a, b) => b.score - a.score);
+    res.json({ rankings });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 69: SUPERADMIN ABUSE DETECTION */
+app.get("/superadmin/abuse-detection", auth("superadmin"), async (req, res) => {
+  try {
+    const stores = await Store.find({ isActive: true });
+    const flagged = [];
+    for (const store of stores) {
+      const flags = [];
+      const recentOrders = await Order.find({ storeId: store._id, createdAt: { $gte: new Date(Date.now() - 86400000) } });
+      if (recentOrders.length > 200) flags.push(`High order volume: ${recentOrders.length} orders in 24h`);
+      const fraudOrders = recentOrders.filter(o => o.fraudFlag);
+      if (fraudOrders.length > 5) flags.push(`${fraudOrders.length} fraud-flagged orders in 24h`);
+      const agentCalls = await AgentLog.countDocuments({ storeId: store._id, createdAt: { $gte: new Date(Date.now() - 3600000) } });
+      if (agentCalls > 500) flags.push(`Excessive agent calls: ${agentCalls}/hour`);
+      if (flags.length > 0) flagged.push({ storeId: store._id, name: store.name, email: store.email, flags });
+    }
+    res.json({ flagged, clean: stores.length - flagged.length, total: stores.length });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 70: SUPERADMIN BULK COMMUNICATION */
+app.post("/superadmin/bulk-email", auth("superadmin"), async (req, res) => {
+  try {
+    const { subject, message, plan } = req.body;
+    const filter = { isActive: true };
+    if (plan && plan !== "all") filter.plan = plan;
+    const stores = await Store.find(filter);
+    let sent = 0;
+    for (const store of stores) {
+      if (store.alertEmail) {
+        await sendAlert(subject, `<p>Dear ${store.name},</p><p>${message}</p><p>— ShelfSense AI Team</p>`, false, store.alertEmail);
+        sent++;
+      }
+    }
+    res.json({ message: `Email sent to ${sent} stores`, sent });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 71: STOCK RESERVATION TIMER */
+const ReservationSchema = new mongoose.Schema({
+  storeId: { type: mongoose.Schema.Types.ObjectId, ref: "Store" },
+  sessionId: String, itemKey: String, quantity: Number, expiresAt: Date
+}, { timestamps: true });
+const Reservation = mongoose.model("Reservation", ReservationSchema);
+
+app.post("/shop/reserve", async (req, res) => {
+  try {
+    const { storeId, sessionId, itemKey, quantity } = req.body;
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    await Reservation.findOneAndUpdate(
+      { storeId, sessionId, itemKey },
+      { quantity, expiresAt },
+      { upsert: true, new: true }
+    );
+    res.json({ message: "Item reserved for 10 minutes", expiresAt });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* Clean expired reservations every 5 minutes */
+cron.schedule("*/5 * * * *", async () => {
+  try { await Reservation.deleteMany({ expiresAt: { $lt: new Date() } }); }
+  catch (err) { console.error("Reservation cleanup error:", err.message); }
+});
+
+/* FEATURE 72: SELF-DOCUMENTING API (Swagger-lite) */
+app.get("/api-docs", (req, res) => {
+  const routes = [
+    { method: "POST", path: "/register-store", desc: "Register new store", auth: "none" },
+    { method: "POST", path: "/login-store", desc: "Store owner login", auth: "none" },
+    { method: "GET", path: "/admin-data", desc: "Get full admin dashboard data", auth: "admin" },
+    { method: "POST", path: "/admin/add-item", desc: "Add new inventory item", auth: "admin" },
+    { method: "POST", path: "/admin/update-stock", desc: "Update item stock", auth: "admin" },
+    { method: "GET", path: "/admin/agent-logs", desc: "Get agent activity logs", auth: "admin" },
+    { method: "GET", path: "/admin/xai-explanations", desc: "Get XAI explanations for agent decisions", auth: "admin" },
+    { method: "GET", path: "/admin/stockout-probability", desc: "Get stockout probability scores", auth: "admin" },
+    { method: "POST", path: "/admin/simulate-attack", desc: "Run security attack simulation", auth: "admin" },
+    { method: "GET", path: "/admin/system-health", desc: "Get server and DB health metrics", auth: "admin" },
+    { method: "POST", path: "/admin/what-if", desc: "Run what-if scenario simulation", auth: "admin" },
+    { method: "POST", path: "/admin/nlq", desc: "Natural language query on store data", auth: "admin" },
+    { method: "GET", path: "/admin/notifications", desc: "Get in-app notifications", auth: "admin" },
+    { method: "POST", path: "/admin/groq-chat", desc: "AI chatbot via Groq", auth: "admin" },
+    { method: "GET", path: "/shop-items", desc: "Get all items for customer shop", auth: "customer" },
+    { method: "POST", path: "/checkout", desc: "Place an order", auth: "customer" },
+    { method: "GET", path: "/my-orders", desc: "Get customer order history", auth: "customer" },
+    { method: "GET", path: "/nearby-franchises", desc: "Get nearby franchise stores", auth: "customer" },
+    { method: "GET", path: "/customer/daily-checkin", desc: "Daily check-in for loyalty points", auth: "customer" },
+    { method: "GET", path: "/customer/achievements", desc: "Get customer achievement badges", auth: "customer" },
+    { method: "GET", path: "/health", desc: "System health check", auth: "none" },
+    { method: "GET", path: "/changelog", desc: "Get platform changelog", auth: "none" },
+    { method: "GET", path: "/api-docs", desc: "This API documentation", auth: "none" },
+  ];
+  res.json({ name: "ShelfSense AI API", version: "2.0.0", totalRoutes: routes.length, routes });
+});
+
+/* FEATURE 73: INVENTORY TURNOVER RATIO */
+app.get("/admin/turnover-ratio", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const items = await Item.find({ storeId });
+    const ratios = items.map(item => {
+      const history = item.salesHistory || [];
+      const totalSold = history.reduce((a, b) => a + b, 0);
+      const avgStock = item.stock || 1;
+      const turnover = totalSold > 0 ? (totalSold / avgStock).toFixed(2) : 0;
+      const grade = turnover >= 4 ? "Excellent" : turnover >= 2 ? "Good" : turnover >= 1 ? "Average" : "Poor";
+      return { name: item.name, stock: item.stock, totalSold, turnover: parseFloat(turnover), grade };
+    }).sort((a, b) => b.turnover - a.turnover);
+    res.json({ ratios });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 74: AGENT #25 — STOCKOUT PROBABILITY BROADCASTER */
+cron.schedule("0 */6 * * *", async () => {
+  if (pausedAgents.has("Stockout Broadcaster Agent")) return;
+  try {
+    const stores = await Store.find({ isActive: true });
+    for (const store of stores) {
+      const items = await Item.find({ storeId: store._id });
+      const criticals = items.filter(i => {
+        const history = i.salesHistory || [];
+        const avg = history.length ? history.slice(-7).reduce((a, b) => a + b, 0) / Math.min(history.length, 7) : 0;
+        return avg > 0 && (i.stock / avg) < 1;
+      });
+      if (criticals.length > 0) {
+        const msg = criticals.map(i => `• ${i.name} (${i.stock} units)`).join("\n");
+        await sendTelegramAlert(`🚨 HIGH STOCKOUT RISK\nStore: ${store.name}\n\nThese items may stock out today:\n${msg}`);
+        await logAgent(store._id, "Stockout Broadcaster Agent", `📡 Broadcast: ${criticals.length} items at critical stockout risk`, { items: criticals.map(i => i.name) }, "critical");
+      }
+    }
+  } catch (err) { console.error("Stockout Broadcaster error:", err.message); }
+});
+
+/* FEATURE 75: GROSS MARGIN CALCULATOR */
+app.post("/admin/update-cost-price", auth("admin"), async (req, res) => {
+  try {
+    const { key, costPrice } = req.body;
+    const item = await Item.findOneAndUpdate({ storeId: req.user.storeId, key }, { $set: { costPrice } }, { new: true });
+    if (!item) return res.status(404).json({ message: "Item not found" });
+    res.json({ message: "Cost price updated", item });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+app.get("/admin/gross-margins", auth("admin"), async (req, res) => {
+  try {
+    const items = await Item.find({ storeId: req.user.storeId });
+    const margins = items.filter(i => i.costPrice > 0).map(i => ({
+      name: i.name, price: i.price, costPrice: i.costPrice,
+      margin: (((i.price - i.costPrice) / i.price) * 100).toFixed(1),
+      profit: (i.price - i.costPrice).toFixed(2),
+      grade: ((i.price - i.costPrice) / i.price) >= 0.3 ? "Good" : ((i.price - i.costPrice) / i.price) >= 0.15 ? "Average" : "Low"
+    })).sort((a, b) => parseFloat(b.margin) - parseFloat(a.margin));
+    res.json({ margins });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 76: STORE COMPARISON (SUPERADMIN) */
+app.get("/superadmin/compare-stores", auth("superadmin"), async (req, res) => {
+  try {
+    const { store1, store2 } = req.query;
+    if (!store1 || !store2) return res.status(400).json({ message: "Two store IDs required" });
+    const getData = async (storeId) => {
+      const [store, orders, items, agents] = await Promise.all([
+        Store.findById(storeId),
+        Order.find({ storeId, createdAt: { $gte: new Date(Date.now() - 30 * 86400000) } }),
+        Item.find({ storeId }),
+        AgentLog.countDocuments({ storeId })
+      ]);
+      return {
+        name: store?.name, plan: store?.plan,
+        revenue: orders.reduce((s, o) => s + (o.total || 0), 0).toFixed(2),
+        orders: orders.length, items: items.length,
+        outOfStock: items.filter(i => i.stock === 0).length,
+        agentActions: agents
+      };
+    };
+    const [s1, s2] = await Promise.all([getData(store1), getData(store2)]);
+    res.json({ store1: s1, store2: s2 });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 77: COMPLIANCE CERTIFICATE GENERATOR */
+app.get("/superadmin/compliance-certificate/:storeId", auth("superadmin"), async (req, res) => {
+  try {
+    const store = await Store.findById(req.params.storeId);
+    if (!store) return res.status(404).json({ message: "Store not found" });
+    const certId = crypto.randomBytes(8).toString("hex").toUpperCase();
+    const html = `<!DOCTYPE html><html><head><title>ShelfSense Compliance Certificate</title>
+    <style>body{font-family:Arial,sans-serif;max-width:700px;margin:40px auto;padding:40px;border:3px solid #6366f1;border-radius:16px}
+    h1{color:#6366f1;text-align:center}h2{text-align:center;color:#555}.cert-id{text-align:center;font-size:0.8rem;color:#999}
+    .checks{margin:24px 0}.check{padding:8px 0;border-bottom:1px solid #eee;display:flex;gap:12px}.seal{text-align:center;font-size:3rem;margin:24px 0}
+    </style></head><body>
+    <h1>🛡️ ShelfSense AI Security Compliance Certificate</h1>
+    <h2>${store.name}</h2>
+    <p class="cert-id">Certificate ID: ${certId} | Issued: ${new Date().toLocaleDateString("en-IN")}</p>
+    <p style="text-align:center;color:#555">This certifies that the above store operates on the ShelfSense AI platform with the following security controls active:</p>
+    <div class="checks">
+      ${["JWT Authentication & Session Management","bcrypt Password Hashing (Cost 12)","Rate Limiting & Account Lockout","CSRF Token Protection","NoSQL Injection Prevention","XSS Attack Prevention","Audit Logging & Fraud Detection","2FA OTP Support","Honeypot Bot Protection","13-Layer Security Architecture"].map(c => `<div class="check"><span>✅</span><span>${c}</span></div>`).join("")}
+    </div>
+    <div class="seal">🏆</div>
+    <p style="text-align:center;color:#6366f1;font-weight:700">Issued by ShelfSense AI Super Admin</p>
+    </body></html>`;
+    res.setHeader("Content-Type", "text/html");
+    res.setHeader("Content-Disposition", `attachment; filename="ShelfSense_Certificate_${store.name.replace(/\s/g, "_")}.html"`);
+    res.send(html);
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 78: AUTOMATED P&L STATEMENT */
+app.get("/admin/pl-statement", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const month = new Date(); month.setDate(1); month.setHours(0, 0, 0, 0);
+    const [orders, reorders] = await Promise.all([
+      Order.find({ storeId, createdAt: { $gte: month } }),
+      PurchaseOrder.find({ storeId, createdAt: { $gte: month } })
+    ]);
+    const revenue = orders.reduce((s, o) => s + (o.total || 0), 0);
+    const cogs = reorders.reduce((s, r) => s + (r.quantity * 50), 0);
+    const grossProfit = revenue - cogs;
+    const operatingCost = 999;
+    const netProfit = grossProfit - operatingCost;
+    res.json({
+      period: month.toLocaleDateString("en-IN", { month: "long", year: "numeric" }),
+      revenue: revenue.toFixed(2), cogs: cogs.toFixed(2),
+      grossProfit: grossProfit.toFixed(2), grossMargin: revenue ? ((grossProfit / revenue) * 100).toFixed(1) : 0,
+      operatingCost: operatingCost.toFixed(2), netProfit: netProfit.toFixed(2),
+      netMargin: revenue ? ((netProfit / revenue) * 100).toFixed(1) : 0,
+      orders: orders.length, reorders: reorders.length
+    });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 79: SENTIMENT SCORE PER PRODUCT */
+app.get("/admin/product-sentiment", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const items = await Item.find({ storeId });
+    const ratings = await Rating.find({ storeId });
+    const sentiment = items.map(item => {
+      const itemRatings = ratings.filter(r => r.itemKey === item.key);
+      const avg = itemRatings.length ? (itemRatings.reduce((s, r) => s + r.rating, 0) / itemRatings.length).toFixed(1) : null;
+      const sentiment = !avg ? "No data" : avg >= 4 ? "Positive 😊" : avg >= 3 ? "Neutral 😐" : "Negative 😞";
+      return { name: item.name, key: item.key, avgRating: avg, totalRatings: itemRatings.length, sentiment };
+    }).sort((a, b) => (parseFloat(b.avgRating) || 0) - (parseFloat(a.avgRating) || 0));
+    res.json({ sentiment });
+  } catch (err) { res.status(500).json({ message: "Server error" }); }
+});
+
+/* FEATURE 80: UPTIME BADGE DATA */
+app.get("/uptime", (req, res) => {
+  const uptime = process.uptime();
+  res.json({ uptime: Math.round(uptime), uptimeHuman: formatUptime(uptime), status: "operational", version: "2.0.0" });
+});
