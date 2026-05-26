@@ -978,5 +978,30 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 
+
+<!-- COOKIE CONSENT BANNER -->
+<div id="cookieBanner" style="position:fixed;bottom:0;left:0;right:0;background:rgba(15,15,35,0.97);border-top:1px solid rgba(255,255,255,0.1);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;z-index:9999;backdrop-filter:blur(10px);flex-wrap:wrap">
+  <div style="flex:1;min-width:200px">
+    <div style="font-size:0.875rem;color:rgba(255,255,255,0.9);font-weight:600;margin-bottom:2px">🍪 We use cookies</div>
+    <div style="font-size:0.78rem;color:rgba(255,255,255,0.5)">We use cookies for analytics and security. No tracking for advertising.</div>
+  </div>
+  <div style="display:flex;gap:10px;flex-shrink:0">
+    <button onclick="acceptCookies()" style="padding:8px 20px;background:linear-gradient(135deg,#6366f1,#a78bfa);color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:0.85rem">Accept All</button>
+    <button onclick="declineCookies()" style="padding:8px 16px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.15);border-radius:8px;cursor:pointer;font-size:0.85rem">Essential Only</button>
+  </div>
+</div>
+<script>
+function acceptCookies() {
+  localStorage.setItem("cookieConsent","all");
+  document.getElementById("cookieBanner").style.display="none";
+  fetch("/consent",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({analytics:true,marketing:false,functional:true,sessionId:Math.random().toString(36)})});
+}
+function declineCookies() {
+  localStorage.setItem("cookieConsent","essential");
+  document.getElementById("cookieBanner").style.display="none";
+}
+if(localStorage.getItem("cookieConsent")) document.getElementById("cookieBanner").style.display="none";
+</script>
+
 </body>
 </html>

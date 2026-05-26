@@ -835,6 +835,11 @@
   <button class="main-tab" data-tab="analytics" onclick="showMainTab('analytics', this)" id="tab-analytics">📊 My Analytics</button>
   <button class="main-tab" data-tab="referral" onclick="showMainTab('referral', this)" id="tab-referral">🎁 Refer & Earn</button>
   <button class="main-tab" data-tab="bundles" onclick="showMainTab('bundles', this)" id="tab-bundles">🛍️ Bundles</button>
+  <button class="main-tab" data-tab="checkin" onclick="showMainTab('checkin', this)" id="tab-checkin">📅 Check-In</button>
+  <button class="main-tab" data-tab="achievements" onclick="showMainTab('achievements', this)" id="tab-achievements">🏅 Achievements</button>
+  <button class="main-tab" data-tab="subscriptions" onclick="showMainTab('subscriptions', this)" id="tab-subscriptions">🔄 Subscriptions</button>
+  <button class="main-tab" data-tab="savings" onclick="showMainTab('savings', this)" id="tab-savings">💰 My Savings</button>
+  <button class="main-tab" data-tab="support" onclick="showMainTab('support', this)" id="tab-support">🎫 Support</button>
 </div>
 
 <!-- SHOP PAGE -->
@@ -1123,6 +1128,70 @@
   </div>
 </div>
 
+
+<!-- CHECK-IN PAGE -->
+<div class="page" id="page-checkin" style="max-width:500px;margin:0 auto;text-align:center">
+  <div style="font-size:3rem;margin-bottom:12px">📅</div>
+  <h2 style="font-size:1.3rem;font-weight:800;margin-bottom:8px">Daily Check-In</h2>
+  <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:24px">Check in every day to earn loyalty points. Build streaks for bigger rewards!</p>
+  <div id="checkinCard" style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(167,139,250,0.05));border:1px solid rgba(99,102,241,0.3);border-radius:20px;padding:32px;margin-bottom:24px">
+    <div style="font-size:4rem;margin-bottom:12px">🎁</div>
+    <div id="checkinStatus" style="font-size:0.9rem;color:var(--text-muted);margin-bottom:20px">Loading...</div>
+    <button id="checkinBtn" onclick="doCheckIn()" style="padding:14px 32px;background:linear-gradient(135deg,#6366f1,#a78bfa);color:white;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;width:100%">✅ Check In Today</button>
+  </div>
+  <div id="checkinStreak" style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:14px;padding:20px">
+    <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:8px">Your Streak</div>
+    <div id="streakCount" style="font-size:2.5rem;font-weight:900;color:#f59e0b">🔥 0</div>
+    <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px">days in a row</div>
+  </div>
+</div>
+
+<!-- ACHIEVEMENTS PAGE -->
+<div class="page" id="page-achievements">
+  <div style="text-align:center;margin-bottom:24px">
+    <div style="font-size:2.5rem">🏅</div>
+    <h2 style="font-size:1.3rem;font-weight:800;margin:8px 0">Your Achievements</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem">Earn badges by shopping, referring friends, and being loyal!</p>
+  </div>
+  <div id="customerAchievements" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px">
+    Loading...
+  </div>
+</div>
+
+<!-- SUBSCRIPTIONS PAGE -->
+<div class="page" id="page-subscriptions">
+  <div style="margin-bottom:20px">
+    <h2 style="font-size:1.2rem;font-weight:800;margin-bottom:6px">🔄 Auto-Subscriptions</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem">Set up recurring orders for essentials. Never run out again!</p>
+  </div>
+  <div id="subscriptionsList">Loading...</div>
+</div>
+
+<!-- SAVINGS PAGE -->
+<div class="page" id="page-savings">
+  <div style="text-align:center;margin-bottom:24px">
+    <div style="font-size:2.5rem">💰</div>
+    <h2 style="font-size:1.3rem;font-weight:800;margin:8px 0">My Savings Dashboard</h2>
+  </div>
+  <div id="savingsDashboard">Loading...</div>
+</div>
+
+<!-- SUPPORT PAGE -->
+<div class="page" id="page-support">
+  <div style="margin-bottom:20px">
+    <h2 style="font-size:1.2rem;font-weight:800;margin-bottom:6px">🎫 Support Tickets</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem">Need help? Create a support ticket and we'll respond within 24 hours.</p>
+  </div>
+  <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:14px;padding:20px;margin-bottom:20px">
+    <div style="display:grid;gap:10px">
+      <input type="text" id="ticketSubject" placeholder="Subject (e.g. Order issue, Product question)" style="padding:12px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);font-size:0.875rem">
+      <textarea id="ticketMessage" placeholder="Describe your issue in detail..." rows="4" style="padding:12px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);font-size:0.875rem;resize:vertical;font-family:inherit"></textarea>
+      <button onclick="submitTicket()" style="padding:12px;background:linear-gradient(135deg,#6366f1,#a78bfa);color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer">Submit Ticket</button>
+    </div>
+  </div>
+  <div id="ticketsList">Loading your tickets...</div>
+</div>
+
 <!-- COMPARE BAR -->
 <div class="compare-bar" id="compareBar">
   <span style="font-size:0.82rem;font-weight:700;color:var(--accent);white-space:nowrap">⚖️ Compare:</span>
@@ -1395,6 +1464,11 @@ if (tab === "orders") loadOrders();
   if (tab === "analytics") loadCustomerAnalytics();
   if (tab === "referral") loadReferral();
   if (tab === "bundles") loadBundles();
+  if (tab === "checkin") loadCheckin();
+  if (tab === "achievements") loadCustomerAchievements();
+  if (tab === "subscriptions") loadSubscriptions();
+  if (tab === "savings") loadSavings();
+  if (tab === "support") loadSupport();
 }
 
 /* ===== CART TABS ===== */
@@ -2692,10 +2766,164 @@ setInterval(async () => {
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
+
+/* ============================================
+   BATCH 6 CUSTOMER JS
+============================================ */
+
+/* DAILY CHECK-IN */
+async function loadCheckin() {
+  const status = document.getElementById("checkinStatus");
+  const streak = document.getElementById("streakCount");
+  const btn = document.getElementById("checkinBtn");
+  if (!status) return;
+  try {
+    const user = JSON.parse(localStorage.getItem("customerUser") || "{}");
+    status.textContent = `Earn 5-20 points per check-in. Streaks multiply your rewards!`;
+    if (user.checkinStreak) streak.textContent = `🔥 ${user.checkinStreak}`;
+  } catch(err) {}
+}
+
+async function doCheckIn() {
+  const btn = document.getElementById("checkinBtn");
+  const status = document.getElementById("checkinStatus");
+  btn.disabled = true; btn.textContent = "⏳ Checking in...";
+  try {
+    const token = localStorage.getItem("customerToken");
+    const res = await fetch("/customer/daily-checkin", { method:"POST", headers:{ "Authorization": token, "Content-Type":"application/json" }, body: JSON.stringify({}) });
+    const data = await res.json();
+    if (data.alreadyDone) {
+      status.innerHTML = '<span style="color:#f59e0b">✅ Already checked in today! Come back tomorrow.</span>';
+      btn.textContent = "✅ Done for Today";
+    } else {
+      status.innerHTML = `<span style="color:#22c55e">🎉 ${data.message}</span>`;
+      document.getElementById("streakCount").textContent = `🔥 ${data.streak}`;
+      btn.textContent = "✅ Checked In!";
+    }
+  } catch(err) {
+    status.textContent = "Please login to check in";
+    btn.disabled = false; btn.textContent = "✅ Check In Today";
+  }
+}
+
+/* CUSTOMER ACHIEVEMENTS */
+async function loadCustomerAchievements() {
+  const el = document.getElementById("customerAchievements");
+  if (!el) return;
+  try {
+    const token = localStorage.getItem("customerToken");
+    const res = await fetch("/customer/achievements", { headers: { "Authorization": token } });
+    const data = await res.json();
+    el.innerHTML = data.badges.map(b => `
+      <div style="background:${b.earned?'rgba(99,102,241,0.1)':'rgba(255,255,255,0.02)'};border:1px solid ${b.earned?'rgba(99,102,241,0.3)':'var(--border-color)'};border-radius:14px;padding:16px;text-align:center;opacity:${b.earned?1:0.5}">
+        <div style="font-size:2.2rem;margin-bottom:8px">${b.icon}</div>
+        <div style="font-weight:700;font-size:0.85rem;margin-bottom:4px">${b.name}</div>
+        <div style="font-size:0.72rem;color:var(--text-muted)">${b.desc}</div>
+        <div style="margin-top:8px;font-size:0.7rem;color:${b.earned?'#22c55e':'var(--text-muted)'}">${b.earned?'✅ Earned':'🔒 Locked'}</div>
+      </div>`).join("");
+  } catch(err) { el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">Please login to see achievements</div>'; }
+}
+
+/* SUBSCRIPTIONS */
+async function loadSubscriptions() {
+  const el = document.getElementById("subscriptionsList");
+  if (!el) return;
+  try {
+    const token = localStorage.getItem("customerToken");
+    const res = await fetch("/customer/subscriptions", { headers: { "Authorization": token } });
+    const data = await res.json();
+    if (!data.subscriptions?.length) {
+      el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">No active subscriptions. Add items to your cart and subscribe for auto-delivery!</div>';
+      return;
+    }
+    el.innerHTML = data.subscriptions.map(s => `
+      <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:16px;margin-bottom:10px;display:flex;align-items:center;gap:14px">
+        <div style="flex:1">
+          <div style="font-weight:700">${s.itemName}</div>
+          <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px">Every ${s.frequencyDays} days · ${s.quantity} units</div>
+          <div style="font-size:0.75rem;color:var(--accent);margin-top:2px">Next: ${new Date(s.nextOrderDate).toLocaleDateString("en-IN")}</div>
+        </div>
+        <button onclick="cancelSubscription('${s._id}')" style="padding:8px 14px;background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.3);border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:600">Cancel</button>
+      </div>`).join("");
+  } catch(err) { el.innerHTML = "Please login to view subscriptions"; }
+}
+
+async function cancelSubscription(id) {
+  if (!confirm("Cancel this subscription?")) return;
+  try {
+    const token = localStorage.getItem("customerToken");
+    await fetch(`/customer/subscribe/${id}`, { method:"DELETE", headers:{ "Authorization": token } });
+    loadSubscriptions();
+  } catch(err) {}
+}
+
+/* SAVINGS DASHBOARD */
+async function loadSavings() {
+  const el = document.getElementById("savingsDashboard");
+  if (!el) return;
+  try {
+    const token = localStorage.getItem("customerToken");
+    const res = await fetch("/customer/savings", { headers: { "Authorization": token } });
+    const d = await res.json();
+    el.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px">
+        ${[["💰 Total Saved","₹"+d.totalSaved,"#22c55e"],["🛒 Total Spent","₹"+d.totalSpent,"#6366f1"],["📦 Total Orders",d.totalOrders,"#a78bfa"],["⭐ Loyalty Points",d.loyaltyPoints,"#f59e0b"]].map(([l,v,c])=>`
+          <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:16px;text-align:center">
+            <div style="font-size:1.4rem;font-weight:800;color:${c}">${v}</div>
+            <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px">${l}</div>
+          </div>`).join("")}
+      </div>
+      <div style="background:rgba(34,197,94,0.05);border:1px solid rgba(34,197,94,0.2);border-radius:12px;padding:16px">
+        <div style="font-weight:700;margin-bottom:8px;color:#22c55e">💡 Your Points Value</div>
+        <div style="font-size:0.875rem;color:var(--text-muted)">Your ${d.loyaltyPoints} points are worth <strong style="color:#22c55e">₹${d.pointsValue}</strong> in store credit. Avg order value: <strong>₹${d.avgOrderValue}</strong></div>
+      </div>`;
+  } catch(err) { el.innerHTML = "Please login to see savings"; }
+}
+
+/* SUPPORT TICKETS */
+async function loadSupport() {
+  const el = document.getElementById("ticketsList");
+  if (!el) return;
+  try {
+    const token = localStorage.getItem("customerToken");
+    const res = await fetch("/customer/tickets", { headers: { "Authorization": token } });
+    const data = await res.json();
+    if (!data.tickets?.length) { el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted)">No tickets yet. Use the form above to get help!</div>'; return; }
+    const statusColors = { open:"#f59e0b", resolved:"#22c55e", closed:"#6b7280" };
+    el.innerHTML = data.tickets.map(t => `
+      <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:10px;padding:14px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:6px">
+          <span style="font-weight:700;font-size:0.9rem">${t.subject}</span>
+          <span style="padding:2px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;background:${statusColors[t.status]}20;color:${statusColors[t.status]}">${t.status.toUpperCase()}</span>
+        </div>
+        <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:6px">${t.message.substring(0,100)}...</div>
+        ${t.adminReply?`<div style="background:rgba(34,197,94,0.05);border-left:3px solid #22c55e;padding:8px 12px;border-radius:0 6px 6px 0;font-size:0.82rem;margin-top:8px"><strong style="color:#22c55e">Admin Reply:</strong> ${t.adminReply}</div>`:""}
+        <div style="font-size:0.72rem;color:var(--text-muted);margin-top:6px">${new Date(t.createdAt).toLocaleDateString("en-IN")}</div>
+      </div>`).join("");
+  } catch(err) { el.innerHTML = "Please login to see tickets"; }
+}
+
+async function submitTicket() {
+  const subject = document.getElementById("ticketSubject")?.value;
+  const message = document.getElementById("ticketMessage")?.value;
+  const storeId = window.currentStoreId || localStorage.getItem("storeId");
+  if (!subject || !message) { alert("Please fill in subject and message"); return; }
+  try {
+    const token = localStorage.getItem("customerToken");
+    const res = await fetch("/customer/ticket", { method:"POST", headers:{ "Content-Type":"application/json","Authorization":token }, body: JSON.stringify({ subject, message, storeId }) });
+    const data = await res.json();
+    alert(data.message);
+    document.getElementById("ticketSubject").value = "";
+    document.getElementById("ticketMessage").value = "";
+    loadSupport();
+  } catch(err) { alert("Failed to submit ticket. Please try again."); }
+}
+
+  if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js')
       .then(reg => console.log('✅ ShelfSense SW registered:', reg.scope))
       .catch(err => console.log('SW registration failed:', err));
-  });
+  }
 }
 </script>
 </body>
