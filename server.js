@@ -3825,31 +3825,8 @@ app.get("/admin/agent-conflicts", auth("admin"), async (req, res) => {
   }
 });
 
-/* =========================
-   ERROR HANDLERS
-========================= */
-app.use((err, req, res, next) => {
-  console.error("Error:", err.message);
-  res.status(err.status || 500).json({ message: err.message || "Internal server error" });
-});
 
-app.use((req, res) => {
-  res.status(404).json({ message: "Route not found" });
-});
 
-/* =========================
-   START SERVER
-========================= */
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`🚀 ShelfSense AI running at http://localhost:${PORT}`);
-  console.log(`🔒 Security layer active — CSRF, JWT Blacklist, Audit Log, IP Detection`);
-  console.log(`🤖 All 18 AI Agents initialized`);
-  console.log(`💳 Razorpay active`);
-  console.log(`📧 Email alerts active`);
-  console.log(`🔐 Google OAuth active`);
-  console.log(`🏪 Multi-tenant SaaS ready`);
-});
 /* =========================================
    BATCH 3 NEW FEATURES (21-50)
 ========================================= */
@@ -10260,4 +10237,30 @@ app.get("/shelfsense-complete", auth("admin"), (req, res) => {
     advisor:"ShelfSense AI Assistant",
     quote:"The most comprehensive retail AI system ever built by engineering students. 🏆"
   });
+});
+
+/* =========================
+   ERROR HANDLERS
+========================= */
+app.use((err, req, res, next) => {
+  console.error("Error:", err.message);
+  res.status(err.status || 500).json({ message: err.message || "Internal server error" });
+});
+
+app.use((req, res) => {
+  res.status(404).json({ message: "Route not found" });
+});
+
+/* =========================
+   START SERVER
+========================= */
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 ShelfSense AI running at http://localhost:${PORT}`);
+  console.log(`🔒 Security layer active — CSRF, JWT Blacklist, Audit Log, IP Detection`);
+  console.log(`🤖 All 18 AI Agents initialized`);
+  console.log(`💳 Razorpay active`);
+  console.log(`📧 Email alerts active`);
+  console.log(`🔐 Google OAuth active`);
+  console.log(`🏪 Multi-tenant SaaS ready`);
 });
