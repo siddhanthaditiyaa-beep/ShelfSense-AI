@@ -2732,7 +2732,14 @@ if (oauthToken) {
 
 const token = localStorage.getItem("token");
 const role = localStorage.getItem("role");
-if (!token || role !== "admin") window.location.href = "login.html";
+
+// Prevent redirect loop — only redirect once, not repeatedly
+if (!token || role !== "admin") {
+  if (!sessionStorage.getItem("redirecting")) {
+    sessionStorage.setItem("redirecting", "1");
+    window.location.href = "login.html";
+  }
+}
 
 let chart, selectedFile = null, sidebarOpen = true, currentPage = "overview";
 
@@ -2743,10 +2750,12 @@ function getAuthHeaders() {
 }
 
 function safeRedirect() {
-  // Only redirect if not already on login page
-  if (!window.location.href.includes("login.html")) {
-    window.location.href = "login.html";
-  }
+  // Prevent redirect loop — only redirect if not already redirecting
+  if (window.location.href.includes("login.html")) return;
+  if (sessionStorage.getItem("redirecting")) return;
+  sessionStorage.setItem("redirecting", "1");
+  localStorage.clear();
+  window.location.href = "login.html";
 }
 
 /* ===== ALL 15 AGENTS ===== */
@@ -7980,14 +7989,37 @@ document.addEventListener("keydown", e => {
 });
 
 /* ===== INIT ===== */
-loadAdmin();
-loadSidebarUser();
-loadMLUrl();
-load2FAStatus();
-loadNotifications();
-setInterval(loadAdmin, 15000);
-setInterval(loadNotifications, 60000);
-setInterval(() => { if (currentPage === "agents") loadAgentDashboard(); }, 30000);
+// Clear the redirect-prevention flag since we loaded successfully
+sessionStorage.removeItem("redirecting");
+
+// Verify token is present before initializing
+(async function init() {
+  const t = localStorage.getItem("token");
+  if (!t) { safeRedirect(); return; }
+
+  // Quick token check — if 401, redirect once cleanly
+  try {
+    const check = await fetch("/admin-data", { headers: { Authorization: t } });
+    if (check.status === 401) {
+      localStorage.clear();
+      sessionStorage.removeItem("redirecting");
+      window.location.href = "login.html";
+      return;
+    }
+  } catch (e) {
+    // Network error — still try to load, server might just be slow
+  }
+
+  // All good — initialize dashboard
+  loadAdmin();
+  loadSidebarUser();
+  loadMLUrl();
+  load2FAStatus();
+  setTimeout(() => loadNotifications(), 2000);
+  setInterval(loadAdmin, 30000);
+  setInterval(() => { try { loadNotifications(); } catch(e){} }, 60000);
+  setInterval(() => { if (currentPage === "agents") loadAgentDashboard(); }, 30000);
+})();
 </script>
 
 <script>

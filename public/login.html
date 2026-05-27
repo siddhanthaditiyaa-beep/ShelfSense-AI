@@ -549,6 +549,7 @@ let otpTimerInterval = null;
       localStorage.setItem("token", data.token);
       localStorage.setItem("role", "admin");
       localStorage.setItem("storeName", data.storeName || "My Store");
+      sessionStorage.removeItem("redirecting");
       window.location.href = "admin.html"; return;
     }
     const res2 = await fetch("/login", {
