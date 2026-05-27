@@ -418,9 +418,18 @@ async function generateFingerprint() {
     return "fp-" + Math.random().toString(36).substring(2, 18);
   }
 }
+  // Only auto-redirect if token seems valid (not expired)
   const existingToken = localStorage.getItem("token");
   const existingRole = localStorage.getItem("role");
-  if (existingToken && existingRole === "admin") window.location.href = "admin.html";
+  // Don't auto-redirect — let user login fresh to avoid loop
+  // If they have a valid token, admin.html will load fine
+  // If token is expired, this prevents the loop
+  if (existingToken && existingRole === "admin") {
+    // Verify token is still valid before redirecting
+    fetch("/admin-data", { headers: { Authorization: existingToken } })
+      .then(r => { if (r.ok) { sessionStorage.removeItem("redirecting"); window.location.href = "admin.html"; } else { localStorage.clear(); } })
+      .catch(() => {});
+  }
   if (existingToken && existingRole === "superadmin") window.location.href = "superadmin.html";
   if (existingToken && existingRole === "customer") window.location.href = "customer.html";
 
@@ -537,35 +546,51 @@ let otpTimerInterval = null;
     if (!email || !password) { showError("Please enter email and password"); return; }
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span>Logging in...';
+
+    // Safety timeout — never spin forever
+    const timeout = setTimeout(() => {
+      btn.disabled = false;
+      btn.innerHTML = "Login to Dashboard";
+      showError("Login timed out. Please try again.");
+    }, 15000);
+
     try {
-    const fingerprint = await generateFingerprint();
+      let fingerprint = "fp-fallback";
+      try { fingerprint = await generateFingerprint(); } catch(e) {}
+
       const res = await fetch("/login-store", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password, website: document.querySelector('input[name="website"]')?.value || "", fingerprint })
       });
       const data = await res.json();
-  if (res.ok) {
-      if (data.requireOTP) { showOTPScreen(data.email); btn.disabled = false; btn.innerHTML = "Login to Dashboard"; return; }
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("role", "admin");
-      localStorage.setItem("storeName", data.storeName || "My Store");
-      sessionStorage.removeItem("redirecting");
-      window.location.href = "admin.html"; return;
-    }
-    const res2 = await fetch("/login", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: email, password })
-    });
-    const data2 = await res2.json();
-    if (res2.ok && data2.requireOTP) { showOTPScreen(data2.email); btn.disabled = false; btn.innerHTML = "Login to Dashboard"; return; }
-    if (res2.ok && data2.role === "superadmin") {
-      localStorage.setItem("token", data2.token);
-      localStorage.setItem("role", "superadmin");
-      window.location.href = "superadmin.html"; return;
-    }
-    showError(data.message || "Invalid credentials. Please check your email and password.");
+      clearTimeout(timeout);
+
+      if (res.ok) {
+        if (data.requireOTP) { showOTPScreen(data.email); btn.disabled = false; btn.innerHTML = "Login to Dashboard"; return; }
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("role", "admin");
+        localStorage.setItem("storeName", data.storeName || "My Store");
+        sessionStorage.removeItem("redirecting");
+        window.location.href = "admin.html"; return;
+      }
+
+      // Try superadmin login
+      const res2 = await fetch("/login", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: email, password })
+      });
+      const data2 = await res2.json();
+      if (res2.ok && data2.requireOTP) { showOTPScreen(data2.email); btn.disabled = false; btn.innerHTML = "Login to Dashboard"; return; }
+      if (res2.ok && data2.role === "superadmin") {
+        localStorage.setItem("token", data2.token);
+        localStorage.setItem("role", "superadmin");
+        sessionStorage.removeItem("redirecting");
+        window.location.href = "superadmin.html"; return;
+      }
+      showError(data.message || "Invalid credentials. Please check your email and password.");
     } catch (err) {
-      showError("Server error. Make sure the server is running.");
+      clearTimeout(timeout);
+      showError("Connection error. Please check your internet and try again.");
     }
     btn.disabled = false;
     btn.innerHTML = "Login to Dashboard";
