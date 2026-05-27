@@ -690,6 +690,19 @@
 <button class="sidebar-item" data-page="abstract" onclick="showPage('abstract', this)"><span class="sidebar-emoji">📝</span> IEEE Abstract</button>
 <button class="sidebar-item" data-page="themes" onclick="showPage('themes', this)"><span class="sidebar-emoji">🎨</span> Admin Themes</button>
 <button class="sidebar-item" data-page="system-audit" onclick="showPage('system-audit', this)"><span class="sidebar-emoji">🔍</span> System Audit</button>
+<button class="sidebar-item" data-page="staff" onclick="showPage('staff', this)"><span class="sidebar-emoji">👨‍💼</span> Staff</button>
+<button class="sidebar-item" data-page="report-builder" onclick="showPage('report-builder', this)"><span class="sidebar-emoji">📊</span> Report Builder</button>
+<button class="sidebar-item" data-page="traffic-heatmap" onclick="showPage('traffic-heatmap', this)"><span class="sidebar-emoji">🗺️</span> Traffic Heatmap</button>
+<button class="sidebar-item" data-page="deep-links" onclick="showPage('deep-links', this)"><span class="sidebar-emoji">🔗</span> Deep Links & QR</button>
+<button class="sidebar-item" data-page="breach-check" onclick="showPage('breach-check', this)"><span class="sidebar-emoji">🌑</span> Breach Check</button>
+<button class="sidebar-item" data-page="competitor-report" onclick="showPage('competitor-report', this)"><span class="sidebar-emoji">🏁</span> Competitor Report</button>
+<button class="sidebar-item" data-page="review-summary" onclick="showPage('review-summary', this)"><span class="sidebar-emoji">⭐</span> Review Summary</button>
+<button class="sidebar-item" data-page="wishlist-analytics" onclick="showPage('wishlist-analytics', this)"><span class="sidebar-emoji">❤️</span> Wishlist Analytics</button>
+<button class="sidebar-item" data-page="gamification-lb" onclick="showPage('gamification-lb', this)"><span class="sidebar-emoji">🎮</span> Gamification LB</button>
+<button class="sidebar-item" data-page="agent-health" onclick="showPage('agent-health', this)"><span class="sidebar-emoji">💓</span> Agent Health</button>
+<button class="sidebar-item" data-page="data-quality" onclick="showPage('data-quality', this)"><span class="sidebar-emoji">✅</span> Data Quality</button>
+<button class="sidebar-item" data-page="pricing-calendar" onclick="showPage('pricing-calendar', this)"><span class="sidebar-emoji">📅</span> Pricing Calendar</button>
+<button class="sidebar-item" data-page="feature-registry" onclick="showPage('feature-registry', this)"><span class="sidebar-emoji">🏛️</span> Feature Registry</button>
 <button class="sidebar-item" data-page="store-settings" onclick="showPage('store-settings', this)"><span class="sidebar-emoji">⚙️</span> Store Settings</button>
     </div>
     <div class="sidebar-bottom">
@@ -2464,6 +2477,105 @@
 <!-- SYSTEM AUDIT PAGE -->
 <div class="page" id="page-system-audit">
   <div class="card"><h2>🔍 Comprehensive System Audit</h2><p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Full snapshot of every system component's current state.</p><div id="systemAuditData">Loading...</div></div>
+</div>
+
+
+<!-- STAFF PAGE -->
+<div class="page" id="page-staff">
+  <div class="card" style="margin-bottom:16px">
+    <h2>👨‍💼 Staff Performance Tracker</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;margin-bottom:12px">
+      <input type="text" id="staffName" placeholder="Staff name" style="padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary)">
+      <input type="email" id="staffEmail" placeholder="Email" style="padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary)">
+      <select id="staffRole" style="padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary)"><option>Cashier</option><option>Inventory Manager</option><option>Supervisor</option></select>
+      <button class="btn-primary" onclick="addStaff()">Add</button>
+    </div>
+  </div>
+  <div class="card"><div id="staffList">Loading...</div></div>
+</div>
+
+<!-- REPORT BUILDER PAGE -->
+<div class="page" id="page-report-builder">
+  <div class="card">
+    <h2>📊 Custom Report Builder</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:16px">Select metrics and time range to build a custom report.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+      <label style="display:flex;align-items:center;gap:6px;font-size:0.875rem;cursor:pointer"><input type="checkbox" id="metric_revenue" checked> Revenue</label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:0.875rem;cursor:pointer"><input type="checkbox" id="metric_inventory" checked> Inventory</label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:0.875rem;cursor:pointer"><input type="checkbox" id="metric_agents"> Agents</label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:0.875rem;cursor:pointer"><input type="checkbox" id="metric_customers"> Customers</label>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:16px">
+      <select id="reportDays" style="padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary)">
+        <option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="90">Last 90 days</option>
+      </select>
+      <button class="btn-primary" onclick="buildCustomReport()">📊 Build Report</button>
+    </div>
+    <div id="reportResult"></div>
+  </div>
+</div>
+
+<!-- TRAFFIC HEATMAP PAGE -->
+<div class="page" id="page-traffic-heatmap">
+  <div class="card"><h2>🗺️ Store Traffic Heatmap</h2><p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Which zones of your store get the most foot traffic?</p><div id="trafficHeatmapData">Loading...</div></div>
+</div>
+
+<!-- DEEP LINKS PAGE -->
+<div class="page" id="page-deep-links">
+  <div class="card"><h2>🔗 Deep Links & QR Codes</h2><p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Share direct links to your store pages. QR codes for physical use.</p><div id="deepLinksData">Loading...</div></div>
+</div>
+
+<!-- BREACH CHECK PAGE -->
+<div class="page" id="page-breach-check">
+  <div class="card">
+    <h2>🌑 Dark Web Breach Checker</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:16px">Check if admin or customer emails appear in known data breaches via HaveIBeenPwned.</p>
+    <div style="display:flex;gap:10px;margin-bottom:20px">
+      <input type="email" id="breachEmail" placeholder="Email to check..." style="flex:1;padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary)">
+      <button class="btn-primary" onclick="checkBreach()">🔍 Check</button>
+    </div>
+    <div id="breachResult"></div>
+  </div>
+</div>
+
+<!-- COMPETITOR REPORT PAGE -->
+<div class="page" id="page-competitor-report">
+  <div class="card"><h2>🏁 Competitor Analysis Report</h2><p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Full analysis of your pricing vs competitors with recommendations.</p><div id="competitorReportData">Loading...</div></div>
+</div>
+
+<!-- REVIEW SUMMARY PAGE -->
+<div class="page" id="page-review-summary">
+  <div class="card"><h2>⭐ Review & Feedback Summary</h2><p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Aggregated view of all customer feedback across ratings, NPS, and testimonials.</p><div id="reviewSummaryData">Loading...</div></div>
+</div>
+
+<!-- WISHLIST ANALYTICS PAGE -->
+<div class="page" id="page-wishlist-analytics">
+  <div class="card"><h2>❤️ Wishlist Analytics</h2><p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Most wishlisted products and demand signals from out-of-stock items.</p><div id="wishlistAnalyticsData">Loading...</div></div>
+</div>
+
+<!-- GAMIFICATION LEADERBOARD PAGE -->
+<div class="page" id="page-gamification-lb">
+  <div class="card"><h2>🎮 Customer Gamification Leaderboard</h2><p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Top customers ranked by composite engagement score.</p><div id="gamificationLBData">Loading...</div></div>
+</div>
+
+<!-- AGENT HEALTH PAGE -->
+<div class="page" id="page-agent-health">
+  <div class="card"><h2>💓 Agent Health Monitor</h2><p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Are your agents running on schedule? Detect stale or delayed agents.</p><div id="agentHealthData">Loading...</div></div>
+</div>
+
+<!-- DATA QUALITY PAGE -->
+<div class="page" id="page-data-quality">
+  <div class="card"><h2>✅ Data Quality Checker</h2><p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Identify missing fields, invalid prices, and data issues in your product catalogue.</p><div id="dataQualityData">Loading...</div></div>
+</div>
+
+<!-- PRICING CALENDAR PAGE -->
+<div class="page" id="page-pricing-calendar">
+  <div class="card"><h2>📅 Flash Sale Pricing Calendar</h2><p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Track all active, upcoming, and expired flash sales.</p><div id="pricingCalendarData">Loading...</div></div>
+</div>
+
+<!-- FEATURE REGISTRY PAGE -->
+<div class="page" id="page-feature-registry">
+  <div class="card"><h2>🏛️ Feature Registry</h2><p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Complete catalogue of all 290 features in ShelfSense AI.</p><div id="featureRegistryData">Loading...</div></div>
 </div>
 
 <button class="chatbot-fab" id="chatbotFab" onclick="toggleChatbot()">🤖</button>
@@ -7196,6 +7308,330 @@ commandPaletteItems.push(
     }
   });
 })();
+
+
+/* ============================================
+   BATCH 11 ADMIN JS
+============================================ */
+async function loadStaff() {
+  const el = document.getElementById("staffList");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/staff", { headers: getAuthHeaders() });
+    const data = await res.json();
+    if (!data.staff?.length) { el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">No staff added yet.</div>'; return; }
+    el.innerHTML = `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">
+      <thead><tr style="border-bottom:1px solid var(--border-color)">${["Name","Role","Orders Processed","Last Active","Action"].map(h=>`<th style="padding:10px;text-align:left;font-size:0.78rem;color:var(--text-muted)">${h}</th>`).join("")}</tr></thead>
+      <tbody>${data.staff.map(s=>`<tr style="border-bottom:1px solid var(--border-color)">
+        <td style="padding:10px;font-weight:600;font-size:0.875rem">${s.name}</td>
+        <td style="padding:10px;font-size:0.875rem;color:var(--text-muted)">${s.role}</td>
+        <td style="padding:10px;font-size:0.875rem;font-weight:700;color:var(--accent)">${s.ordersProcessed}</td>
+        <td style="padding:10px;font-size:0.875rem;color:var(--text-muted)">${s.lastActive?new Date(s.lastActive).toLocaleDateString("en-IN"):"Never"}</td>
+        <td style="padding:10px"><button onclick="logStaffOrder('${s._id}')" style="padding:5px 12px;background:var(--accent);color:white;border:none;border-radius:6px;cursor:pointer;font-size:0.78rem">+1 Order</button></td>
+      </tr>`).join("")}</tbody>
+    </table></div>`;
+  } catch(err) { document.getElementById("staffList").innerHTML = "Failed"; }
+}
+async function addStaff() {
+  const name = document.getElementById("staffName")?.value;
+  const email = document.getElementById("staffEmail")?.value;
+  const role = document.getElementById("staffRole")?.value;
+  if (!name || !email) { ssToast("Enter name and email","warning"); return; }
+  try {
+    await fetch("/admin/staff", { method:"POST", headers:{ "Content-Type":"application/json",...getAuthHeaders() }, body: JSON.stringify({ name, email, role }) });
+    ssToast("Staff member added","success");
+    loadStaff();
+  } catch(err) { ssToast("Failed","error"); }
+}
+async function logStaffOrder(id) {
+  try {
+    await fetch(`/admin/staff/${id}/log-order`, { method:"POST", headers: getAuthHeaders() });
+    ssToast("Order logged","success");
+    loadStaff();
+  } catch(err){}
+}
+
+async function buildCustomReport() {
+  const metrics = ["revenue","inventory","agents","customers"].filter(m=>document.getElementById("metric_"+m)?.checked);
+  const days = parseInt(document.getElementById("reportDays")?.value)||30;
+  const el = document.getElementById("reportResult");
+  el.innerHTML = '<div style="padding:16px;color:var(--text-muted)">Building report...</div>';
+  try {
+    const res = await fetch("/admin/build-report", { method:"POST", headers:{ "Content-Type":"application/json",...getAuthHeaders() }, body: JSON.stringify({ metrics, dateRange:days }) });
+    const data = await res.json();
+    const r = data.report;
+    let html = `<div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:20px">
+      <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:16px">📊 Custom Report — ${r.meta.dateRange} · Generated ${new Date(r.meta.generatedAt).toLocaleString("en-IN")}</div>`;
+    if (r.revenue) html += `<div style="margin-bottom:14px"><div style="font-weight:700;margin-bottom:8px">💰 Revenue</div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">${[["Total Revenue","₹"+r.revenue.total],["Orders",r.revenue.orders],["Avg Order","₹"+r.revenue.avg]].map(([l,v])=>`<div style="background:var(--bg-tertiary);border-radius:8px;padding:10px;text-align:center"><div style="font-weight:700;color:var(--accent)">${v}</div><div style="font-size:0.72rem;color:var(--text-muted)">${l}</div></div>`).join("")}</div></div>`;
+    if (r.inventory) html += `<div style="margin-bottom:14px"><div style="font-weight:700;margin-bottom:8px">📦 Inventory</div><div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px">${[["Products",r.inventory.total],["OOS",r.inventory.outOfStock],["Low",r.inventory.lowStock],["Value","₹"+r.inventory.totalValue]].map(([l,v])=>`<div style="background:var(--bg-tertiary);border-radius:8px;padding:10px;text-align:center"><div style="font-weight:700;color:var(--accent)">${v}</div><div style="font-size:0.72rem;color:var(--text-muted)">${l}</div></div>`).join("")}</div></div>`;
+    if (r.agents) html += `<div style="margin-bottom:14px"><div style="font-weight:700;margin-bottom:8px">🤖 Agent Activity</div><div style="font-size:0.875rem">Total actions: <strong>${r.agents.total}</strong></div></div>`;
+    if (r.customers) html += `<div><div style="font-weight:700;margin-bottom:8px">👥 Customers</div><div style="font-size:0.875rem">Unique: <strong>${r.customers.unique}</strong> · Orders: <strong>${r.customers.totalOrders}</strong></div></div>`;
+    html += `<div style="margin-top:14px;display:flex;gap:8px"><button onclick="downloadReport()" style="padding:8px 16px;background:var(--accent);color:white;border:none;border-radius:6px;cursor:pointer;font-size:0.82rem">⬇️ Download</button></div>`;
+    html += "</div>";
+    el.innerHTML = html;
+    window._lastReport = data.report;
+  } catch(err) { el.innerHTML = "Failed to build report"; }
+}
+function downloadReport() {
+  if (!window._lastReport) return;
+  const blob = new Blob([JSON.stringify(window._lastReport, null, 2)], { type:"application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href=url; a.download="shelfsense_report.json"; a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function loadTrafficHeatmap() {
+  const el = document.getElementById("trafficHeatmapData");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/traffic-heatmap", { headers: getAuthHeaders() });
+    const data = await res.json();
+    const maxV = Math.max(...data.zones.map(z=>z.visitors));
+    const hotColors = { high:"#ef4444", medium:"#f59e0b", low:"#22c55e" };
+    el.innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
+      ${data.zones.map(z=>`<div style="background:${hotColors[z.hotness]}20;border:2px solid ${hotColors[z.hotness]}40;border-radius:12px;padding:16px;text-align:center">
+        <div style="font-size:1.4rem;font-weight:800;color:${hotColors[z.hotness]}">${z.visitors}</div>
+        <div style="font-weight:700;font-size:0.875rem;margin:4px 0">${z.zone}</div>
+        <div style="height:4px;background:var(--bg-tertiary);border-radius:2px"><div style="height:100%;background:${hotColors[z.hotness]};border-radius:2px;width:${Math.round(z.visitors/maxV*100)}%"></div></div>
+        <div style="font-size:0.7rem;color:var(--text-muted);margin-top:4px;text-transform:capitalize">${z.hotness} traffic</div>
+      </div>`).join("")}
+    </div>
+    <div style="padding:10px;background:rgba(245,158,11,0.05);border-radius:8px;font-size:0.78rem;color:var(--text-muted)">${data.note}</div>`;
+  } catch(err) { document.getElementById("trafficHeatmapData").innerHTML = "Failed"; }
+}
+
+async function loadDeepLinks() {
+  const el = document.getElementById("deepLinksData");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/deep-links", { headers: getAuthHeaders() });
+    const data = await res.json();
+    el.innerHTML = data.links.map(l=>`
+      <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:16px;margin-bottom:10px;display:flex;align-items:center;gap:16px">
+        <img src="${l.qr}" alt="QR" style="width:70px;height:70px;border-radius:8px;background:white;padding:4px">
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:0.9rem;margin-bottom:4px">${l.name}</div>
+          <div style="font-size:0.78rem;color:var(--text-muted);word-break:break-all">${l.url}</div>
+        </div>
+        <button onclick="navigator.clipboard.writeText('${l.url}').then(()=>ssToast('Copied!','success'))" style="padding:8px 12px;background:var(--accent);color:white;border:none;border-radius:6px;cursor:pointer;font-size:0.78rem">Copy</button>
+      </div>`).join("");
+  } catch(err) { document.getElementById("deepLinksData").innerHTML = "Failed"; }
+}
+
+async function checkBreach() {
+  const email = document.getElementById("breachEmail")?.value;
+  if (!email) { ssToast("Enter email","warning"); return; }
+  const el = document.getElementById("breachResult");
+  el.innerHTML = '<div style="padding:16px;color:var(--text-muted)">⏳ Checking...</div>';
+  try {
+    const res = await fetch("/admin/check-breach", { method:"POST", headers:{ "Content-Type":"application/json",...getAuthHeaders() }, body: JSON.stringify({ email }) });
+    const data = await res.json();
+    el.innerHTML = `<div style="background:${data.breached?'rgba(239,68,68,0.1)':'rgba(34,197,94,0.1)'};border:1px solid ${data.breached?'rgba(239,68,68,0.3)':'rgba(34,197,94,0.3)'};border-radius:12px;padding:20px">
+      <div style="font-size:1.1rem;font-weight:700;color:${data.breached?'#ef4444':'#22c55e'};margin-bottom:8px">${data.breached?'⚠️ BREACH FOUND':'✅ No Breach Found'}</div>
+      <div style="font-size:0.875rem;color:var(--text-muted)">${data.message}</div>
+      <div style="font-size:0.78rem;color:var(--text-muted);margin-top:8px">Checked: ${data.email||email}</div>
+      <div style="font-size:0.72rem;color:var(--text-muted);margin-top:4px">Powered by HaveIBeenPwned API (k-anonymity — email never sent, only hash prefix)</div>
+    </div>`;
+  } catch(err) { el.innerHTML = "Check failed"; }
+}
+
+async function loadCompetitorReport() {
+  const el = document.getElementById("competitorReportData");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/competitor-report", { headers: getAuthHeaders() });
+    const data = await res.json();
+    if (!data.analysis?.length) { el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">No competitor prices tracked yet. Add them in Competitor Prices section.</div>'; return; }
+    el.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px">
+      ${[["✅ Competitive",data.summary.competitive],["🔴 Overpriced",data.summary.overpriced],["🟢 Underpriced",data.summary.underpriced]].map(([l,v])=>`<div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:10px;padding:14px;text-align:center"><div style="font-size:1.6rem;font-weight:800;color:var(--accent)">${v}</div><div style="font-size:0.78rem;color:var(--text-muted)">${l}</div></div>`).join("")}
+    </div>
+    ${data.analysis.map(a=>`<div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:10px;padding:14px;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:6px">
+        <span style="font-weight:700">${a.product}</span>
+        <span style="font-size:0.78rem;color:var(--text-muted)">${a.competitor}</span>
+      </div>
+      <div style="display:flex;gap:16px;font-size:0.82rem;margin-bottom:6px">
+        <span>Our: <strong>₹${a.ourPrice}</strong></span><span>Theirs: <strong>₹${a.theirPrice}</strong></span><span>Diff: <strong>${a.difference}</strong></span>
+      </div>
+      <div style="font-size:0.82rem">${a.recommendation}</div>
+    </div>`).join("")}`;
+  } catch(err) { document.getElementById("competitorReportData").innerHTML = "Failed"; }
+}
+
+async function loadReviewSummary() {
+  const el = document.getElementById("reviewSummaryData");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/review-summary", { headers: getAuthHeaders() });
+    const d = await res.json();
+    el.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:20px">
+      ${[["⭐ Avg Rating",d.avgRating||"N/A"],["📣 NPS Score",d.avgNPS!==null?d.avgNPS:"N/A"],["📝 Total Ratings",d.totalRatings],["💬 Testimonials",d.totalTestimonials]].map(([l,v])=>`<div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:10px;padding:14px;text-align:center"><div style="font-size:1.4rem;font-weight:800;color:var(--accent)">${v}</div><div style="font-size:0.72rem;color:var(--text-muted);margin-top:3px">${l}</div></div>`).join("")}
+    </div>
+    <h3 style="font-size:0.9rem;margin-bottom:10px">Rating Distribution</h3>
+    ${d.distribution.map(s=>`<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+      <span style="font-size:0.82rem;width:30px">${"⭐".repeat(s.star)}</span>
+      <div style="flex:1;height:8px;background:var(--bg-tertiary);border-radius:4px;overflow:hidden"><div style="height:100%;background:linear-gradient(90deg,#f59e0b,#fbbf24);border-radius:4px;width:${s.pct}%"></div></div>
+      <span style="font-size:0.78rem;color:var(--text-muted);width:50px">${s.count} (${s.pct}%)</span>
+    </div>`).join("")}`;
+  } catch(err) { document.getElementById("reviewSummaryData").innerHTML = "Failed"; }
+}
+
+async function loadWishlistAnalytics() {
+  const el = document.getElementById("wishlistAnalyticsData");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/wishlist-analytics", { headers: getAuthHeaders() });
+    const data = await res.json();
+    el.innerHTML = `<div style="margin-bottom:20px"><h3 style="font-size:0.9rem;margin-bottom:10px">🔥 Most Wishlisted Products</h3>
+    ${data.topWishlisted.map((w,i)=>`<div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--bg-secondary);border-radius:8px;margin-bottom:6px">
+      <span style="font-weight:700;color:var(--accent);width:24px">${i+1}</span>
+      <span style="flex:1;font-size:0.875rem">${w.name}</span>
+      <span style="padding:3px 12px;border-radius:20px;font-size:0.78rem;font-weight:700;background:rgba(99,102,241,0.1);color:var(--accent)">${w.wishlistCount} wants</span>
+    </div>`).join("")}
+    </div>
+    ${data.demandSignals.length?`<div><h3 style="font-size:0.9rem;margin-bottom:10px">📊 Demand Signals (Out of Stock)</h3>
+    ${data.demandSignals.map(d=>`<div style="display:flex;align-items:center;gap:12px;padding:10px;background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.2);border-radius:8px;margin-bottom:6px">
+      <span style="flex:1;font-size:0.875rem;font-weight:600">${d.name}</span>
+      <span style="font-size:0.78rem;color:#ef4444">${d.wishlistDemand} waiting</span>
+      <span style="padding:2px 8px;border-radius:20px;font-size:0.72rem;font-weight:700;background:rgba(239,68,68,0.1);color:#ef4444">${d.urgency.toUpperCase()}</span>
+    </div>`).join("")}</div>`:""}`;
+  } catch(err) { document.getElementById("wishlistAnalyticsData").innerHTML = "Failed"; }
+}
+
+async function loadGamificationLB() {
+  const el = document.getElementById("gamificationLBData");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/gamification-leaderboard", { headers: getAuthHeaders() });
+    const data = await res.json();
+    if (!data.leaderboard?.length) { el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">No customer data yet.</div>'; return; }
+    el.innerHTML = data.leaderboard.map(c=>`
+      <div style="display:flex;align-items:center;gap:14px;padding:12px;background:${c.rank<=3?'rgba(99,102,241,0.08)':'var(--bg-secondary)'};border:1px solid ${c.rank<=3?'rgba(99,102,241,0.3)':'var(--border-color)'};border-radius:10px;margin-bottom:8px">
+        <span style="font-size:1.4rem">${c.badge}</span>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:0.9rem">${c.name}</div>
+          <div style="font-size:0.72rem;color:var(--text-muted)">${c.orders} orders · 🔥${c.streak} streak · ${c.tier}</div>
+        </div>
+        <div style="text-align:right"><div style="font-size:1.1rem;font-weight:800;color:var(--accent)">${c.score}</div><div style="font-size:0.7rem;color:var(--text-muted)">points</div></div>
+      </div>`).join("");
+  } catch(err) { document.getElementById("gamificationLBData").innerHTML = "Failed"; }
+}
+
+async function loadAgentHealth() {
+  const el = document.getElementById("agentHealthData");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/agent-health", { headers: getAuthHeaders() });
+    const data = await res.json();
+    const statusColors = { healthy:"#22c55e", delayed:"#f59e0b", stale:"#ef4444", paused:"#6b7280", no_data:"#6366f1" };
+    el.innerHTML = `<div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap">
+      <div style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:8px;padding:12px 16px;text-align:center"><div style="font-weight:800;color:#22c55e">${data.healthy}</div><div style="font-size:0.72rem;color:var(--text-muted)">Healthy</div></div>
+      <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:8px;padding:12px 16px;text-align:center"><div style="font-weight:800;color:var(--accent)">${data.total}</div><div style="font-size:0.72rem;color:var(--text-muted)">Total</div></div>
+    </div>
+    ${data.agents.map(a=>`<div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--bg-secondary);border-left:3px solid ${statusColors[a.status]||'#6b7280'};border-radius:0 8px 8px 0;margin-bottom:6px">
+      <div style="width:8px;height:8px;border-radius:50%;background:${statusColors[a.status]||'#6b7280'};flex-shrink:0"></div>
+      <div style="flex:1"><div style="font-size:0.875rem;font-weight:600">${a.name}</div><div style="font-size:0.72rem;color:var(--text-muted)">${a.lastRun?new Date(a.lastRun).toLocaleString("en-IN"):"No data"}</div></div>
+      <span style="padding:2px 10px;border-radius:20px;font-size:0.7rem;font-weight:700;background:${statusColors[a.status]}20;color:${statusColors[a.status]}">${a.status.replace(/_/g,' ').toUpperCase()}</span>
+    </div>`).join("")}`;
+  } catch(err) { document.getElementById("agentHealthData").innerHTML = "Failed"; }
+}
+
+async function loadDataQuality() {
+  const el = document.getElementById("dataQualityData");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/data-quality", { headers: getAuthHeaders() });
+    const data = await res.json();
+    const sevColors = { high:"#ef4444", medium:"#f59e0b", low:"#22c55e" };
+    el.innerHTML = `<div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:3rem;font-weight:900;color:${data.score>=90?'#22c55e':data.score>=75?'#6366f1':data.score>=60?'#f59e0b':'#ef4444'}">${data.score}%</div>
+      <div style="font-weight:700">Grade ${data.grade} — Data Quality Score</div>
+      <div style="font-size:0.78rem;color:var(--text-muted)">${data.issueCount} issues across ${data.totalItems} products</div>
+    </div>
+    ${data.issues.length?data.issues.map(i=>`<div style="display:flex;gap:10px;padding:8px 12px;background:var(--bg-secondary);border-left:3px solid ${sevColors[i.severity]};border-radius:0 8px 8px 0;margin-bottom:6px;font-size:0.82rem">
+      <span style="color:${sevColors[i.severity]};flex-shrink:0">${i.severity==='high'?'🔴':i.severity==='medium'?'🟡':'🟢'}</span>
+      <strong>${i.item}:</strong> ${i.issue}
+    </div>`).join(""):'<div style="text-align:center;padding:40px;color:#22c55e">✅ Perfect data quality!</div>'}`;
+  } catch(err) { document.getElementById("dataQualityData").innerHTML = "Failed"; }
+}
+
+async function loadPricingCalendar() {
+  const el = document.getElementById("pricingCalendarData");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/pricing-calendar", { headers: getAuthHeaders() });
+    const data = await res.json();
+    el.innerHTML = `<div style="margin-bottom:20px">
+      <div style="font-weight:700;font-size:0.9rem;margin-bottom:10px">🔴 Active Sales (${data.totalActive})</div>
+      ${data.active.map(s=>`<div style="display:flex;align-items:center;gap:12px;padding:10px;background:rgba(34,197,94,0.05);border:1px solid rgba(34,197,94,0.2);border-radius:8px;margin-bottom:6px">
+        <div style="flex:1"><div style="font-weight:600;font-size:0.875rem">${s.name}</div><div style="font-size:0.75rem;color:var(--text-muted)">₹${s.originalPrice} → <strong style="color:#22c55e">₹${s.salePrice}</strong> · Ends in ${s.hoursLeft}h</div></div>
+        <span style="font-size:0.78rem;color:#22c55e;font-weight:700">LIVE</span>
+      </div>`).join("") || '<div style="color:var(--text-muted);font-size:0.875rem">No active flash sales</div>'}
+    </div>
+    <div>
+      <div style="font-weight:700;font-size:0.9rem;margin-bottom:10px">✅ Expired Sales (${data.expired.length})</div>
+      ${data.expired.slice(0,5).map(s=>`<div style="padding:8px;background:var(--bg-secondary);border-radius:8px;margin-bottom:4px;font-size:0.82rem;color:var(--text-muted)">${s.name} — ended ${new Date(s.endedAt).toLocaleDateString("en-IN")}</div>`).join("") || '<div style="color:var(--text-muted);font-size:0.875rem">No expired sales</div>'}
+    </div>`;
+  } catch(err) { document.getElementById("pricingCalendarData").innerHTML = "Failed"; }
+}
+
+async function loadFeatureRegistry() {
+  const el = document.getElementById("featureRegistryData");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/feature-registry", { headers: getAuthHeaders() });
+    const data = await res.json();
+    el.innerHTML = `
+      <div style="text-align:center;background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(167,139,250,0.05));border:1px solid rgba(99,102,241,0.3);border-radius:16px;padding:24px;margin-bottom:24px">
+        <div style="font-size:4rem;font-weight:900;background:linear-gradient(135deg,#6366f1,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent">${data.total}</div>
+        <div style="font-weight:700;font-size:1.1rem">Total Features Built</div>
+        <div style="font-size:0.82rem;color:var(--text-muted);margin-top:4px">${data.batches} batches · IEEE-ready</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:20px">
+        ${Object.entries(data.categories).map(([cat,count])=>`<div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:10px;padding:12px;text-align:center"><div style="font-weight:800;font-size:1.2rem;color:var(--accent)">${count}</div><div style="font-size:0.75rem;color:var(--text-muted);margin-top:3px">${cat}</div></div>`).join("")}
+      </div>
+      <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:16px;margin-bottom:16px">
+        <div style="font-weight:700;margin-bottom:10px">🏆 Key Highlights</div>
+        ${data.highlights.map(h=>`<div style="font-size:0.875rem;padding:4px 0;border-bottom:1px solid var(--border-color)">✅ ${h}</div>`).join("")}
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        ${data.readyFor.map(r=>`<span style="padding:6px 14px;border-radius:20px;font-size:0.8rem;font-weight:700;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);color:#22c55e">✅ ${r}</span>`).join("")}
+      </div>`;
+  } catch(err) { document.getElementById("featureRegistryData").innerHTML = "Failed"; }
+}
+
+/* EXTEND PAGE LOADERS */
+Object.assign(pageLoaders, {
+  "staff": loadStaff,
+  "report-builder": () => {},
+  "traffic-heatmap": loadTrafficHeatmap,
+  "deep-links": loadDeepLinks,
+  "breach-check": () => {},
+  "competitor-report": loadCompetitorReport,
+  "review-summary": loadReviewSummary,
+  "wishlist-analytics": loadWishlistAnalytics,
+  "gamification-lb": loadGamificationLB,
+  "agent-health": loadAgentHealth,
+  "data-quality": loadDataQuality,
+  "pricing-calendar": loadPricingCalendar,
+  "feature-registry": loadFeatureRegistry
+});
+
+commandPaletteItems.push(
+  { label:"👨‍💼 Staff Tracker", action:()=>showPage("staff") },
+  { label:"📊 Report Builder", action:()=>showPage("report-builder") },
+  { label:"🗺️ Traffic Heatmap", action:()=>showPage("traffic-heatmap") },
+  { label:"🔗 Deep Links & QR", action:()=>showPage("deep-links") },
+  { label:"🌑 Breach Check", action:()=>showPage("breach-check") },
+  { label:"🏁 Competitor Report", action:()=>showPage("competitor-report") },
+  { label:"⭐ Review Summary", action:()=>showPage("review-summary") },
+  { label:"❤️ Wishlist Analytics", action:()=>showPage("wishlist-analytics") },
+  { label:"🎮 Gamification LB", action:()=>showPage("gamification-lb") },
+  { label:"💓 Agent Health", action:()=>showPage("agent-health") },
+  { label:"✅ Data Quality", action:()=>showPage("data-quality") },
+  { label:"📅 Pricing Calendar", action:()=>showPage("pricing-calendar") },
+  { label:"🏛️ Feature Registry", action:()=>showPage("feature-registry") }
+);
 
 /* ===== INIT ===== */
 loadAdmin();
