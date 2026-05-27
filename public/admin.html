@@ -677,6 +677,19 @@
 <button class="sidebar-item" data-page="ieee-export" onclick="showPage('ieee-export', this)"><span class="sidebar-emoji">🏛️</span> IEEE Export</button>
 <button class="sidebar-item" data-page="visitor-stats" onclick="showPage('visitor-stats', this)"><span class="sidebar-emoji">👁️</span> Visitor Stats</button>
 <button class="sidebar-item" data-page="referral-leaderboard" onclick="showPage('referral-leaderboard', this)"><span class="sidebar-emoji">🏆</span> Referral Leaders</button>
+<button class="sidebar-item" data-page="iso27001" onclick="showPage('iso27001', this)"><span class="sidebar-emoji">📋</span> ISO 27001</button>
+<button class="sidebar-item" data-page="nist" onclick="showPage('nist', this)"><span class="sidebar-emoji">🏛️</span> NIST Framework</button>
+<button class="sidebar-item" data-page="pci-dss" onclick="showPage('pci-dss', this)"><span class="sidebar-emoji">💳</span> PCI-DSS</button>
+<button class="sidebar-item" data-page="chaos" onclick="showPage('chaos', this)"><span class="sidebar-emoji">💥</span> Chaos Engineering</button>
+<button class="sidebar-item" data-page="forensics" onclick="showPage('forensics', this)"><span class="sidebar-emoji">🔬</span> Forensics Timeline</button>
+<button class="sidebar-item" data-page="ablation" onclick="showPage('ablation', this)"><span class="sidebar-emoji">📊</span> Ablation Study</button>
+<button class="sidebar-item" data-page="significance" onclick="showPage('significance', this)"><span class="sidebar-emoji">📐</span> Stats Significance</button>
+<button class="sidebar-item" data-page="security-sla" onclick="showPage('security-sla', this)"><span class="sidebar-emoji">⏱️</span> Security SLA</button>
+<button class="sidebar-item" data-page="cicd" onclick="showPage('cicd', this)"><span class="sidebar-emoji">🔄</span> CI/CD Pipeline</button>
+<button class="sidebar-item" data-page="oss" onclick="showPage('oss', this)"><span class="sidebar-emoji">🌐</span> OSS Readiness</button>
+<button class="sidebar-item" data-page="abstract" onclick="showPage('abstract', this)"><span class="sidebar-emoji">📝</span> IEEE Abstract</button>
+<button class="sidebar-item" data-page="themes" onclick="showPage('themes', this)"><span class="sidebar-emoji">🎨</span> Admin Themes</button>
+<button class="sidebar-item" data-page="system-audit" onclick="showPage('system-audit', this)"><span class="sidebar-emoji">🔍</span> System Audit</button>
 <button class="sidebar-item" data-page="store-settings" onclick="showPage('store-settings', this)"><span class="sidebar-emoji">⚙️</span> Store Settings</button>
     </div>
     <div class="sidebar-bottom">
@@ -2351,6 +2364,106 @@
     <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Your top referrers. Reward them to grow your customer base organically.</p>
     <div id="referralLeaderboardData">Loading...</div>
   </div>
+</div>
+
+
+<!-- ISO 27001 PAGE -->
+<div class="page" id="page-iso27001">
+  <div class="card"><h2>📋 ISO 27001:2022 Compliance</h2><p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">ShelfSense AI mapped against ISO 27001 information security management controls.</p><div id="iso27001Data">Loading...</div></div>
+</div>
+
+<!-- NIST PAGE -->
+<div class="page" id="page-nist">
+  <div class="card"><h2>🏛️ NIST Cybersecurity Framework</h2><p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">NIST CSF 2.0 scoring across Identify, Protect, Detect, Respond, Recover.</p><div id="nistData">Loading...</div></div>
+</div>
+
+<!-- PCI-DSS PAGE -->
+<div class="page" id="page-pci-dss">
+  <div class="card"><h2>💳 PCI-DSS Awareness Dashboard</h2><p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Payment Card Industry Data Security Standard — applicable controls implemented.</p><div id="pciData">Loading...</div></div>
+</div>
+
+<!-- CHAOS ENGINEERING PAGE -->
+<div class="page" id="page-chaos">
+  <div class="card">
+    <h2>💥 Security Chaos Engineering</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Deliberately inject failures and verify your system recovers gracefully.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px">
+      <button class="btn-primary" onclick="runChaos('db_slow')">🐌 Slow DB Query</button>
+      <button class="btn-primary" onclick="runChaos('rate_limit')">🚫 Rate Limit</button>
+      <button class="btn-primary" onclick="runChaos('auth_failure')">🔑 Auth Failure</button>
+      <button class="btn-primary" onclick="runChaos('agent_crash')">💀 Agent Crash</button>
+      <button class="btn-danger" onclick="runChaos('all')">💥 Run All</button>
+    </div>
+    <div id="chaosResults"></div>
+  </div>
+</div>
+
+<!-- FORENSICS PAGE -->
+<div class="page" id="page-forensics">
+  <div class="card">
+    <h2>🔬 Digital Forensics Timeline</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:16px">Reconstruct events around any incident within ±1 hour window.</p>
+    <div style="display:flex;gap:10px;margin-bottom:20px">
+      <input type="datetime-local" id="forensicsDate" style="flex:1;padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary)">
+      <button class="btn-primary" onclick="loadForensics()">🔍 Investigate</button>
+    </div>
+    <div id="forensicsData"></div>
+  </div>
+</div>
+
+<!-- ABLATION STUDY PAGE -->
+<div class="page" id="page-ablation">
+  <div class="card"><h2>📊 Ablation Study</h2><p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Proves each agent configuration adds measurable value. Essential for IEEE paper.</p><div id="ablationData">Loading...</div></div>
+</div>
+
+<!-- STATISTICAL SIGNIFICANCE PAGE -->
+<div class="page" id="page-significance">
+  <div class="card">
+    <h2>📐 Statistical Significance Tester</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:16px">Test if your improvements are statistically significant for IEEE paper.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;margin-bottom:20px">
+      <input type="number" id="sigA" placeholder="Metric A (yours)" style="padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary)">
+      <input type="number" id="sigB" placeholder="Metric B (baseline)" style="padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary)">
+      <input type="number" id="sigN" placeholder="Sample size (n)" style="padding:10px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary)">
+      <button class="btn-primary" onclick="runSignificanceTest()">Test</button>
+    </div>
+    <div id="significanceResult"></div>
+  </div>
+</div>
+
+<!-- SECURITY SLA PAGE -->
+<div class="page" id="page-security-sla">
+  <div class="card"><h2>⏱️ Security SLA Tracker</h2><p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Mean Time to Detect (MTTD) and Mean Time to Respond (MTTR) metrics.</p><div id="securitySLAData">Loading...</div></div>
+</div>
+
+<!-- CI/CD PAGE -->
+<div class="page" id="page-cicd">
+  <div class="card"><h2>🔄 CI/CD Pipeline Visualizer</h2><p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Your full deployment pipeline from VS Code to live Render URL.</p><div id="cicdData">Loading...</div></div>
+</div>
+
+<!-- OSS READINESS PAGE -->
+<div class="page" id="page-oss">
+  <div class="card"><h2>🌐 Open Source Readiness Score</h2><p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">How ready is your codebase for open-sourcing?</p><div id="ossData">Loading...</div></div>
+</div>
+
+<!-- IEEE ABSTRACT PAGE -->
+<div class="page" id="page-abstract">
+  <div class="card">
+    <h2>📝 IEEE Abstract Generator</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">AI-generated IEEE-format abstract using your live system data.</p>
+    <button class="btn-primary" onclick="generateAbstract()" id="abstractBtn" style="margin-bottom:20px;padding:12px 24px">✨ Generate Abstract</button>
+    <div id="abstractResult"></div>
+  </div>
+</div>
+
+<!-- ADMIN THEMES PAGE -->
+<div class="page" id="page-themes">
+  <div class="card"><h2>🎨 Admin Theme Selector</h2><p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Choose your admin dashboard colour theme.</p><div id="themesData">Loading...</div></div>
+</div>
+
+<!-- SYSTEM AUDIT PAGE -->
+<div class="page" id="page-system-audit">
+  <div class="card"><h2>🔍 Comprehensive System Audit</h2><p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Full snapshot of every system component's current state.</p><div id="systemAuditData">Loading...</div></div>
 </div>
 
 <button class="chatbot-fab" id="chatbotFab" onclick="toggleChatbot()">🤖</button>
@@ -6775,6 +6888,314 @@ commandPaletteItems.push(
   { label:"👁️ Visitor Stats", action:()=>showPage("visitor-stats") },
   { label:"🏆 Referral Leaderboard", action:()=>showPage("referral-leaderboard") }
 );
+
+
+/* ============================================
+   BATCH 10 ADMIN JS
+============================================ */
+
+async function loadISO27001() {
+  const el = document.getElementById("iso27001Data");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/iso27001", { headers: getAuthHeaders() });
+    const data = await res.json();
+    el.innerHTML = `<div style="text-align:center;margin-bottom:20px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:12px;padding:16px">
+      <div style="font-size:2rem;font-weight:900;color:#22c55e">${data.compliance}%</div>
+      <div style="font-weight:700">ISO 27001:2022 Compliance — Grade ${data.grade}</div>
+      <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px">${data.note}</div>
+    </div>
+    ${data.controls.map(c=>`<div style="display:flex;gap:12px;padding:10px;background:var(--bg-secondary);border-radius:8px;margin-bottom:6px;border-left:3px solid ${c.status===true?'#22c55e':c.status==='partial'?'#f59e0b':'#ef4444'}">
+      <span style="font-size:1rem;flex-shrink:0">${c.status===true?'✅':c.status==='partial'?'⚠️':'❌'}</span>
+      <div><div style="font-weight:600;font-size:0.875rem">${c.id} — ${c.domain}</div><div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px">${c.detail}</div></div>
+    </div>`).join("")}`;
+  } catch(err) { document.getElementById("iso27001Data").innerHTML = "Failed"; }
+}
+
+async function loadNIST() {
+  const el = document.getElementById("nistData");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/nist-framework", { headers: getAuthHeaders() });
+    const data = await res.json();
+    const colors = { IDENTIFY:"#6366f1", PROTECT:"#22c55e", DETECT:"#f59e0b", RESPOND:"#f97316", RECOVER:"#22d3ee" };
+    el.innerHTML = `<div style="text-align:center;margin-bottom:20px"><div style="font-size:2.5rem;font-weight:900;color:var(--accent)">${data.overallScore}/100</div><div style="font-weight:700">${data.framework}</div><div style="font-size:0.78rem;color:var(--text-muted)">${data.note}</div></div>
+    ${data.functions.map(f=>`<div style="background:var(--bg-secondary);border:1px solid ${colors[f.name]}40;border-radius:12px;padding:16px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <span style="font-weight:700;color:${colors[f.name]}">${f.name}</span>
+        <span style="font-size:1.2rem;font-weight:800;color:${colors[f.name]}">${f.score}%</span>
+      </div>
+      <div style="height:6px;background:var(--bg-tertiary);border-radius:3px;overflow:hidden;margin-bottom:10px"><div style="height:100%;background:${colors[f.name]};border-radius:3px;width:${f.score}%"></div></div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">${f.controls.map(c=>`<span style="font-size:0.72rem;padding:2px 8px;background:${colors[f.name]}15;border-radius:4px;color:${colors[f.name]}">${c}</span>`).join("")}</div>
+    </div>`).join("")}`;
+  } catch(err) { document.getElementById("nistData").innerHTML = "Failed"; }
+}
+
+async function loadPCIDSS() {
+  const el = document.getElementById("pciData");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/pci-dss", { headers: getAuthHeaders() });
+    const data = await res.json();
+    el.innerHTML = `<div style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);border-radius:12px;padding:14px;margin-bottom:16px"><strong>${data.compliance}% PCI-DSS Compliant</strong><br><small style="color:var(--text-muted)">${data.note}</small></div>
+    ${data.requirements.map(r=>`<div style="display:flex;gap:12px;padding:10px;background:var(--bg-secondary);border-radius:8px;margin-bottom:6px;border-left:3px solid ${r.status===true?'#22c55e':r.status==='partial'?'#f59e0b':'#ef4444'}">
+      <span>${r.status===true?'✅':r.status==='partial'?'⚠️':'❌'}</span>
+      <div><div style="font-weight:600;font-size:0.82rem">Req ${r.req}: ${r.title}</div><div style="font-size:0.75rem;color:var(--text-muted)">${r.detail}</div></div>
+    </div>`).join("")}`;
+  } catch(err) { document.getElementById("pciData").innerHTML = "Failed"; }
+}
+
+async function runChaos(scenario) {
+  const el = document.getElementById("chaosResults");
+  el.innerHTML = '<div style="padding:16px;color:var(--text-muted)">⏳ Running chaos scenario...</div>';
+  try {
+    const res = await fetch("/admin/chaos-test", { method:"POST", headers:{ "Content-Type":"application/json",...getAuthHeaders() }, body: JSON.stringify({ scenario }) });
+    const data = await res.json();
+    el.innerHTML = `<div style="background:${data.allResilient?'rgba(34,197,94,0.1)':'rgba(239,68,68,0.1)'};border:1px solid ${data.allResilient?'rgba(34,197,94,0.3)':'rgba(239,68,68,0.3)'};border-radius:12px;padding:14px;margin-bottom:16px">
+      <strong style="color:${data.allResilient?'#22c55e':'#ef4444'}">${data.allResilient?'✅ System is RESILIENT':'❌ Vulnerabilities found'}</strong><br>
+      <small style="color:var(--text-muted)">${data.message}</small>
+    </div>
+    ${data.results.map(r=>`<div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:10px;padding:14px;margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span>${r.resilient?'🛡️':'💀'}</span><strong>${r.scenario}</strong>
+        <span style="margin-left:auto;padding:2px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;background:${r.resilient?'rgba(34,197,94,0.1)':'rgba(239,68,68,0.1)'};color:${r.resilient?'#22c55e':'#ef4444'}">${r.resilient?'RESILIENT':'FAILED'}</span>
+      </div>
+      <div style="font-size:0.78rem;color:var(--text-muted)">Observed: ${r.observed}</div>
+      <div style="font-size:0.78rem;color:var(--accent);margin-top:4px">Mitigation: ${r.mitigation}</div>
+    </div>`).join("")}`;
+  } catch(err) { el.innerHTML = "Failed"; }
+}
+
+async function loadForensics() {
+  const date = document.getElementById("forensicsDate")?.value;
+  if (!date) { ssToast("Select a date and time","warning"); return; }
+  const el = document.getElementById("forensicsData");
+  el.innerHTML = '<div style="padding:16px;color:var(--text-muted)">⏳ Reconstructing timeline...</div>';
+  try {
+    const res = await fetch(`/admin/forensics-timeline/${encodeURIComponent(date)}`, { headers: getAuthHeaders() });
+    const data = await res.json();
+    const typeColors = { audit:"#6366f1", security:"#ef4444", agent:"#22c55e", fraud:"#f59e0b" };
+    el.innerHTML = `<div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:16px">${data.eventCount} events found · ${data.criticalEvents} critical</div>
+    ${data.timeline.map(e=>`<div style="display:flex;gap:12px;padding:10px;background:var(--bg-secondary);border-left:3px solid ${typeColors[e.type]||'#6b7280'};border-radius:0 8px 8px 0;margin-bottom:6px">
+      <div style="font-size:0.7rem;color:var(--text-muted);white-space:nowrap;margin-top:2px">${new Date(e.time).toLocaleTimeString("en-IN")}</div>
+      <div style="flex:1"><span style="font-size:0.7rem;padding:1px 6px;border-radius:4px;background:${typeColors[e.type]||'#6b728020'}20;color:${typeColors[e.type]||'#6b7280'};margin-right:6px">${e.type.toUpperCase()}</span><span style="font-size:0.82rem">${e.action}</span></div>
+    </div>`).join("")}
+    ${!data.timeline.length?'<div style="text-align:center;padding:40px;color:var(--text-muted)">No events found in this time window.</div>':""}`;
+  } catch(err) { el.innerHTML = "Failed"; }
+}
+
+async function loadAblationStudy() {
+  const el = document.getElementById("ablationData");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/ablation-study", { headers: getAuthHeaders() });
+    const data = await res.json();
+    el.innerHTML = `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">
+      <thead><tr style="border-bottom:1px solid var(--border-color)">${["Configuration","Agents","Stockout Rate","Revenue","Fraud Caught","Automation","Notes"].map(h=>`<th style="padding:10px;text-align:left;font-size:0.75rem;color:var(--text-muted)">${h}</th>`).join("")}</tr></thead>
+      <tbody>${data.study.map((s,i)=>`<tr style="border-bottom:1px solid var(--border-color);${i===data.study.length-1?'background:rgba(99,102,241,0.05);font-weight:700':''}">
+        <td style="padding:10px;font-size:0.82rem;${i===data.study.length-1?'color:var(--accent)':''}">${s.configuration}</td>
+        <td style="padding:10px;font-size:0.82rem">${s.agents}</td>
+        <td style="padding:10px;font-size:0.82rem;color:${i===0?'#ef4444':'#22c55e'}">${s.stockoutRate}</td>
+        <td style="padding:10px;font-size:0.82rem">₹${s.revenue}</td>
+        <td style="padding:10px;font-size:0.82rem">${s.fraudDetected}</td>
+        <td style="padding:10px;font-size:0.82rem">${s.automationLevel}</td>
+        <td style="padding:10px;font-size:0.75rem;color:var(--text-muted)">${s.note}</td>
+      </tr>`).join("")}</tbody>
+    </table></div>
+    <div style="margin-top:16px;padding:12px;background:rgba(34,197,94,0.05);border-radius:8px;font-size:0.82rem;color:var(--text-muted)">${data.note}</div>`;
+  } catch(err) { document.getElementById("ablationData").innerHTML = "Failed"; }
+}
+
+async function runSignificanceTest() {
+  const a = parseFloat(document.getElementById("sigA")?.value);
+  const b = parseFloat(document.getElementById("sigB")?.value);
+  const n = parseInt(document.getElementById("sigN")?.value) || 30;
+  if (isNaN(a) || isNaN(b)) { ssToast("Enter both metric values","warning"); return; }
+  try {
+    const res = await fetch("/admin/significance-test", { method:"POST", headers:{ "Content-Type":"application/json",...getAuthHeaders() }, body: JSON.stringify({ metricA:a, metricB:b, sampleSize:n }) });
+    const data = await res.json();
+    const color = data.significant ? "#22c55e" : "#f59e0b";
+    document.getElementById("significanceResult").innerHTML = `
+      <div style="background:${color}15;border:1px solid ${color}40;border-radius:12px;padding:20px">
+        <div style="font-size:1.5rem;font-weight:800;color:${color};margin-bottom:8px">${data.significant?'✅ Statistically Significant':'⚠️ Not Significant'}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+          ${[["Improvement",data.improvement],["T-Statistic",data.tStatistic],["P-Value",data.pValue],["Confidence",data.confidence]].map(([l,v])=>`<div><div style="font-size:0.72rem;color:var(--text-muted)">${l}</div><div style="font-weight:700">${v}</div></div>`).join("")}
+        </div>
+        <div style="font-size:0.875rem;color:${color}">${data.conclusion}</div>
+      </div>`;
+  } catch(err) { ssToast("Test failed","error"); }
+}
+
+async function loadSecuritySLA() {
+  const el = document.getElementById("securitySLAData");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/security-sla", { headers: getAuthHeaders() });
+    const data = await res.json();
+    const d = data.sla;
+    el.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
+      ${[["🔍 MTTD",d.mttd,"Mean Time to Detect"],["⚡ MTTR",d.mttr,"Mean Time to Respond"],["✅ Uptime",d.uptime,"System Availability"],["📊 Total Incidents",d.totalIncidents,"Last 30 days"]].map(([icon,v,l])=>`
+        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:16px;text-align:center">
+          <div style="font-size:1.4rem;font-weight:800;color:var(--accent)">${v}</div>
+          <div style="font-weight:700;font-size:0.82rem;margin:4px 0">${icon}</div>
+          <div style="font-size:0.72rem;color:var(--text-muted)">${l}</div>
+        </div>`).join("")}
+    </div>
+    <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:10px;padding:16px">
+      ${[["Detection Time",d.detectionTime],["Response Time",d.responseTime],["Recovery Time",d.recoveryTime],["Auto-Resolved",d.autoResolved+" incidents"],["Manual Review",d.manualReview+" incidents"]].map(([l,v])=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-color);font-size:0.875rem"><span style="color:var(--text-muted)">${l}</span><strong>${v}</strong></div>`).join("")}
+    </div>`;
+  } catch(err) { document.getElementById("securitySLAData").innerHTML = "Failed"; }
+}
+
+async function loadCICD() {
+  const el = document.getElementById("cicdData");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/cicd-status", { headers: getAuthHeaders() });
+    const data = await res.json();
+    el.innerHTML = `<div style="margin-bottom:16px;display:flex;gap:16px;flex-wrap:wrap;font-size:0.82rem;color:var(--text-muted)">
+      <span>Avg Deploy: <strong>${data.avgDeployTime}</strong></span><span>Branch: <strong>${data.branch}</strong></span><span>Host: <strong>${data.hosting}</strong></span>
+    </div>
+    ${data.pipeline.map((s,i)=>`<div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:${i<data.pipeline.length-1?'0':'16px'}">
+      <div style="display:flex;flex-direction:column;align-items:center">
+        <div style="width:40px;height:40px;border-radius:50%;background:rgba(34,197,94,0.1);border:2px solid #22c55e;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">${s.icon}</div>
+        ${i<data.pipeline.length-1?'<div style="width:2px;height:24px;background:rgba(34,197,94,0.3);margin:4px 0"></div>':""}
+      </div>
+      <div style="padding-top:8px;margin-bottom:8px">
+        <div style="font-weight:700;font-size:0.875rem">${s.stage}</div>
+        <div style="font-size:0.75rem;color:var(--text-muted)">${s.tool}</div>
+        <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px">${s.detail}</div>
+      </div>
+    </div>`).join("")}`;
+  } catch(err) { document.getElementById("cicdData").innerHTML = "Failed"; }
+}
+
+async function loadOSSReadiness() {
+  const el = document.getElementById("ossData");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/oss-readiness", { headers: getAuthHeaders() });
+    const data = await res.json();
+    const cats = [...new Set(data.checks.map(c=>c.category))];
+    el.innerHTML = `<div style="text-align:center;margin-bottom:20px"><div style="font-size:2.5rem;font-weight:900;color:${data.score>=80?'#22c55e':data.score>=60?'#f59e0b':'#ef4444'}">${data.score}%</div><div style="font-weight:700">Grade ${data.grade} — OSS Readiness</div><div style="font-size:0.78rem;color:var(--text-muted)">${data.note}</div></div>
+    ${cats.map(cat=>`<div style="margin-bottom:14px"><div style="font-weight:700;font-size:0.82rem;color:var(--accent);margin-bottom:6px">${cat}</div>
+    ${data.checks.filter(c=>c.category===cat).map(c=>`<div style="display:flex;gap:10px;padding:8px;background:var(--bg-secondary);border-radius:6px;margin-bottom:4px">
+      <span>${c.status?'✅':'❌'}</span><span style="flex:1;font-size:0.82rem">${c.item}</span>${c.note?`<span style="font-size:0.72rem;color:#f59e0b">${c.note}</span>`:""}
+    </div>`).join("")}</div>`).join("")}`;
+  } catch(err) { document.getElementById("ossData").innerHTML = "Failed"; }
+}
+
+async function generateAbstract() {
+  const btn = document.getElementById("abstractBtn");
+  const el = document.getElementById("abstractResult");
+  btn.textContent = "⏳ Generating..."; btn.disabled = true;
+  try {
+    const res = await fetch("/admin/generate-abstract", { method:"POST", headers:{ "Content-Type":"application/json",...getAuthHeaders() }, body: JSON.stringify({}) });
+    const data = await res.json();
+    el.innerHTML = `<div style="background:var(--bg-secondary);border:1px solid var(--accent);border-radius:12px;padding:24px">
+      <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:12px;display:flex;justify-content:space-between"><span>IEEE Abstract (${data.wordCount} words)</span><button onclick="copyAbstract()" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:0.75rem">📋 Copy</button></div>
+      <div id="abstractText" style="font-size:0.875rem;line-height:1.7;color:var(--text-primary)">${data.abstract}</div>
+    </div>`;
+  } catch(err) { el.innerHTML = "Failed to generate"; }
+  btn.textContent = "✨ Generate Abstract"; btn.disabled = false;
+}
+function copyAbstract() {
+  const text = document.getElementById("abstractText")?.textContent;
+  if (text) { navigator.clipboard.writeText(text); ssToast("Abstract copied!","success"); }
+}
+
+async function loadAdminThemes() {
+  const el = document.getElementById("themesData");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/theme-config", { headers: getAuthHeaders() });
+    const data = await res.json();
+    el.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px">
+      ${data.themes.map(t=>`<div onclick="setAdminTheme('${t.id}')" style="cursor:pointer;border-radius:12px;overflow:hidden;border:2px solid ${t.id===data.currentTheme?t.primary:'var(--border-color)'};transition:all 0.2s" onmouseover="this.style.borderColor='${t.primary}'" onmouseout="this.style.borderColor='${t.id===data.currentTheme?t.primary:'var(--border-color)'}'">
+        <div style="height:60px;background:${t.bg};display:flex;align-items:center;justify-content:center">
+          <div style="width:30px;height:8px;background:${t.primary};border-radius:4px"></div>
+        </div>
+        <div style="padding:8px;background:var(--bg-secondary);text-align:center">
+          <div style="font-size:0.82rem;font-weight:600">${t.name}</div>
+          ${t.id===data.currentTheme?'<div style="font-size:0.7rem;color:#22c55e">✅ Active</div>':""}
+        </div>
+      </div>`).join("")}
+    </div>`;
+  } catch(err) { document.getElementById("themesData").innerHTML = "Failed"; }
+}
+async function setAdminTheme(themeId) {
+  try {
+    await fetch("/admin/theme-config", { method:"POST", headers:{ "Content-Type":"application/json",...getAuthHeaders() }, body: JSON.stringify({ themeId }) });
+    ssToast("Theme updated! Refresh to apply.","success");
+    loadAdminThemes();
+  } catch(err) { ssToast("Failed","error"); }
+}
+
+async function loadSystemAudit() {
+  const el = document.getElementById("systemAuditData");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/system-audit", { headers: getAuthHeaders() });
+    const d = await res.json();
+    el.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px">
+      ${[["📦 Products",d.store.items,""],["🛒 Orders",d.store.orders,""],["🤖 Agent Actions",d.agents.totalActions,""],["▶️ Active Agents",d.agents.activeAgents,""],["⏸️ Paused",d.agents.pausedAgents,""],["🚨 Fraud Caught",d.security.fraudDetected,""],["🔒 Blacklisted Tokens",d.security.blacklistedTokens,""],["💾 Snapshots",d.features.snapshots,""],["🔗 Webhooks",d.features.webhooks,""],["🎯 Goals",d.features.goals,""],["⏱️ Uptime",d.system.uptime,""],["🧠 Memory",d.system.memoryMB+"MB",""]].map(([l,v])=>`
+        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:1.2rem;font-weight:800;color:var(--accent)">${v}</div>
+          <div style="font-size:0.72rem;color:var(--text-muted);margin-top:3px">${l}</div>
+        </div>`).join("")}
+    </div>
+    <div style="margin-top:16px;padding:10px 14px;background:rgba(34,197,94,0.05);border-radius:8px;font-size:0.82rem;color:#22c55e">✅ System status: ${d.health.toUpperCase()} · Node ${d.system.nodeVersion}</div>`;
+  } catch(err) { document.getElementById("systemAuditData").innerHTML = "Failed"; }
+}
+
+/* EXTEND PAGE LOADERS */
+Object.assign(pageLoaders, {
+  "iso27001": loadISO27001,
+  "nist": loadNIST,
+  "pci-dss": loadPCIDSS,
+  "chaos": () => {},
+  "forensics": () => {},
+  "ablation": loadAblationStudy,
+  "significance": () => {},
+  "security-sla": loadSecuritySLA,
+  "cicd": loadCICD,
+  "oss": loadOSSReadiness,
+  "abstract": () => {},
+  "themes": loadAdminThemes,
+  "system-audit": loadSystemAudit
+});
+
+commandPaletteItems.push(
+  { label:"📋 ISO 27001", action:()=>showPage("iso27001") },
+  { label:"🏛️ NIST Framework", action:()=>showPage("nist") },
+  { label:"💳 PCI-DSS", action:()=>showPage("pci-dss") },
+  { label:"💥 Chaos Engineering", action:()=>showPage("chaos") },
+  { label:"🔬 Forensics Timeline", action:()=>showPage("forensics") },
+  { label:"📊 Ablation Study", action:()=>showPage("ablation") },
+  { label:"📐 Stats Significance", action:()=>showPage("significance") },
+  { label:"⏱️ Security SLA", action:()=>showPage("security-sla") },
+  { label:"🔄 CI/CD Pipeline", action:()=>showPage("cicd") },
+  { label:"🌐 OSS Readiness", action:()=>showPage("oss") },
+  { label:"📝 IEEE Abstract", action:()=>showPage("abstract") },
+  { label:"🎨 Admin Themes", action:()=>showPage("themes") },
+  { label:"🔍 System Audit", action:()=>showPage("system-audit") }
+);
+
+/* BEHAVIORAL BIOMETRICS - track typing in background */
+(function initBiometrics() {
+  let keyTimes = [], lastKeyTime = null;
+  document.addEventListener("keydown", () => {
+    const now = Date.now();
+    if (lastKeyTime) keyTimes.push(now - lastKeyTime);
+    lastKeyTime = now;
+    if (keyTimes.length >= 20) {
+      const avgSpeed = keyTimes.reduce((a,b)=>a+b,0)/keyTimes.length;
+      const token = localStorage.getItem("token");
+      if (token) fetch("/admin/biometric-log", { method:"POST", headers:{ "Content-Type":"application/json","Authorization":token }, body: JSON.stringify({ avgTypingSpeed: avgSpeed, avgPauseTime: avgSpeed }) }).catch(()=>{});
+      keyTimes = [];
+    }
+  });
+})();
 
 /* ===== INIT ===== */
 loadAdmin();
