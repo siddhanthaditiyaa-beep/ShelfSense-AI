@@ -247,7 +247,7 @@
 
     #toast { position: fixed; bottom: 80px; right: 24px; padding: 14px 20px; border-radius: 12px; font-weight: 600; font-size: 0.875rem; display: none; z-index: 9999; max-width: 300px; box-shadow: var(--shadow-lg); }
 
-    .settings-fab { position: fixed; bottom: 24px; right: 24px; width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #a78bfa); color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; box-shadow: var(--shadow-lg); z-index: 1000; transition: all 0.3s; padding: 0; }
+    .settings-fab { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #a78bfa); color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; box-shadow: var(--shadow-lg); transition: all 0.3s; padding: 0; }
     .settings-fab:hover { transform: scale(1.1) rotate(30deg); }
     .settings-panel { position: fixed; bottom: 80px; right: 24px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; width: 220px; box-shadow: var(--shadow-lg); z-index: 1001; display: none; }
     .settings-panel.open { display: block; animation: slideUp 0.2s ease; }
@@ -370,7 +370,6 @@
 .bulk-result-row.skipped { background: var(--warning-bg); color: var(--warning-text); }
 .bulk-result-row.notfound { background: var(--danger-bg); color: var(--danger-text); } 
 .chatbot-fab {
-  position: fixed; bottom: 76px; right: 24px;
   width: 52px; height: 52px; border-radius: 50%;
   background: linear-gradient(135deg, #6366f1, #a78bfa);
   color: white; border: none; cursor: pointer;
@@ -382,7 +381,7 @@
 .chatbot-fab.open { background: linear-gradient(135deg, #ef4444, #f97316); }
 
 .chatbot-panel {
-  position: fixed; bottom: 130px; right: 24px;
+  position: fixed; bottom: 130px; right: 24px; z-index: 9999;
   width: 360px; height: 500px;
   background: var(--bg-secondary); border: 1px solid var(--border-color);
   border-radius: 20px; box-shadow: var(--shadow-lg);
@@ -2779,8 +2778,7 @@
   </div>
 </div>
 
-<!-- SETTINGS FAB -->
-<button class="settings-fab" onclick="toggleSettings()">⚙️</button>
+<!-- SETTINGS PANEL -->
 <div class="settings-panel" id="settingsPanel">
   <h3>🎨 Appearance</h3>
   <button class="theme-option" onclick="setTheme('light')"><span class="theme-option-icon">☀️</span> Light Mode</button>
@@ -3118,7 +3116,6 @@ function selectPlan(plan) {
 /* ===== LOAD ADMIN DATA ===== */
 async function loadAdmin() {
   try {
-    // Add 10 second timeout so it never hangs forever
     const controller = new AbortController();
     const t = setTimeout(() => controller.abort(), 10000);
 
@@ -3130,18 +3127,25 @@ async function loadAdmin() {
 
     if (res.status === 401) { safeRedirect(); return; }
     const data = await res.json();
-    updateStats(data.inventory);
-    renderInventoryTable(data.inventory);
-    renderChart(data.inventory);
-    renderOverviewLogs(data.monitoring, data.forecasting);
-    renderLogs(data.monitoring, "monitoringLogs", "monitoring");
-    renderLogs(data.forecasting, "forecastingLogs", "forecasting");
 
-    // Load performance score independently — don't block main load
-    setTimeout(() => loadPerformanceScore(), 100);
+    const inventory = data.inventory || [];
+    updateStats(inventory);
+    renderInventoryTable(inventory);
+    renderChart(inventory);
+    renderOverviewLogs(data.monitoring || [], data.forecasting || []);
+    renderLogs(data.monitoring || [], "monitoringLogs", "monitoring");
+    renderLogs(data.forecasting || [], "forecastingLogs", "forecasting");
+
+    // Load performance score independently
+    setTimeout(() => loadPerformanceScore(), 200);
   } catch(err) {
     if (err.name === "AbortError") {
       console.warn("loadAdmin timed out — retrying in 5s");
+      // Show zeros instead of dashes so page doesn't look broken
+      ["statTotal","statLow","statOut","statHealthy"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el && el.innerText === "-") el.innerText = "0";
+      });
       setTimeout(loadAdmin, 5000);
     } else {
       console.error("loadAdmin error:", err);
