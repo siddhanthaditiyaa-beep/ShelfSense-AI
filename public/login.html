@@ -545,56 +545,79 @@ let otpTimerInterval = null;
     document.getElementById("countdownMsg").style.display = "none";
     if (!email || !password) { showError("Please enter email and password"); return; }
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span>Logging in...';
 
-    // Safety timeout — never spin forever
-    const timeout = setTimeout(() => {
-      btn.disabled = false;
-      btn.innerHTML = "Login to Dashboard";
-      showError("Login timed out. Please try again.");
-    }, 15000);
+    let fingerprint = "fp-fallback";
+    try { fingerprint = await generateFingerprint(); } catch(e) {}
 
-    try {
-      let fingerprint = "fp-fallback";
-      try { fingerprint = await generateFingerprint(); } catch(e) {}
+    // Smart retry — try up to 4 times with countdown between attempts
+    const maxAttempts = 4;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        // Show live countdown on button
+        if (attempt === 1) {
+          btn.innerHTML = '<span class="spinner"></span>Connecting...';
+        } else {
+          // Countdown before retry
+          for (let sec = 15; sec > 0; sec--) {
+            btn.innerHTML = `<span class="spinner"></span>Waking server... retrying in ${sec}s`;
+            await new Promise(r => setTimeout(r, 1000));
+          }
+          btn.innerHTML = `<span class="spinner"></span>Attempt ${attempt}/${maxAttempts}...`;
+        }
 
-      const res = await fetch("/login-store", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, website: document.querySelector('input[name="website"]')?.value || "", fingerprint })
-      });
-      const data = await res.json();
-      clearTimeout(timeout);
+        const controller = new AbortController();
+        const fetchTimeout = setTimeout(() => controller.abort(), 25000);
 
-      if (res.ok) {
-        if (data.requireOTP) { showOTPScreen(data.email); btn.disabled = false; btn.innerHTML = "Login to Dashboard"; return; }
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("role", "admin");
-        localStorage.setItem("storeName", data.storeName || "My Store");
-        sessionStorage.removeItem("redirecting");
-        window.location.href = "admin.html"; return;
+        const res = await fetch("/login-store", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
+          body: JSON.stringify({ email, password, website: document.querySelector('input[name="website"]')?.value || "", fingerprint })
+        });
+        clearTimeout(fetchTimeout);
+        const data = await res.json();
+
+        if (res.ok) {
+          if (data.requireOTP) { showOTPScreen(data.email); btn.disabled = false; btn.innerHTML = "Login to Dashboard"; return; }
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("role", "admin");
+          localStorage.setItem("storeName", data.storeName || "My Store");
+          sessionStorage.removeItem("redirecting");
+          window.location.href = "admin.html"; return;
+        }
+
+        // Try superadmin
+        const res2 = await fetch("/login", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: email, password })
+        });
+        const data2 = await res2.json();
+        if (res2.ok && data2.requireOTP) { showOTPScreen(data2.email); btn.disabled = false; btn.innerHTML = "Login to Dashboard"; return; }
+        if (res2.ok && data2.role === "superadmin") {
+          localStorage.setItem("token", data2.token);
+          localStorage.setItem("role", "superadmin");
+          sessionStorage.removeItem("redirecting");
+          window.location.href = "superadmin.html"; return;
+        }
+
+        // Wrong credentials — don't retry, show error immediately
+        showError(data.message || "Invalid credentials. Please check your email and password.");
+        btn.disabled = false; btn.innerHTML = "Login to Dashboard"; return;
+
+      } catch (err) {
+        // Network timeout or connection error — retry if attempts remain
+        if (attempt === maxAttempts) {
+          showError("Server is taking too long to respond. Please try again in 1 minute, or use Google login above.");
+        }
+        // else loop will retry with countdown
       }
-
-      // Try superadmin login
-      const res2 = await fetch("/login", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: email, password })
-      });
-      const data2 = await res2.json();
-      if (res2.ok && data2.requireOTP) { showOTPScreen(data2.email); btn.disabled = false; btn.innerHTML = "Login to Dashboard"; return; }
-      if (res2.ok && data2.role === "superadmin") {
-        localStorage.setItem("token", data2.token);
-        localStorage.setItem("role", "superadmin");
-        sessionStorage.removeItem("redirecting");
-        window.location.href = "superadmin.html"; return;
-      }
-      showError(data.message || "Invalid credentials. Please check your email and password.");
-    } catch (err) {
-      clearTimeout(timeout);
-      showError("Connection error. Please check your internet and try again.");
     }
+
     btn.disabled = false;
     btn.innerHTML = "Login to Dashboard";
   }
+
+
 
   /* ===== CUSTOMER LOGIN ===== */
   async function loginCustomer() {
