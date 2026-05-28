@@ -10264,3 +10264,89 @@ app.listen(PORT, "0.0.0.0", () => {
   console.log(`🔐 Google OAuth active`);
   console.log(`🏪 Multi-tenant SaaS ready`);
 });
+/* =========================
+   DEMO STORE SETUP (one-time)
+========================= */
+app.get("/setup-demo-store", async (req, res) => {
+  try {
+    const email = "demo@shelfsense.ai";
+    const existing = await Store.findOne({ ownerEmail: email });
+    if (existing) {
+      // Update existing store with rich data
+      const storeId = existing._id;
+      await seedDemoData(storeId);
+      return res.json({ message: "Demo store refreshed with rich data!", email, password: "demo1234", storeId });
+    }
+    const hashedPassword = await bcrypt.hash("demo1234", 12);
+    const store = await Store.create({
+      name: "ShelfSense Demo Store", ownerName: "Demo Admin",
+      ownerEmail: email, password: hashedPassword, plan: "pro",
+      alertEmail: email, city: "Mumbai", openHour: 9, closeHour: 22
+    });
+    await seedDemoData(store._id);
+    res.json({ message: "Demo store created!", email, password: "demo1234", storeId: store._id });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+async function seedDemoData(storeId) {
+  await Item.deleteMany({ storeId });
+  const now = new Date();
+  const days30 = Array.from({length:30}, () => Math.floor(Math.random()*8+2));
+  await Item.insertMany([
+    { storeId, key:"amul-butter", name:"Amul Butter", stock:8, salesHistory:days30, price:56, costPrice:42, category:"dairy", supplier:"Amul", minStockLevel:5, unit:"pack", rating:4.5, viewCount:142 },
+    { storeId, key:"maggi-noodles", name:"Maggi Noodles", stock:3, salesHistory:[5,6,7,8,6,5,7,8,6,5,7,8,6,5,7,8,6,5,7,8,6,5,7,8,6,5,7,8,6,7], price:14, costPrice:10, category:"food", supplier:"Nestle", minStockLevel:10, unit:"pack", rating:4.8, viewCount:389 },
+    { storeId, key:"coca-cola", name:"Coca-Cola 600ml", stock:24, salesHistory:[8,9,10,8,9,12,14,13,11,10,9,8,9,10,11,12,10,9,8,9,10,11,9,8,10,11,12,10,9,11], price:40, costPrice:28, category:"beverages", supplier:"Coca-Cola", minStockLevel:8, unit:"bottle", rating:4.6, viewCount:256 },
+    { storeId, key:"lays-chips", name:"Lays Chips", stock:0, salesHistory:[6,7,8,9,7,6,8,7,9,8,7,6,8,9,7,6,7,8,9,7,6,8,7,9,8,7,6,8,9,7], price:20, costPrice:14, category:"snacks", supplier:"PepsiCo", minStockLevel:12, unit:"pack", rating:4.7, viewCount:445 },
+    { storeId, key:"britannia-biscuits", name:"Britannia Good Day", stock:15, salesHistory:[4,5,4,6,5,4,5,6,4,5,4,5,6,4,5,4,5,6,4,5,4,5,6,4,5,4,5,6,4,5], price:30, costPrice:22, category:"snacks", supplier:"Britannia", minStockLevel:8, unit:"pack", rating:4.3, viewCount:198 },
+    { storeId, key:"tata-salt", name:"Tata Salt 1kg", stock:20, salesHistory:[2,2,3,2,3,2,2,3,2,3,2,2,3,2,3,2,2,3,2,3,2,2,3,2,3,2,2,3,2,3], price:25, costPrice:18, category:"staples", supplier:"Tata", minStockLevel:5, unit:"pack", rating:4.4, viewCount:89 },
+    { storeId, key:"parle-g", name:"Parle-G Biscuits", stock:30, salesHistory:[8,9,10,8,9,8,10,9,8,9,10,8,9,8,10,9,8,9,10,8,9,8,10,9,8,9,10,8,9,9], price:10, costPrice:7, category:"snacks", supplier:"Parle", minStockLevel:15, unit:"pack", rating:4.9, viewCount:567 },
+    { storeId, key:"frooti", name:"Frooti Mango 200ml", stock:2, salesHistory:[5,6,7,6,5,6,7,5,6,7,6,5,6,7,5,6,7,6,5,6,7,5,6,7,6,5,6,7,6,6], price:15, costPrice:10, category:"beverages", supplier:"Parle Agro", minStockLevel:10, unit:"bottle", rating:4.2, viewCount:203 },
+    { storeId, key:"kurkure", name:"Kurkure 100g", stock:12, salesHistory:[4,5,6,5,4,5,6,4,5,6,5,4,5,6,4,5,6,5,4,5,6,4,5,6,5,4,5,6,5,5], price:30, costPrice:21, category:"snacks", supplier:"PepsiCo", minStockLevel:8, unit:"pack", rating:4.5, viewCount:312 },
+    { storeId, key:"good-day-bourbon", name:"Bourbon Biscuits", stock:18, salesHistory:[3,4,3,4,3,4,3,4,3,4,3,4,3,4,3,4,3,4,3,4,3,4,3,4,3,4,3,4,3,4], price:20, costPrice:14, category:"snacks", supplier:"Britannia", minStockLevel:6, unit:"pack", rating:4.1, viewCount:156 },
+    { storeId, key:"amul-milk", name:"Amul Taza Milk 500ml", stock:10, salesHistory:[7,8,9,8,7,8,9,7,8,9,8,7,8,9,7,8,9,8,7,8,9,7,8,9,8,7,8,9,8,8], price:28, costPrice:22, category:"dairy", supplier:"Amul", minStockLevel:8, unit:"pouch", rating:4.7, viewCount:334 },
+    { storeId, key:"rice-india-gate", name:"India Gate Basmati Rice 1kg", stock:8, salesHistory:[2,3,2,3,2,3,2,3,2,3,2,3,2,3,2,3,2,3,2,3,2,3,2,3,2,3,2,3,2,3], price:120, costPrice:90, category:"staples", supplier:"KRBL", minStockLevel:4, unit:"kg", rating:4.6, viewCount:167 },
+  ]);
+  // Create sample orders
+  await Order.deleteMany({ storeId });
+  const items = await Item.find({ storeId }).lean();
+  for (let i = 0; i < 45; i++) {
+    const daysAgo = Math.floor(Math.random() * 30);
+    const orderDate = new Date(Date.now() - daysAgo * 86400000);
+    const numItems = Math.floor(Math.random() * 3) + 1;
+    const orderItems = [];
+    let total = 0;
+    for (let j = 0; j < numItems; j++) {
+      const item = items[Math.floor(Math.random() * items.length)];
+      const qty = Math.floor(Math.random() * 3) + 1;
+      orderItems.push({ key: item.key, name: item.name, price: item.price, qty });
+      total += item.price * qty;
+    }
+    await Order.create({ storeId, customerEmail: ["customer1@demo.com","customer2@demo.com","customer3@demo.com","demo@customer.com"][i%4], items: orderItems, total, status: ["delivered","delivered","confirmed","placed"][i%4], paymentMethod: ["upi","card","cod","upi"][i%4], createdAt: orderDate });
+  }
+  // Create NPS responses
+  for (let i = 0; i < 12; i++) {
+    await NPS.findOneAndUpdate(
+      { storeId, customerEmail: `nps${i}@demo.com` },
+      { score: [9,8,10,7,9,8,6,9,10,8,9,7][i], comment: ["Great store!","Good variety","Fast service","Could be better","Excellent!","Love the deals","Nice products","Very helpful","Amazing AI features","Quick delivery","Good prices","Satisfied"][i] },
+      { upsert: true }
+    );
+  }
+  // Create ratings
+  for (let i = 0; i < items.length; i++) {
+    await Rating.findOneAndUpdate(
+      { userEmail: `rater${i}@demo.com`, itemKey: items[i].key },
+      { storeId, rating: [5,4,5,3,4,5,4,5,4,5,4,4][i%12], review: "Great product! Highly recommend.", itemKey: items[i].key },
+      { upsert: true }
+    );
+  }
+  // Create goals
+  await Goal.deleteMany({ storeId });
+  await Goal.create({ storeId, metric: "revenue", target: 5000, period: "monthly", current: 0 });
+  await Goal.create({ storeId, metric: "orders", target: 100, period: "monthly", current: 45 });
+  // Log some agent actions
+  const agentNames = ["Monitoring Agent","Forecasting Agent","Anomaly Detection Agent","Dynamic Pricing Agent","Fraud Detection Agent","Daily Briefing Agent"];
+  for (let i = 0; i < 20; i++) {
+    await AgentLog.create({ storeId, agent: agentNames[i%agentNames.length], action: [`📦 Low stock detected: Frooti (2 units)`, `📊 Demand forecast: Parle-G needs restock in 3 days`, `🔔 Stock alert sent for Lays Chips (out of stock)`, `💰 Dynamic pricing: Coca-Cola +5% (high demand)`, `✅ Daily briefing sent: 45 orders, ₹3,240 revenue`, `🎯 Forecast accuracy: 87% this week`][i%6], severity: ["warning","info","critical","info","info","info"][i%6], createdAt: new Date(Date.now() - i * 3600000) });
+  }
+  console.log(`✅ Demo data seeded for store ${storeId}`);
+}
