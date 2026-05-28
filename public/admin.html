@@ -116,8 +116,9 @@
   .settings-fab { bottom: 16px; right: 16px; width: 40px; height: 40px; font-size: 1rem; }
   .settings-panel { right: 16px; bottom: 68px; width: 200px; }
   #toast { right: 12px; left: 12px; max-width: unset; bottom: 70px; }
-  .sidebar { position: fixed; z-index: 300; height: 100vh; }
-  .main-area { flex-direction: column; }
+  .sidebar { position: fixed; z-index: 300; height: calc(100vh - 52px); top: 52px; left: 0; }
+  .content { margin-left: 200px; }
+  .sidebar.collapsed ~ .content { margin-left: 0; }
 }
 
 @media (max-width: 480px) {
@@ -1407,8 +1408,7 @@
       </div>
     </div>
 
-  </main>
-</div>
+
 
 <!-- PROFILE OVERLAY -->
 <div class="profile-overlay" id="profileOverlay" onclick="closeProfilePanel()"></div>
@@ -2747,6 +2747,9 @@
   </div>
 </div>
 
+  </main>
+</div>
+
 <button class="chatbot-fab" id="chatbotFab" onclick="toggleChatbot()">🤖</button>
 <button class="settings-fab" id="settingsFab" onclick="toggleSettings()">⚙️</button>
 <div class="chatbot-panel" id="chatbotPanel">
@@ -2911,9 +2914,14 @@ function showPage(page, clickedBtn) {
   document.querySelectorAll(".sidebar-item").forEach(item => item.classList.toggle("active", item.dataset.page === page));
   document.querySelectorAll(".topbar-nav-item").forEach(item => item.classList.toggle("active", item.dataset.page === page));
   openGroupForPage(page);
-  // Scroll to top AFTER page is active (requestAnimationFrame ensures DOM updated first)
-  const contentEl = document.querySelector(".content");
-  if (contentEl) { contentEl.scrollTop = 0; requestAnimationFrame(() => { contentEl.scrollTop = 0; }); }
+  // Reset scroll on every possible container
+  requestAnimationFrame(() => {
+    const contentEl = document.querySelector(".content");
+    if (contentEl) contentEl.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    window.scrollTo(0, 0);
+  });
   if (["overview","inventory","logs"].includes(page)) loadAdmin();
   if (page === "franchise") loadAllFranchises();
   if (page === "shelf-scan") { loadRecentScans(); loadMLUrl(); }
