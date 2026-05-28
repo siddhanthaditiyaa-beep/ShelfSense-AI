@@ -62,6 +62,16 @@
     .sidebar-divider { height: 1px; background: var(--border-color); margin: 8px; }
 
     .sidebar-bottom { padding: 12px 8px; border-top: 1px solid var(--border-color); }
+    .sidebar-profile-card { display: flex; align-items: center; gap: 10px; padding: 12px 12px; border-top: 1px solid var(--border-color); cursor: pointer; transition: all 0.2s; margin-top: auto; background: var(--bg-secondary); position: sticky; bottom: 0; }
+    .sidebar-profile-card:hover { background: var(--accent-light); }
+    .sidebar-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #a78bfa); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: white; flex-shrink: 0; }
+    .sidebar-profile-info { flex: 1; min-width: 0; }
+    .sidebar-username { font-size: 0.82rem; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sidebar-useremail { font-size: 0.7rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    /* FAB auto-hide */
+    .fab-container { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 10px; align-items: flex-end; z-index: 1000; transition: opacity 0.4s, transform 0.4s; }
+    .fab-container.hidden { opacity: 0; pointer-events: none; transform: translateY(8px); }
+    .fab-container:hover { opacity: 1 !important; pointer-events: all !important; transform: translateY(0) !important; }
     .sidebar-user { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; cursor: pointer; transition: all 0.2s; }
     .sidebar-user:hover { background: var(--accent-light); }
     .sidebar-avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #a78bfa); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0; overflow: hidden; }
@@ -772,6 +782,16 @@
     </div>
 
   </div><!-- end sidebar-inner -->
+
+  <!-- PROFILE CARD AT BOTTOM (like Claude) -->
+  <div class="sidebar-profile-card" id="sidebarUserBtn" onclick="toggleProfilePanel()">
+    <div class="sidebar-avatar" id="sidebarAvatarSmall">SA</div>
+    <div class="sidebar-profile-info">
+      <div class="sidebar-username" id="sidebarUsername">Store Admin</div>
+      <div class="sidebar-useremail" id="sidebarUserEmail">Loading...</div>
+    </div>
+    <span style="color:var(--text-muted);font-size:0.75rem">⋮</span>
+  </div>
 </aside>
 
   <!-- CONTENT -->
@@ -2728,7 +2748,10 @@
   </div>
 </div>
 
-<button class="chatbot-fab" id="chatbotFab" onclick="toggleChatbot()">🤖</button>
+<div class="fab-container" id="fabContainer">
+  <button class="chatbot-fab" id="chatbotFab" onclick="toggleChatbot()">🤖</button>
+  <button class="settings-fab" id="settingsFab" onclick="toggleSettings()">⚙️</button>
+</div>
 <div class="chatbot-panel" id="chatbotPanel">
   <div class="chatbot-header">
     <div class="chatbot-pulse"></div>
@@ -2795,6 +2818,39 @@ function getAuthHeaders() {
   const t = localStorage.getItem("token");
   return { "Authorization": t || "" };
 }
+
+/* ===== FAB AUTO-HIDE AFTER 5 SECONDS ===== */
+(function initFabAutoHide() {
+  const fab = document.getElementById("fabContainer");
+  if (!fab) return;
+  let hideTimer = null;
+
+  function showFab() {
+    fab.classList.remove("hidden");
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(() => fab.classList.add("hidden"), 5000);
+  }
+
+  function keepVisible() {
+    fab.classList.remove("hidden");
+    clearTimeout(hideTimer);
+  }
+
+  // Hide after 5s initially
+  hideTimer = setTimeout(() => fab.classList.add("hidden"), 5000);
+
+  // Show on mouse move near bottom-right corner
+  document.addEventListener("mousemove", (e) => {
+    const nearBottomRight = e.clientX > window.innerWidth - 120 && e.clientY > window.innerHeight - 120;
+    if (nearBottomRight) showFab();
+  });
+
+  // Keep visible while hovering fab itself
+  fab.addEventListener("mouseenter", keepVisible);
+  fab.addEventListener("mouseleave", () => {
+    hideTimer = setTimeout(() => fab.classList.add("hidden"), 2000);
+  });
+})();
 
 function toggleGroup(btn) {
   const items = btn.nextElementSibling;
@@ -2920,13 +2976,26 @@ function showToast(msg, type = "success") {
 function loadSidebarUser() {
   try {
     const decoded = JSON.parse(atob(token.split('.')[1]));
-    const name = decoded.fname || decoded.email || "Store Admin";
+    const name = decoded.fname || decoded.email?.split("@")[0] || "Store Admin";
+    const email = decoded.email || "";
     const storeName = decoded.storeName || "ShelfSense AI";
-    document.getElementById("sidebarUsername").innerText = name;
-    document.getElementById("sidebarRole").innerText = storeName;
+    const initials = getInitials(name);
+
+    // Update new bottom profile card
+    const usernameEl = document.getElementById("sidebarUsername");
+    const emailEl = document.getElementById("sidebarUserEmail");
+    const avatarSmall = document.getElementById("sidebarAvatarSmall");
+    if (usernameEl) usernameEl.innerText = name;
+    if (emailEl) emailEl.innerText = email;
+    if (avatarSmall) avatarSmall.innerText = initials;
+
+    // Update old elements if they exist
+    const roleEl = document.getElementById("sidebarRole");
+    if (roleEl) roleEl.innerText = storeName;
     refreshAvatarDisplay();
   } catch(e) {
-    document.getElementById("sidebarUsername").innerText = "Store Admin";
+    const usernameEl = document.getElementById("sidebarUsername");
+    if (usernameEl) usernameEl.innerText = "Store Admin";
   }
 }
 
@@ -4124,7 +4193,10 @@ async function deleteCoupon(id) {
 /* ===== STORE PERFORMANCE SCORE ===== */
 async function loadPerformanceScore() {
   try {
-    const res = await fetch("/admin/performance-score", { headers: { Authorization: token } });
+    const controller = new AbortController();
+    const t = setTimeout(() => controller.abort(), 8000);
+    const res = await fetch("/admin/performance-score", { headers: { Authorization: token }, signal: controller.signal });
+    clearTimeout(t);
     const data = await res.json();
 
     const gradeEl = document.getElementById("perfGrade");
