@@ -2911,6 +2911,9 @@ function showPage(page, clickedBtn) {
   document.querySelectorAll(".sidebar-item").forEach(item => item.classList.toggle("active", item.dataset.page === page));
   document.querySelectorAll(".topbar-nav-item").forEach(item => item.classList.toggle("active", item.dataset.page === page));
   openGroupForPage(page);
+  // Always scroll to top when switching pages
+  const content = document.querySelector(".content");
+  if (content) content.scrollTo({ top: 0, behavior: "smooth" });
   if (["overview","inventory","logs"].includes(page)) loadAdmin();
   if (page === "franchise") loadAllFranchises();
   if (page === "shelf-scan") { loadRecentScans(); loadMLUrl(); }
@@ -5432,7 +5435,7 @@ const pageLoaders = {
   aging: loadAgingReport,
   "system-health": loadSystemHealth,
   "what-if": () => { loadWhatIfProducts(); },
-  "settings-advanced": () => { loadMaintenanceStatus(); loadAnnouncements(); loadSnapshots(); loadWebhooks(); }
+  "settings-advanced": () => { document.querySelector(".content").scrollTo(0,0); loadMaintenanceStatus(); loadAnnouncements(); loadSnapshots(); loadWebhooks(); }
 };
 const origShowPage = typeof showPage === "function" ? showPage : null;
 // Extend existing showPage to call loaders
@@ -8116,6 +8119,68 @@ document.addEventListener("keydown", e => {
     setTimeout(()=>document.getElementById("globalSearchQ")?.focus(),100);
   }
 });
+
+/* ===== FAB BEHAVIOUR: AUTO-HIDE + SCROLL TO NAVBAR ===== */
+(function initFabBehaviour() {
+  const chatbot = document.getElementById("chatbotFab");
+  const settings = document.getElementById("settingsFab");
+  const content = document.querySelector(".content");
+  if (!chatbot || !settings) return;
+
+  let hideTimer = null;
+  let inNavbar = false;
+
+  function showFabs() {
+    chatbot.style.opacity = "1";
+    chatbot.style.pointerEvents = "all";
+    settings.style.opacity = "1";
+    settings.style.pointerEvents = "all";
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(hideFabs, 5000);
+  }
+
+  function hideFabs() {
+    if (inNavbar) return; // don't hide if in navbar mode
+    chatbot.style.opacity = "0";
+    chatbot.style.pointerEvents = "none";
+    settings.style.opacity = "0";
+    settings.style.pointerEvents = "none";
+  }
+
+  // Start hidden after 5s
+  hideTimer = setTimeout(hideFabs, 5000);
+
+  // Show on hover near bottom corners
+  document.addEventListener("mousemove", (e) => {
+    const nearBottom = e.clientY > window.innerHeight - 100;
+    const nearLeft = e.clientX < 300;
+    const nearRight = e.clientX > window.innerWidth - 100;
+    if (nearBottom && (nearLeft || nearRight)) showFabs();
+  });
+
+  chatbot.addEventListener("mouseenter", showFabs);
+  settings.addEventListener("mouseenter", showFabs);
+
+  // Scroll to navbar behaviour
+  if (content) {
+    content.addEventListener("scroll", () => {
+      const scrolled = content.scrollTop > 80;
+      if (scrolled && !inNavbar) {
+        inNavbar = true;
+        // Move to topbar area
+        chatbot.style.cssText = "position:fixed;top:8px;right:120px;width:38px;height:38px;font-size:1rem;opacity:1;pointer-events:all;z-index:1000;border-radius:50%;background:linear-gradient(135deg,#6366f1,#a78bfa);color:white;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-lg);transition:all 0.3s;";
+        settings.style.cssText = "position:fixed;top:8px;right:72px;width:38px;height:38px;font-size:0.9rem;opacity:1;pointer-events:all;z-index:1000;border-radius:50%;background:linear-gradient(135deg,#6366f1,#a78bfa);color:white;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-lg);transition:all 0.3s;";
+        clearTimeout(hideTimer);
+      } else if (!scrolled && inNavbar) {
+        inNavbar = false;
+        // Return to bottom positions
+        chatbot.style.cssText = "position:fixed;bottom:24px;left:220px;width:52px;height:52px;font-size:1.4rem;opacity:1;pointer-events:all;z-index:1000;border-radius:50%;background:linear-gradient(135deg,#6366f1,#a78bfa);color:white;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-lg);transition:all 0.3s;";
+        settings.style.cssText = "position:fixed;bottom:24px;right:24px;width:44px;height:44px;font-size:1.1rem;opacity:1;pointer-events:all;z-index:1000;border-radius:50%;background:linear-gradient(135deg,#6366f1,#a78bfa);color:white;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-lg);transition:all 0.3s;";
+        hideTimer = setTimeout(hideFabs, 5000);
+      }
+    });
+  }
+})();
 
 /* ===== INIT ===== */
 sessionStorage.removeItem("redirecting");
