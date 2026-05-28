@@ -2838,7 +2838,7 @@ function openGroupForPage(pageId) {
 }
 
 
-  // Prevent redirect loop — only redirect if not already redirecting
+function safeRedirect() {
   if (window.location.href.includes("login.html")) return;
   if (sessionStorage.getItem("redirecting")) return;
   sessionStorage.setItem("redirecting", "1");
