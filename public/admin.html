@@ -557,7 +557,7 @@
 <!-- TOP BAR -->
 <div class="topbar">
   <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">☰</button>
-  <span class="topbar-logo">🧠 ShelfSense AI</span>
+  <span class="topbar-logo" onclick="showPage('overview')" style="cursor:pointer;" title="Go to Overview">🧠 ShelfSense AI</span>
   <nav class="topbar-nav" id="topbarNav">
     <button class="topbar-nav-item active" data-page="overview" onclick="showPage('overview', this)">Overview</button>
     <button class="topbar-nav-item" data-page="inventory" onclick="showPage('inventory', this)">Inventory</button>
@@ -748,15 +748,9 @@
         <button class="sidebar-item" data-page="store-narrative" onclick="showPage('store-narrative',this)"><span class="sidebar-emoji">📰</span>Store Narrative</button>
         <button class="sidebar-item" data-page="ablation" onclick="showPage('ablation',this)"><span class="sidebar-emoji">📊</span>Ablation Study</button>
         <button class="sidebar-item" data-page="significance" onclick="showPage('significance',this)"><span class="sidebar-emoji">📐</span>Stats Significance</button>
-        <button class="sidebar-item" data-page="multi-dataset" onclick="showPage('multi-dataset',this)"><span class="sidebar-emoji">🗂️</span>Multi-Dataset</button>
-        <button class="sidebar-item" data-page="model-accuracy" onclick="showPage('model-accuracy',this)"><span class="sidebar-emoji">🎯</span>Model Accuracy</button>
-        <button class="sidebar-item" data-page="ethical-ai" onclick="showPage('ethical-ai',this)"><span class="sidebar-emoji">⚖️</span>Ethical AI</button>
+                        <button class="sidebar-item" data-page="ethical-ai" onclick="showPage('ethical-ai',this)"><span class="sidebar-emoji">⚖️</span>Ethical AI</button>
         <button class="sidebar-item" data-page="benchmark" onclick="showPage('benchmark',this)"><span class="sidebar-emoji">📊</span>Benchmark</button>
-        <button class="sidebar-item" data-page="ieee-export" onclick="showPage('ieee-export',this)"><span class="sidebar-emoji">🏛️</span>IEEE Export</button>
-        <button class="sidebar-item" data-page="abstract" onclick="showPage('abstract',this)"><span class="sidebar-emoji">📝</span>IEEE Abstract</button>
-        <button class="sidebar-item" data-page="oss" onclick="showPage('oss',this)"><span class="sidebar-emoji">🌐</span>OSS Readiness</button>
-        <button class="sidebar-item" data-page="cicd" onclick="showPage('cicd',this)"><span class="sidebar-emoji">🔄</span>CI/CD Pipeline</button>
-      </div>
+                                      </div>
     </div>
 
     <!-- GROUP: SYSTEM -->
@@ -777,8 +771,7 @@
         <button class="sidebar-item" data-page="staff" onclick="showPage('staff',this)"><span class="sidebar-emoji">👨‍💼</span>Staff</button>
         <button class="sidebar-item" data-page="annotations" onclick="showPage('annotations',this)"><span class="sidebar-emoji">📌</span>Annotations</button>
         <button class="sidebar-item" data-page="themes" onclick="showPage('themes',this)"><span class="sidebar-emoji">🎨</span>Themes</button>
-        <button class="sidebar-item" data-page="celebrate" onclick="showPage('celebrate',this)"><span class="sidebar-emoji">🎉</span>332 Features!</button>
-      </div>
+              </div>
     </div>
 
   </div><!-- end sidebar-inner -->
@@ -2784,6 +2777,97 @@
   </div>
 </div>
 
+<!-- 💬 TESTIMONIALS PAGE -->
+<div class="page" id="page-testimonials">
+  <div class="card">
+    <h2>💬 Testimonials</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Customer testimonials submitted for your store.</p>
+    <div id="testimonialsList">Loading...</div>
+  </div>
+</div>
+
+<!-- ⚡ FLASH DEAL HISTORY PAGE -->
+<div class="page" id="page-flash-deal-history">
+  <div class="card">
+    <h2>⚡ Flash Deal History</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">View all past and active flash sales.</p>
+    <div id="flashDealHistoryList">Loading...</div>
+  </div>
+</div>
+
+<!-- 💰 FINANCIAL SUMMARY PAGE -->
+<div class="page" id="page-financial-summary">
+  <div class="card">
+    <h2>💰 Financial Summary</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Today, this month, and all-time revenue overview.</p>
+    <div id="financialSummaryData">Loading...</div>
+  </div>
+</div>
+
+<!-- 🧾 GST REPORT PAGE -->
+<div class="page" id="page-gst-report">
+  <div class="card">
+    <h2>🧾 GST Report</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">GST breakdown for tax filing purposes.</p>
+    <div id="gstReportData">Loading...</div>
+  </div>
+</div>
+
+<!-- 📊 P&L STATEMENT PAGE -->
+<div class="page" id="page-pl-statement">
+  <div class="card">
+    <h2>📊 P&L Statement</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Profit and Loss statement for your store.</p>
+    <div id="plStatementData">Loading...</div>
+  </div>
+</div>
+
+<!-- 📈 ROI CALCULATOR PAGE -->
+<div class="page" id="page-roi-calc">
+  <div class="card">
+    <h2>📈 ROI Calculator</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Calculate return on investment for your campaigns.</p>
+    <div id="roiCalcData">Loading...</div>
+  </div>
+</div>
+
+<!-- 📡 ROAS SIMULATOR PAGE -->
+<div class="page" id="page-roas-sim">
+  <div class="card">
+    <h2>📡 ROAS Simulator</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Return on Ad Spend simulator.</p>
+    <div id="roasSimData">Loading...</div>
+  </div>
+</div>
+
+<!-- 📜 COMPLIANCE CERTIFICATE PAGE -->
+<div class="page" id="page-compliance">
+  <div class="card">
+    <h2>📜 Compliance Certificate</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Download your store compliance certificate.</p>
+    <div id="complianceData">Loading...</div>
+  </div>
+</div>
+
+<!-- 🔒 ZERO TRUST LOG PAGE -->
+<div class="page" id="page-zero-trust">
+  <div class="card">
+    <h2>🔒 Zero Trust Log</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Verification log of all admin access events.</p>
+    <div id="zeroTrustData">Loading...</div>
+  </div>
+</div>
+
+<!-- 🔐 OWASP DASHBOARD PAGE -->
+<div class="page" id="page-owasp">
+  <div class="card">
+    <h2>🔐 OWASP Dashboard</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">OWASP Top 10 security compliance status.</p>
+    <div id="owaspData">Loading...</div>
+  </div>
+</div>
+
+
   </main>
 </div>
 
@@ -2856,6 +2940,14 @@ function getAuthHeaders() {
 }
 
 
+
+async function approveTestimonial(id) {
+  try {
+    await fetch(`/admin/testimonials/${id}/approve`, { method:"POST", headers: getAuthHeaders() });
+    ssToast("Testimonial approved","success");
+    if(pageLoaders["testimonials"]) pageLoaders["testimonials"]();
+  } catch(err) { ssToast("Failed","error"); }
+}
 
 function toggleGroup(btn) {
   const items = btn.nextElementSibling;
@@ -5569,6 +5661,16 @@ const pageLoaders = {
   "what-if": () => { loadWhatIfProducts(); },
   "settings-advanced": () => { document.querySelector(".content").scrollTo(0,0); loadMaintenanceStatus(); loadAnnouncements(); loadSnapshots(); loadWebhooks(); },
   "margins": loadGrossMargins,
+  "testimonials": () => { fetch("/admin/testimonials", { headers: getAuthHeaders() }).then(r=>r.json()).then(d=>{ const el=document.getElementById("testimonialsList"); if(!el)return; if(!d.testimonials?.length){el.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-muted)">No testimonials yet.</div>';return;} el.innerHTML=d.testimonials.map(t=>`<div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:10px;padding:14px;margin-bottom:8px"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><strong>${t.customerName}</strong><span style="font-size:0.75rem;color:${t.approved?'#22c55e':'#f59e0b'}">${t.approved?'✅ Approved':'⏳ Pending'}</span></div><div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:8px">"${t.text}"</div>${!t.approved?`<button onclick="approveTestimonial('${t._id}')" style="padding:4px 12px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);color:#22c55e;border-radius:6px;cursor:pointer;font-size:0.78rem">Approve</button>`:''}</div>`).join(''); }).catch(()=>{}); },
+  "flash-deal-history": () => { fetch("/admin/flash-deal-history", { headers: getAuthHeaders() }).then(r=>r.json()).then(d=>{ const el=document.getElementById("flashDealHistoryList"); if(!el)return; if(!d.history?.length){el.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-muted)">No flash deals yet.</div>';return;} el.innerHTML=d.history.map(h=>`<div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg-secondary);border-radius:8px;margin-bottom:6px"><div style="flex:1"><div style="font-weight:600">${h.name}</div><div style="font-size:0.75rem;color:var(--text-muted)">₹${h.originalPrice} → ₹${h.salePrice} (${h.discount}% off) · Ends ${new Date(h.endsAt).toLocaleDateString('en-IN')}</div></div><span style="padding:2px 8px;border-radius:10px;font-size:0.72rem;font-weight:700;background:${h.active?'rgba(34,197,94,0.1)':'rgba(107,114,128,0.1)'};color:${h.active?'#22c55e':'#6b7280'}">${h.active?'ACTIVE':'ENDED'}</span></div>`).join(''); }).catch(()=>{}); },
+  "financial-summary": () => { fetch("/admin/financial-summary", { headers: getAuthHeaders() }).then(r=>r.json()).then(d=>{ const el=document.getElementById("financialSummaryData"); if(!el)return; el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px">${[["Today's Revenue","₹"+d.today.revenue,"#22c55e",d.today.orders+" orders"],["This Month","₹"+d.thisMonth.revenue,"#6366f1",d.thisMonth.orders+" orders"],["All Time","₹"+d.allTime.revenue,"#a78bfa",d.allTime.orders+" orders"],["Avg Order","₹"+d.avgOrderValue,"#f59e0b","per transaction"]].map(([l,v,c,sub])=>`<div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:20px;text-align:center"><div style="font-size:1.6rem;font-weight:800;color:${c}">${v}</div><div style="font-weight:600;margin:4px 0">${l}</div><div style="font-size:0.75rem;color:var(--text-muted)">${sub}</div></div>`).join('')}</div>`; }).catch(()=>{}); },
+  "gst-report": () => { fetch("/admin/gst-report", { headers: getAuthHeaders() }).then(r=>r.json()).then(d=>{ const el=document.getElementById("gstReportData"); if(!el)return; el.innerHTML=`<div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:20px"><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:16px">${[["Taxable Amount","₹"+(d.taxableAmount||0).toFixed(2)],["GST Collected","₹"+(d.gstCollected||0).toFixed(2)],["Total Revenue","₹"+(d.totalRevenue||0).toFixed(2)]].map(([l,v])=>`<div style="text-align:center"><div style="font-size:1.3rem;font-weight:800;color:var(--accent)">${v}</div><div style="font-size:0.75rem;color:var(--text-muted)">${l}</div></div>`).join('')}</div><div style="font-size:0.82rem;color:var(--text-muted)">GST Rate: 18% (standard). ${d.orders||0} orders in selected period.</div></div>`; }).catch(()=>{ const el=document.getElementById("gstReportData"); if(el)el.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-muted)">No GST data available yet.</div>'; }); },
+  "pl-statement": () => { fetch("/admin/pl-statement", { headers: getAuthHeaders() }).then(r=>r.json()).then(d=>{ const el=document.getElementById("plStatementData"); if(!el)return; el.innerHTML=`<div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:20px">${[["Revenue","₹"+(d.revenue||0).toFixed(2),"#22c55e"],["Cost of Goods","₹"+(d.cogs||0).toFixed(2),"#ef4444"],["Gross Profit","₹"+(d.grossProfit||0).toFixed(2),"#6366f1"],["Operating Expenses","₹"+(d.opex||0).toFixed(2),"#f59e0b"],["Net Profit","₹"+(d.netProfit||0).toFixed(2),(d.netProfit||0)>=0?"#22c55e":"#ef4444"]].map(([l,v,c])=>`<div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-color)"><span style="font-weight:600">${l}</span><span style="font-weight:800;color:${c}">${v}</span></div>`).join('')}</div>`; }).catch(()=>{ const el=document.getElementById("plStatementData"); if(el)el.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-muted)">No P&L data available yet.</div>'; }); },
+  "roi-calc": () => { const el=document.getElementById("roiCalcData"); if(!el)return; el.innerHTML=`<div style="display:grid;gap:12px;max-width:400px"><div style="display:flex;gap:10px;align-items:center"><label style="width:150px;font-size:0.875rem">Investment (₹)</label><input type="number" id="roiInvest" value="1000" style="flex:1;padding:8px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary)"></div><div style="display:flex;gap:10px;align-items:center"><label style="width:150px;font-size:0.875rem">Returns (₹)</label><input type="number" id="roiReturn" value="1500" style="flex:1;padding:8px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary)"></div><button class="btn-primary" onclick="const i=parseFloat(document.getElementById('roiInvest').value);const r=parseFloat(document.getElementById('roiReturn').value);const roi=((r-i)/i*100).toFixed(1);document.getElementById('roiResult').innerHTML=\`<div style='margin-top:16px;padding:16px;background:rgba(34,197,94,0.1);border-radius:10px;text-align:center'><div style='font-size:2rem;font-weight:900;color:#22c55e'>\${roi}%</div><div style='color:var(--text-muted)'>ROI · Profit: ₹\${(r-i).toFixed(2)}</div></div>\`">Calculate ROI</button><div id="roiResult"></div></div>`; },
+  "roas-sim": () => { const el=document.getElementById("roasSimData"); if(!el)return; el.innerHTML=`<div style="display:grid;gap:12px;max-width:500px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><label style="font-size:0.78rem;color:var(--text-muted)">Ad Budget (₹)</label><input type="number" id="rAdBudget" value="5000" style="width:100%;padding:8px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);margin-top:4px"></div><div><label style="font-size:0.78rem;color:var(--text-muted)">Expected CTR (%)</label><input type="number" id="rCTR" value="2" style="width:100%;padding:8px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);margin-top:4px"></div><div><label style="font-size:0.78rem;color:var(--text-muted)">Conv Rate (%)</label><input type="number" id="rConv" value="3" style="width:100%;padding:8px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);margin-top:4px"></div><div><label style="font-size:0.78rem;color:var(--text-muted)">Avg Order (₹)</label><input type="number" id="rAOV" value="500" style="width:100%;padding:8px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);margin-top:4px"></div></div><button class="btn-primary" onclick="fetch('/admin/roas-simulator',{method:'POST',headers:{'Content-Type':'application/json',...getAuthHeaders()},body:JSON.stringify({adBudget:parseFloat(document.getElementById('rAdBudget').value),expectedCTR:parseFloat(document.getElementById('rCTR').value),expectedConvRate:parseFloat(document.getElementById('rConv').value),avgOrderValue:parseFloat(document.getElementById('rAOV').value)})}).then(r=>r.json()).then(d=>{document.getElementById('roasResult').innerHTML=\`<div style='margin-top:16px;padding:16px;background:rgba(99,102,241,0.1);border-radius:10px'><div style='font-size:1.6rem;font-weight:800;color:var(--accent)'>\${d.roas}x ROAS</div><div style='font-size:0.82rem;color:var(--text-muted);margin-top:4px'>\${d.recommendation}</div><div style='display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px'><div style='text-align:center'><div style='font-weight:700'>₹\${d.projectedRevenue}</div><div style='font-size:0.7rem;color:var(--text-muted)'>Revenue</div></div><div style='text-align:center'><div style='font-weight:700'>\${d.conversions}</div><div style='font-size:0.7rem;color:var(--text-muted)'>Conversions</div></div><div style='text-align:center'><div style='font-weight:700'>\${d.clicks}</div><div style='font-size:0.7rem;color:var(--text-muted)'>Clicks</div></div></div></div>\`;})">Simulate ROAS</button><div id="roasResult"></div></div>`; },
+  "compliance": () => { const el=document.getElementById("complianceData"); if(!el)return; const token2=localStorage.getItem("token"); el.innerHTML=`<div style="text-align:center;padding:20px"><p style="color:var(--text-muted);margin-bottom:16px">Download your store compliance certificate with current system stats.</p><a href="/admin/health-certificate" target="_blank" class="btn-primary" style="padding:12px 24px;display:inline-block;text-decoration:none;border-radius:10px">📜 Download Certificate</a></div>`; },
+  "zero-trust": () => { fetch("/admin/zero-trust-log", { headers: getAuthHeaders() }).then(r=>r.json()).then(d=>{ const el=document.getElementById("zeroTrustData"); if(!el)return; el.innerHTML=`<div style="margin-bottom:12px;display:flex;gap:12px"><span style="padding:4px 12px;border-radius:20px;background:rgba(34,197,94,0.1);color:#22c55e;font-size:0.78rem;font-weight:700">${d.totalVerified} Verified</span><span style="padding:4px 12px;border-radius:20px;background:rgba(239,68,68,0.1);color:#ef4444;font-size:0.78rem;font-weight:700">${d.totalDenied} Denied</span></div>${d.logs.slice(0,15).map(l=>`<div style="display:flex;gap:10px;padding:8px 12px;background:var(--bg-secondary);border-left:3px solid ${l.verified?'#22c55e':'#ef4444'};border-radius:0 8px 8px 0;margin-bottom:4px;font-size:0.78rem"><span style="color:var(--text-muted);flex-shrink:0">${new Date(l.time).toLocaleTimeString('en-IN')}</span><span style="flex:1">${l.action}</span><span style="color:${l.verified?'#22c55e':'#ef4444'}">${l.verified?'✅':'❌'}</span></div>`).join('')}`; }).catch(()=>{}); },
+  "owasp": () => { fetch("/admin/owasp", { headers: getAuthHeaders() }).then(r=>r.json()).then(d=>{ const el=document.getElementById("owaspData"); if(!el)return; el.innerHTML=`<div style="margin-bottom:16px;text-align:center"><div style="font-size:2rem;font-weight:900;color:var(--accent)">${d.score}%</div><div>OWASP Compliance Score</div></div>${d.checks?.map(c=>`<div style="display:flex;gap:10px;padding:8px;background:var(--bg-secondary);border-radius:6px;margin-bottom:4px;font-size:0.82rem"><span>${c.pass?'✅':'❌'}</span><span style="flex:1">${c.name}</span></div>`).join('')||'<div style="text-align:center;padding:20px;color:var(--text-muted)">OWASP data loading...</div>'}`; }).catch(()=>{}); },
   "gross-margins": loadGrossMargins,
   "revenue-forecast": loadRevenueForecastStandalone,
   "analytics-digest": loadAnalyticsDigestStandalone,
@@ -7860,7 +7962,7 @@ async function loadReviewSummary() {
     </div>
     <h3 style="font-size:0.9rem;margin-bottom:10px">Rating Distribution</h3>
     ${d.distribution.map(s=>`<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-      <span style="font-size:0.82rem;width:30px">${"⭐".repeat(s.star)}</span>
+      <span style="font-size:0.75rem;color:#f59e0b;min-width:60px;display:inline-block">${Array(s.star).fill("★").join("")}</span>
       <div style="flex:1;height:8px;background:var(--bg-tertiary);border-radius:4px;overflow:hidden"><div style="height:100%;background:linear-gradient(90deg,#f59e0b,#fbbf24);border-radius:4px;width:${s.pct}%"></div></div>
       <span style="font-size:0.78rem;color:var(--text-muted);width:50px">${s.count} (${s.pct}%)</span>
     </div>`).join("")}`;
