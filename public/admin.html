@@ -3049,7 +3049,16 @@ function selectPlan(plan) {
 /* ===== LOAD ADMIN DATA ===== */
 async function loadAdmin() {
   try {
-    const res = await fetch("/admin-data", { headers: { Authorization: token } });
+    // Add 10 second timeout so it never hangs forever
+    const controller = new AbortController();
+    const t = setTimeout(() => controller.abort(), 10000);
+
+    const res = await fetch("/admin-data", {
+      headers: { Authorization: token },
+      signal: controller.signal
+    });
+    clearTimeout(t);
+
     if (res.status === 401) { safeRedirect(); return; }
     const data = await res.json();
     updateStats(data.inventory);
@@ -3058,8 +3067,17 @@ async function loadAdmin() {
     renderOverviewLogs(data.monitoring, data.forecasting);
     renderLogs(data.monitoring, "monitoringLogs", "monitoring");
     renderLogs(data.forecasting, "forecastingLogs", "forecasting");
-    loadPerformanceScore();
-  } catch(err) { console.error("loadAdmin error:", err); }
+
+    // Load performance score independently — don't block main load
+    setTimeout(() => loadPerformanceScore(), 100);
+  } catch(err) {
+    if (err.name === "AbortError") {
+      console.warn("loadAdmin timed out — retrying in 5s");
+      setTimeout(loadAdmin, 5000);
+    } else {
+      console.error("loadAdmin error:", err);
+    }
+  }
 }
 
 function updateStats(inventory) {
@@ -8078,11 +8096,11 @@ sessionStorage.removeItem("redirecting");
     // Network error — still try to load, server might just be slow
   }
 
-  // All good — initialize dashboard
+  // All good — initialize dashboard with staggered loads
   loadAdmin();
   loadSidebarUser();
-  loadMLUrl();
-  load2FAStatus();
+  setTimeout(() => loadMLUrl(), 500);
+  setTimeout(() => load2FAStatus(), 1000);
   setTimeout(() => loadNotifications(), 2000);
   setInterval(loadAdmin, 30000);
   setInterval(() => { try { loadNotifications(); } catch(e){} }, 60000);
