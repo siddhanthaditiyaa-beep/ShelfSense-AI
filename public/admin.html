@@ -631,7 +631,7 @@
         <button class="sidebar-item" data-page="funnel" onclick="showPage('funnel',this)"><span class="sidebar-emoji">📐</span>Funnel Analytics</button>
         <button class="sidebar-item" data-page="ltv" onclick="showPage('ltv',this)"><span class="sidebar-emoji">💰</span>Customer LTV</button>
         <button class="sidebar-item" data-page="turnover" onclick="showPage('turnover',this)"><span class="sidebar-emoji">🔄</span>Turnover Ratio</button>
-        <button class="sidebar-item" data-page="gross-margins" onclick="showPage('gross-margins',this)"><span class="sidebar-emoji">💹</span>Gross Margins</button>
+        <button class="sidebar-item" data-page="margins" onclick="showPage('margins',this)"><span class="sidebar-emoji">💹</span>Gross Margins</button>
         <button class="sidebar-item" data-page="revenue-forecast" onclick="showPage('revenue-forecast',this)"><span class="sidebar-emoji">📈</span>Revenue Forecast</button>
         <button class="sidebar-item" data-page="analytics-digest" onclick="showPage('analytics-digest',this)"><span class="sidebar-emoji">📋</span>Analytics Digest</button>
         <button class="sidebar-item" data-page="purchase-heatmap" onclick="showPage('purchase-heatmap',this)"><span class="sidebar-emoji">🗓️</span>Purchase Heatmap</button>
@@ -1832,6 +1832,43 @@
 </div>
 
 <!-- P&L STATEMENT PAGE -->
+
+<!-- REVENUE FORECAST STANDALONE PAGE -->
+<div class="page" id="page-revenue-forecast">
+  <div class="card">
+    <h2>📈 Revenue Forecast</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Predicted revenue for the next 7 days based on historical sales patterns.</p>
+    <div id="revForecastStandalone">Loading...</div>
+  </div>
+</div>
+
+<!-- ANALYTICS DIGEST STANDALONE PAGE -->
+<div class="page" id="page-analytics-digest">
+  <div class="card">
+    <h2>📋 Analytics Digest</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Weekly and monthly performance summary across all key metrics.</p>
+    <div id="digestStandalone">Loading...</div>
+  </div>
+</div>
+
+<!-- PURCHASE HEATMAP STANDALONE PAGE -->
+<div class="page" id="page-purchase-heatmap">
+  <div class="card">
+    <h2>🗓️ Purchase Heatmap</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">When do your customers buy? Hour and day of week purchase patterns.</p>
+    <div id="purchaseHeatmapStandalone">Loading...</div>
+  </div>
+</div>
+
+<!-- ABANDONED CARTS STANDALONE PAGE -->
+<div class="page" id="page-abandoned-cart-analytics">
+  <div class="card">
+    <h2>🛒 Abandoned Cart Analytics</h2>
+    <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:20px">Carts that were abandoned before checkout — recovery opportunities.</p>
+    <div id="abandonedCartsStandalone">Loading...</div>
+  </div>
+</div>
+
 <div class="page" id="page-pl">
   <div class="card">
     <h2>📋 Monthly P&L Statement</h2>
@@ -2871,7 +2908,94 @@ const AGENT_INFO = {
   "Reorder Point Agent":       { icon: "📦", desc: "Calculates optimal reorder point using lead time and safety stock" }
 };
 
-/* ===== THEME / SETTINGS FAB ===== */
+/* ===== STANDALONE PAGE LOADERS ===== */
+async function loadRevenueForecastStandalone() {
+  const el = document.getElementById("revForecastStandalone");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/revenue-forecast", { headers: getAuthHeaders() });
+    const data = await res.json();
+    if (!data.forecast?.length) { el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">📊 No forecast data yet. Add sales history to see predictions.</div>'; return; }
+    const max = Math.max(...data.forecast.map(d => d.predicted));
+    el.innerHTML = `<div style="margin-bottom:16px;display:flex;gap:16px;flex-wrap:wrap">
+      <div style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);border-radius:10px;padding:14px;text-align:center;flex:1"><div style="font-size:1.4rem;font-weight:800;color:var(--accent)">₹${data.total?.toFixed(0)||0}</div><div style="font-size:0.75rem;color:var(--text-muted)">7-Day Forecast</div></div>
+      <div style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:10px;padding:14px;text-align:center;flex:1"><div style="font-size:1.4rem;font-weight:800;color:#22c55e">₹${data.avgDaily?.toFixed(0)||0}</div><div style="font-size:0.75rem;color:var(--text-muted)">Avg Daily</div></div>
+    </div>
+    <div style="display:flex;align-items:flex-end;gap:6px;height:160px;margin-bottom:8px">
+      ${data.forecast.map(d=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+        <div style="font-size:0.65rem;color:var(--text-muted)">₹${Math.round(d.predicted)}</div>
+        <div style="width:100%;background:linear-gradient(180deg,#6366f1,#a78bfa);border-radius:4px 4px 0 0;height:${max>0?Math.round(d.predicted/max*120):4}px;min-height:4px"></div>
+        <div style="font-size:0.65rem;color:var(--text-muted)">${d.day}</div>
+      </div>`).join("")}
+    </div>`;
+  } catch(err) { el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">Failed to load forecast</div>'; }
+}
+
+async function loadAnalyticsDigestStandalone() {
+  const el = document.getElementById("digestStandalone");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/analytics-digest", { headers: getAuthHeaders() });
+    const d = await res.json();
+    el.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
+        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:16px">
+          <div style="font-weight:700;margin-bottom:10px;font-size:0.875rem">📅 This Week</div>
+          <div style="font-size:1.4rem;font-weight:800;color:var(--accent)">₹${parseFloat(d.week.revenue).toFixed(0)}</div>
+          <div style="font-size:0.78rem;color:var(--text-muted)">${d.week.orders} orders · Avg ₹${d.week.avgOrder}</div>
+        </div>
+        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:16px">
+          <div style="font-weight:700;margin-bottom:10px;font-size:0.875rem">📆 This Month</div>
+          <div style="font-size:1.4rem;font-weight:800;color:#22c55e">₹${parseFloat(d.month.revenue).toFixed(0)}</div>
+          <div style="font-size:0.78rem;color:var(--text-muted)">${d.month.orders} orders</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
+        <div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:10px;padding:12px;text-align:center">
+          <div style="font-weight:800;color:var(--accent)">${d.inventory.total}</div><div style="font-size:0.72rem;color:var(--text-muted)">Products</div>
+        </div>
+        <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:12px;text-align:center">
+          <div style="font-weight:800;color:#ef4444">${d.inventory.outOfStock}</div><div style="font-size:0.72rem;color:var(--text-muted)">Out of Stock</div>
+        </div>
+        <div style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);border-radius:10px;padding:12px;text-align:center">
+          <div style="font-weight:800;color:var(--accent)">${d.agents.actions7d}</div><div style="font-size:0.72rem;color:var(--text-muted)">Agent Actions</div>
+        </div>
+      </div>
+      ${d.highlights.map(h=>`<div style="padding:8px 12px;background:rgba(99,102,241,0.05);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;margin-bottom:6px;font-size:0.82rem">${h}</div>`).join("")}`;
+  } catch(err) { el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">Failed to load digest</div>'; }
+}
+
+async function loadPurchaseHeatmapStandalone() {
+  const el = document.getElementById("purchaseHeatmapStandalone");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/purchase-heatmap", { headers: getAuthHeaders() });
+    const data = await res.json();
+    if (!data.totalOrders) { el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">No order data yet to build heatmap.</div>'; return; }
+    const days = data.days || ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+    const maxVal = data.maxVal || 1;
+    el.innerHTML = `<div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:16px">${data.totalOrders} orders analysed</div>
+    <div style="overflow-x:auto"><div style="display:grid;grid-template-columns:40px repeat(24,1fr);gap:2px;min-width:700px">
+      <div></div>${Array.from({length:24},(_,h)=>`<div style="font-size:0.6rem;color:var(--text-muted);text-align:center">${h}</div>`).join("")}
+      ${days.map((day,d)=>`<div style="font-size:0.7rem;color:var(--text-muted);display:flex;align-items:center">${day}</div>${data.heatmap[d].map(val=>`<div title="${day} ${data.heatmap[d].indexOf(val)}:00 — ${val} orders" style="aspect-ratio:1;background:rgba(99,102,241,${val>0?Math.max(0.1,val/maxVal):0.03});border-radius:2px"></div>`).join("")}`).join("")}
+    </div></div>`;
+  } catch(err) { el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">Failed to load heatmap</div>'; }
+}
+
+async function loadAbandonedCartsStandalone() {
+  const el = document.getElementById("abandonedCartsStandalone");
+  if (!el) return;
+  try {
+    const res = await fetch("/admin/abandoned-cart-analytics", { headers: getAuthHeaders() });
+    const data = await res.json();
+    el.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px">
+      ${[["🛒 Abandoned",data.total,"#f59e0b"],["📧 Recovered",data.recovered,"#22c55e"],["📉 Rate",data.recoveryRate+"%","#6366f1"],["💸 Lost Value","₹"+data.estimatedLostValue,"#ef4444"]].map(([l,v,c])=>`<div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:10px;padding:14px;text-align:center"><div style="font-size:1.4rem;font-weight:800;color:${c}">${v}</div><div style="font-size:0.72rem;color:var(--text-muted);margin-top:3px">${l}</div></div>`).join("")}
+    </div>
+    ${data.topAbandonedItems?.length?`<h3 style="font-size:0.9rem;margin-bottom:10px">Most Abandoned Items</h3>${data.topAbandonedItems.map(i=>`<div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--bg-secondary);border-radius:8px;margin-bottom:6px;font-size:0.875rem"><span>${i.name}</span><strong style="color:var(--accent)">${i.count}x</strong></div>`).join("")}`:'<div style="text-align:center;padding:20px;color:var(--text-muted)">No abandoned cart data yet.</div>'}`;
+  } catch(err) { el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">Failed to load abandoned carts</div>'; }
+}
+
+
 function toggleSettings() {
   const panel = document.getElementById("settingsPanel");
   panel.classList.toggle("open");
@@ -5443,7 +5567,13 @@ const pageLoaders = {
   aging: loadAgingReport,
   "system-health": loadSystemHealth,
   "what-if": () => { loadWhatIfProducts(); },
-  "settings-advanced": () => { document.querySelector(".content").scrollTo(0,0); loadMaintenanceStatus(); loadAnnouncements(); loadSnapshots(); loadWebhooks(); }
+  "settings-advanced": () => { document.querySelector(".content").scrollTo(0,0); loadMaintenanceStatus(); loadAnnouncements(); loadSnapshots(); loadWebhooks(); },
+  "margins": loadGrossMargins,
+  "gross-margins": loadGrossMargins,
+  "revenue-forecast": loadRevenueForecastStandalone,
+  "analytics-digest": loadAnalyticsDigestStandalone,
+  "purchase-heatmap": loadPurchaseHeatmapStandalone,
+  "abandoned-cart-analytics": loadAbandonedCartsStandalone,
 };
 const origShowPage = typeof showPage === "function" ? showPage : null;
 // Extend existing showPage to call loaders
@@ -5546,10 +5676,19 @@ async function loadTurnover() {
   try {
     const res = await fetch("/admin/turnover-ratio", { headers: getAuthHeaders() });
     const data = await res.json();
+    const ratios = data.ratios || [];
     const gradeColors = { Excellent:"#22c55e", Good:"#6366f1", Average:"#f59e0b", Poor:"#ef4444" };
+    if (!ratios.length) {
+      el.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-muted)">
+        <div style="font-size:2.5rem;margin-bottom:12px">📦</div>
+        <div style="font-weight:600;margin-bottom:6px">No inventory data yet</div>
+        <div style="font-size:0.82rem">Add products to your inventory to see turnover ratios.</div>
+      </div>`;
+      return;
+    }
     el.innerHTML = `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">
       <thead><tr style="border-bottom:1px solid var(--border-color)">${["Product","Current Stock","Total Sold","Turnover Rate","Grade"].map(h=>`<th style="padding:10px;text-align:left;font-size:0.78rem;color:var(--text-muted)">${h}</th>`).join("")}</tr></thead>
-      <tbody>${data.ratios.map(r=>`<tr style="border-bottom:1px solid var(--border-color)">
+      <tbody>${ratios.map(r=>`<tr style="border-bottom:1px solid var(--border-color)">
         <td style="padding:10px;font-size:0.875rem;font-weight:600">${r.name}</td>
         <td style="padding:10px;font-size:0.875rem">${r.stock}</td>
         <td style="padding:10px;font-size:0.875rem">${r.totalSold}</td>
@@ -5557,7 +5696,7 @@ async function loadTurnover() {
         <td style="padding:10px"><span style="padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;background:${gradeColors[r.grade]}20;color:${gradeColors[r.grade]}">${r.grade}</span></td>
       </tr>`).join("")}</tbody>
     </table></div>`;
-  } catch(err) { document.getElementById("turnoverTable").innerHTML = "Failed to load"; }
+  } catch(err) { document.getElementById("turnoverTable").innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-muted)">Failed to load turnover data. Please try again.</div>`; }
 }
 
 /* GROSS MARGINS */
