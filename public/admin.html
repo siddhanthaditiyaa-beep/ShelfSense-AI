@@ -69,9 +69,7 @@
     .sidebar-username { font-size: 0.82rem; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .sidebar-useremail { font-size: 0.7rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     /* FAB auto-hide */
-    .fab-container { position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 10px; align-items: flex-end; z-index: 1000; transition: opacity 0.4s, transform 0.4s; }
-    .fab-container.hidden { opacity: 0; pointer-events: none; transform: translateY(8px); }
-    .fab-container:hover { opacity: 1 !important; pointer-events: all !important; transform: translateY(0) !important; }
+
     .sidebar-user { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; cursor: pointer; transition: all 0.2s; }
     .sidebar-user:hover { background: var(--accent-light); }
     .sidebar-avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #a78bfa); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0; overflow: hidden; }
@@ -247,7 +245,7 @@
 
     #toast { position: fixed; bottom: 80px; right: 24px; padding: 14px 20px; border-radius: 12px; font-weight: 600; font-size: 0.875rem; display: none; z-index: 9999; max-width: 300px; box-shadow: var(--shadow-lg); }
 
-    .settings-fab { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #a78bfa); color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; box-shadow: var(--shadow-lg); transition: all 0.3s; padding: 0; }
+    .settings-fab { position: fixed; bottom: 24px; right: 24px; width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #a78bfa); color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; box-shadow: var(--shadow-lg); transition: all 0.3s; padding: 0; z-index: 1000; }
     .settings-fab:hover { transform: scale(1.1) rotate(30deg); }
     .settings-panel { position: fixed; bottom: 80px; right: 24px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; width: 220px; box-shadow: var(--shadow-lg); z-index: 1001; display: none; }
     .settings-panel.open { display: block; animation: slideUp 0.2s ease; }
@@ -370,6 +368,7 @@
 .bulk-result-row.skipped { background: var(--warning-bg); color: var(--warning-text); }
 .bulk-result-row.notfound { background: var(--danger-bg); color: var(--danger-text); } 
 .chatbot-fab {
+  position: fixed; bottom: 24px; left: 220px;
   width: 52px; height: 52px; border-radius: 50%;
   background: linear-gradient(135deg, #6366f1, #a78bfa);
   color: white; border: none; cursor: pointer;
@@ -2747,10 +2746,8 @@
   </div>
 </div>
 
-<div class="fab-container" id="fabContainer">
-  <button class="chatbot-fab" id="chatbotFab" onclick="toggleChatbot()">🤖</button>
-  <button class="settings-fab" id="settingsFab" onclick="toggleSettings()">⚙️</button>
-</div>
+<button class="chatbot-fab" id="chatbotFab" onclick="toggleChatbot()">🤖</button>
+<button class="settings-fab" id="settingsFab" onclick="toggleSettings()">⚙️</button>
 <div class="chatbot-panel" id="chatbotPanel">
   <div class="chatbot-header">
     <div class="chatbot-pulse"></div>
@@ -2817,38 +2814,7 @@ function getAuthHeaders() {
   return { "Authorization": t || "" };
 }
 
-/* ===== FAB AUTO-HIDE AFTER 5 SECONDS ===== */
-(function initFabAutoHide() {
-  const fab = document.getElementById("fabContainer");
-  if (!fab) return;
-  let hideTimer = null;
 
-  function showFab() {
-    fab.classList.remove("hidden");
-    clearTimeout(hideTimer);
-    hideTimer = setTimeout(() => fab.classList.add("hidden"), 5000);
-  }
-
-  function keepVisible() {
-    fab.classList.remove("hidden");
-    clearTimeout(hideTimer);
-  }
-
-  // Hide after 5s initially
-  hideTimer = setTimeout(() => fab.classList.add("hidden"), 5000);
-
-  // Show on mouse move near bottom-right corner
-  document.addEventListener("mousemove", (e) => {
-    const nearBottomRight = e.clientX > window.innerWidth - 120 && e.clientY > window.innerHeight - 120;
-    if (nearBottomRight) showFab();
-  });
-
-  // Keep visible while hovering fab itself
-  fab.addEventListener("mouseenter", keepVisible);
-  fab.addEventListener("mouseleave", () => {
-    hideTimer = setTimeout(() => fab.classList.add("hidden"), 2000);
-  });
-})();
 
 function toggleGroup(btn) {
   const items = btn.nextElementSibling;
@@ -8151,33 +8117,53 @@ document.addEventListener("keydown", e => {
 });
 
 /* ===== INIT ===== */
-// Clear the redirect-prevention flag since we loaded successfully
 sessionStorage.removeItem("redirecting");
 
-// Verify token is present before initializing
 (async function init() {
   const t = localStorage.getItem("token");
   if (!t) { safeRedirect(); return; }
 
-  // Quick token check — if 401, redirect once cleanly
+  // Single fetch — verify token AND get data in one call
   try {
-    const check = await fetch("/admin-data", { headers: { Authorization: t } });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 12000);
+    const check = await fetch("/admin-data", { headers: { Authorization: t }, signal: controller.signal });
+    clearTimeout(timeout);
+
     if (check.status === 401) {
       localStorage.clear();
       sessionStorage.removeItem("redirecting");
       window.location.href = "login.html";
       return;
     }
-  } catch (e) {
-    // Network error — still try to load, server might just be slow
+
+    // Reuse this response — pass data directly to avoid second fetch
+    const data = await check.json();
+    const inventory = data.inventory || [];
+    updateStats(inventory);
+    renderInventoryTable(inventory);
+    renderChart(inventory);
+    renderOverviewLogs(data.monitoring || [], data.forecasting || []);
+    renderLogs(data.monitoring || [], "monitoringLogs", "monitoring");
+    renderLogs(data.forecasting || [], "forecastingLogs", "forecasting");
+    setTimeout(() => loadPerformanceScore(), 300);
+
+  } catch(e) {
+    console.warn("Init fetch failed — page still usable:", e.message);
+    // Show 0s so dashboard doesn't look broken
+    ["statTotal","statLow","statOut","statHealthy"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerText = "0";
+    });
+    // Retry loadAdmin after 5s
+    setTimeout(loadAdmin, 5000);
   }
 
-  // All good — initialize dashboard with staggered loads
-  loadAdmin();
+  // Background non-blocking inits
   loadSidebarUser();
-  setTimeout(() => loadMLUrl(), 500);
-  setTimeout(() => load2FAStatus(), 1000);
-  setTimeout(() => loadNotifications(), 2000);
+  setTimeout(() => loadMLUrl(), 1000);
+  setTimeout(() => load2FAStatus(), 1500);
+  setTimeout(() => loadNotifications(), 2500);
   setInterval(loadAdmin, 30000);
   setInterval(() => { try { loadNotifications(); } catch(e){} }, 60000);
   setInterval(() => { if (currentPage === "agents") loadAgentDashboard(); }, 30000);
