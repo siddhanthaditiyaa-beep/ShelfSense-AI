@@ -47,7 +47,15 @@
     .sidebar.collapsed { width: 0; opacity: 0; border-right: none; }
     .sidebar-section { padding: 8px; flex: 1; overflow-y: auto; }
     .sidebar-section-label { font-size: 0.7rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; padding: 8px 10px 4px; }
-    .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 8px; cursor: pointer; font-size: 0.875rem; font-weight: 500; color: var(--text-secondary); transition: all 0.15s; white-space: nowrap; border: none; background: transparent; width: 100%; text-align: left; }
+    .sidebar-item { display: flex; align-items: center; gap: 8px; padding: 7px 12px; border-radius: 7px; cursor: pointer; font-size: 0.82rem; font-weight: 500; color: var(--text-secondary); transition: all 0.15s; white-space: nowrap; border: none; background: transparent; width: 100%; text-align: left; }
+    .sidebar-inner { padding: 8px 8px 120px; display: flex; flex-direction: column; gap: 4px; }
+    .sb-group { border-radius: 10px; overflow: hidden; }
+    .sb-group-header { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(255,255,255,0.04); border: none; color: var(--text-secondary); cursor: pointer; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; border-radius: 8px; transition: all 0.15s; }
+    .sb-group-header:hover { background: rgba(99,102,241,0.15); color: var(--accent); }
+    .sb-arrow { font-size: 0.75rem; transition: transform 0.2s; }
+    .sb-group-items { display: none; padding: 2px 0 4px 8px; }
+    .sb-group-items.open { display: block; }
+    .sb-arrow.rotated { transform: rotate(-90deg); }
     .sidebar-item:hover { background: var(--accent-light); color: var(--text-primary); transform: none; }
     .sidebar-item.active { background: var(--accent-light); color: var(--accent); font-weight: 600; }
     .sidebar-emoji { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
@@ -352,7 +360,7 @@
 .bulk-result-row.skipped { background: var(--warning-bg); color: var(--warning-text); }
 .bulk-result-row.notfound { background: var(--danger-bg); color: var(--danger-text); } 
 .chatbot-fab {
-  position: fixed; bottom: 24px; left: 24px;
+  position: fixed; bottom: 76px; right: 24px;
   width: 52px; height: 52px; border-radius: 50%;
   background: linear-gradient(135deg, #6366f1, #a78bfa);
   color: white; border: none; cursor: pointer;
@@ -364,7 +372,7 @@
 .chatbot-fab.open { background: linear-gradient(135deg, #ef4444, #f97316); }
 
 .chatbot-panel {
-  position: fixed; bottom: 88px; left: 24px;
+  position: fixed; bottom: 130px; right: 24px;
   width: 360px; height: 500px;
   background: var(--bg-secondary); border: 1px solid var(--border-color);
   border-radius: 20px; box-shadow: var(--shadow-lg);
@@ -584,148 +592,187 @@
 
   <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
-    <div class="sidebar-section">
-      <div class="sidebar-section-label">Main</div>
-      <button class="sidebar-item active" data-page="overview" onclick="showPage('overview', this)"><span class="sidebar-emoji">📊</span> Overview</button>
-      <button class="sidebar-item" data-page="inventory" onclick="showPage('inventory', this)"><span class="sidebar-emoji">📦</span> Inventory</button>
-      <button class="sidebar-item" data-page="agents" onclick="showPage('agents', this)"><span class="sidebar-emoji">🤖</span> AI Agents</button>
-<button class="sidebar-item" data-page="analytics" onclick="showPage('analytics', this)"><span class="sidebar-emoji">📊</span> Sales Analytics</button>
-<button class="sidebar-item" data-page="health" onclick="showPage('health', this)"><span class="sidebar-emoji">💊</span> Inventory Health</button>
-<button class="sidebar-item" data-page="coupons" onclick="showPage('coupons', this)"><span class="sidebar-emoji">🎟️</span> Coupons</button>
-<button class="sidebar-item" data-page="heatmap" onclick="showPage('heatmap', this)"><span class="sidebar-emoji">🔥</span> Demand Heatmap</button>
-      <button class="sidebar-item" data-page="shelf-scan" onclick="showPage('shelf-scan', this)"><span class="sidebar-emoji">🔍</span> Shelf Scan</button>
-      <button class="sidebar-item" data-page="planogram" onclick="showPage('planogram', this)"><span class="sidebar-emoji">🗺️</span> Planogram</button>
-      <div class="sidebar-divider"></div>
-      <div class="sidebar-section-label">Network</div>
-      <button class="sidebar-item" data-page="franchise" onclick="showPage('franchise', this)"><span class="sidebar-emoji">📍</span> Franchises</button>
-      <button class="sidebar-item" data-page="orders" onclick="showPage('orders', this)"><span class="sidebar-emoji">📋</span> Purchase Orders</button>
-      <div class="sidebar-divider"></div>
-      <div class="sidebar-section-label">System</div>
-      <button class="sidebar-item" data-page="logs" onclick="showPage('logs', this)"><span class="sidebar-emoji">📝</span> Logs</button>
-      <button class="sidebar-item" data-page="manage-orders" onclick="showPage('manage-orders', this)"><span class="sidebar-emoji">🧾</span> Orders</button>
-      <button class="sidebar-item" data-page="sessions" onclick="showPage('sessions', this)"><span class="sidebar-emoji">🔑</span> Sessions</button>
-<button class="sidebar-item" data-page="security" onclick="showPage('security', this)"><span class="sidebar-emoji">🛡️</span> Security</button>
-<button class="sidebar-item" data-page="xai" onclick="showPage('xai', this)"><span class="sidebar-emoji">🧠</span> Explainable AI</button>
-<button class="sidebar-item" data-page="stockout" onclick="showPage('stockout', this)"><span class="sidebar-emoji">📉</span> Stockout Risk</button>
-<button class="sidebar-item" data-page="attack-sim" onclick="showPage('attack-sim', this)"><span class="sidebar-emoji">🔴</span> Attack Simulator</button>
-<button class="sidebar-item" data-page="returns" onclick="showPage('returns', this)"><span class="sidebar-emoji">↩️</span> Returns</button>
-<button class="sidebar-item" data-page="suppliers" onclick="showPage('suppliers', this)"><span class="sidebar-emoji">🏭</span> Suppliers</button>
-<button class="sidebar-item" data-page="aging" onclick="showPage('aging', this)"><span class="sidebar-emoji">📅</span> Aging Report</button>
-<button class="sidebar-item" data-page="system-health" onclick="showPage('system-health', this)"><span class="sidebar-emoji">💻</span> System Health</button>
-<button class="sidebar-item" data-page="what-if" onclick="showPage('what-if', this)"><span class="sidebar-emoji">🔮</span> What-If Sim</button>
-<button class="sidebar-item" data-page="settings-advanced" onclick="showPage('settings-advanced', this)"><span class="sidebar-emoji">⚙️</span> Advanced Settings</button>
-<button class="sidebar-item" data-page="search-analytics" onclick="showPage('search-analytics', this)"><span class="sidebar-emoji">🔍</span> Search Analytics</button>
-<button class="sidebar-item" data-page="funnel" onclick="showPage('funnel', this)"><span class="sidebar-emoji">📐</span> Funnel Analytics</button>
-<button class="sidebar-item" data-page="ltv" onclick="showPage('ltv', this)"><span class="sidebar-emoji">💰</span> Customer LTV</button>
-<button class="sidebar-item" data-page="turnover" onclick="showPage('turnover', this)"><span class="sidebar-emoji">🔄</span> Turnover Ratio</button>
-<button class="sidebar-item" data-page="margins" onclick="showPage('margins', this)"><span class="sidebar-emoji">📊</span> Gross Margins</button>
-<button class="sidebar-item" data-page="pl" onclick="showPage('pl', this)"><span class="sidebar-emoji">📋</span> P&L Statement</button>
-<button class="sidebar-item" data-page="sentiment" onclick="showPage('sentiment', this)"><span class="sidebar-emoji">😊</span> Product Sentiment</button>
-<button class="sidebar-item" data-page="qa-admin" onclick="showPage('qa-admin', this)"><span class="sidebar-emoji">❓</span> Q&A Manager</button>
-<button class="sidebar-item" data-page="api-docs" onclick="showPage('api-docs', this)"><span class="sidebar-emoji">📖</span> API Docs</button>
-<button class="sidebar-item" data-page="agent-leaderboard" onclick="showPage('agent-leaderboard', this)"><span class="sidebar-emoji">🏆</span> Agent Leaderboard</button>
-<button class="sidebar-item" data-page="agent-sandbox" onclick="showPage('agent-sandbox', this)"><span class="sidebar-emoji">🧪</span> Agent Sandbox</button>
-<button class="sidebar-item" data-page="latency" onclick="showPage('latency', this)"><span class="sidebar-emoji">⚡</span> Latency Report</button>
-<button class="sidebar-item" data-page="model-stats" onclick="showPage('model-stats', this)"><span class="sidebar-emoji">🎯</span> Model Accuracy</button>
-<button class="sidebar-item" data-page="ethical-ai" onclick="showPage('ethical-ai', this)"><span class="sidebar-emoji">⚖️</span> Ethical AI</button>
-<button class="sidebar-item" data-page="benchmark" onclick="showPage('benchmark', this)"><span class="sidebar-emoji">📈</span> Benchmark</button>
-<button class="sidebar-item" data-page="experiments" onclick="showPage('experiments', this)"><span class="sidebar-emoji">🔬</span> Experiments</button>
-<button class="sidebar-item" data-page="tech-radar" onclick="showPage('tech-radar', this)"><span class="sidebar-emoji">📡</span> Tech Radar</button>
-<button class="sidebar-item" data-page="agent-network" onclick="showPage('agent-network', this)"><span class="sidebar-emoji">🕸️</span> Agent Network</button>
-<button class="sidebar-item" data-page="tax-report" onclick="showPage('tax-report', this)"><span class="sidebar-emoji">🧾</span> GST/Tax Report</button>
-<button class="sidebar-item" data-page="competitor" onclick="showPage('competitor', this)"><span class="sidebar-emoji">🏁</span> Competitor Prices</button>
-<button class="sidebar-item" data-page="achievements" onclick="showPage('achievements', this)"><span class="sidebar-emoji">🎖️</span> Store Achievements</button>
-<button class="sidebar-item" data-page="reorder-suggestions" onclick="showPage('reorder-suggestions', this)"><span class="sidebar-emoji">💡</span> Reorder Suggestions</button>
-<button class="sidebar-item" data-page="forecast-confidence" onclick="showPage('forecast-confidence', this)"><span class="sidebar-emoji">📊</span> Forecast Confidence</button>
-<button class="sidebar-item" data-page="inventory-value" onclick="showPage('inventory-value', this)"><span class="sidebar-emoji">💎</span> Inventory Value</button>
-<button class="sidebar-item" data-page="customer-segments" onclick="showPage('customer-segments', this)"><span class="sidebar-emoji">👥</span> Customer Segments</button>
-<button class="sidebar-item" data-page="fraud-scores" onclick="showPage('fraud-scores', this)"><span class="sidebar-emoji">🚨</span> Fraud Scores</button>
-<button class="sidebar-item" data-page="category-matrix" onclick="showPage('category-matrix', this)"><span class="sidebar-emoji">🧮</span> Category Matrix</button>
-<button class="sidebar-item" data-page="tickets-admin" onclick="showPage('tickets-admin', this)"><span class="sidebar-emoji">🎫</span> Support Tickets</button>
-<button class="sidebar-item" data-page="waitlist" onclick="showPage('waitlist', this)"><span class="sidebar-emoji">📋</span> Waitlist</button>
-<button class="sidebar-item" data-page="expiry-cal" onclick="showPage('expiry-cal', this)"><span class="sidebar-emoji">📆</span> Expiry Calendar</button>
-<button class="sidebar-item" data-page="complexity" onclick="showPage('complexity', this)"><span class="sidebar-emoji">🧬</span> Complexity Score</button>
-<button class="sidebar-item" data-page="collections-admin" onclick="showPage('collections-admin', this)"><span class="sidebar-emoji">🗂️</span> Collections</button>
-<button class="sidebar-item" data-page="security-posture" onclick="showPage('security-posture', this)"><span class="sidebar-emoji">🛡️</span> Security Posture</button>
-<button class="sidebar-item" data-page="velocity" onclick="showPage('velocity', this)"><span class="sidebar-emoji">⚡</span> Sales Velocity</button>
-<button class="sidebar-item" data-page="product-performance" onclick="showPage('product-performance', this)"><span class="sidebar-emoji">🏅</span> Product Performance</button>
-<button class="sidebar-item" data-page="engagement" onclick="showPage('engagement', this)"><span class="sidebar-emoji">💫</span> Engagement Scores</button>
-<button class="sidebar-item" data-page="nps" onclick="showPage('nps', this)"><span class="sidebar-emoji">📣</span> NPS Score</button>
-<button class="sidebar-item" data-page="campaigns" onclick="showPage('campaigns', this)"><span class="sidebar-emoji">📢</span> Campaigns</button>
-<button class="sidebar-item" data-page="payment-analytics" onclick="showPage('payment-analytics', this)"><span class="sidebar-emoji">💳</span> Payment Analytics</button>
-<button class="sidebar-item" data-page="retention" onclick="showPage('retention', this)"><span class="sidebar-emoji">🔁</span> Retention Score</button>
-<button class="sidebar-item" data-page="live-alerts" onclick="showPage('live-alerts', this)"><span class="sidebar-emoji">🚨</span> Live Alerts</button>
-<button class="sidebar-item" data-page="incident-playbook" onclick="showPage('incident-playbook', this)"><span class="sidebar-emoji">📖</span> Incident Playbook</button>
-<button class="sidebar-item" data-page="onboarding-progress" onclick="showPage('onboarding-progress', this)"><span class="sidebar-emoji">🚀</span> Onboarding Progress</button>
-<button class="sidebar-item" data-page="goals" onclick="showPage('goals', this)"><span class="sidebar-emoji">🎯</span> Store Goals</button>
-<button class="sidebar-item" data-page="seasonal-forecast" onclick="showPage('seasonal-forecast', this)"><span class="sidebar-emoji">🗓️</span> Seasonal Forecast</button>
-<button class="sidebar-item" data-page="optimization-score" onclick="showPage('optimization-score', this)"><span class="sidebar-emoji">💯</span> Optimization Score</button>
-<button class="sidebar-item" data-page="product-lifecycle" onclick="showPage('product-lifecycle', this)"><span class="sidebar-emoji">🔄</span> Product Lifecycle</button>
-<button class="sidebar-item" data-page="reorder-calendar" onclick="showPage('reorder-calendar', this)"><span class="sidebar-emoji">📅</span> Reorder Calendar</button>
-<button class="sidebar-item" data-page="cross-sell" onclick="showPage('cross-sell', this)"><span class="sidebar-emoji">🔗</span> Cross-Sell Matrix</button>
-<button class="sidebar-item" data-page="watchlist" onclick="showPage('watchlist', this)"><span class="sidebar-emoji">👁️</span> Watchlist</button>
-<button class="sidebar-item" data-page="alert-rules" onclick="showPage('alert-rules', this)"><span class="sidebar-emoji">🔔</span> Alert Rules</button>
-<button class="sidebar-item" data-page="system-report" onclick="showPage('system-report', this)"><span class="sidebar-emoji">📋</span> System Report</button>
-<button class="sidebar-item" data-page="forecast-accuracy" onclick="showPage('forecast-accuracy', this)"><span class="sidebar-emoji">🎯</span> Forecast Accuracy</button>
-<button class="sidebar-item" data-page="bundle-analytics" onclick="showPage('bundle-analytics', this)"><span class="sidebar-emoji">📦</span> Bundle Analytics</button>
-<button class="sidebar-item" data-page="store-narrative" onclick="showPage('store-narrative', this)"><span class="sidebar-emoji">📰</span> Store Narrative</button>
-<button class="sidebar-item" data-page="demand-surge" onclick="showPage('demand-surge', this)"><span class="sidebar-emoji">🌊</span> Demand Surge</button>
-<button class="sidebar-item" data-page="txn-anomaly" onclick="showPage('txn-anomaly', this)"><span class="sidebar-emoji">🔍</span> Transaction Anomalies</button>
-<button class="sidebar-item" data-page="cohort-revenue" onclick="showPage('cohort-revenue', this)"><span class="sidebar-emoji">👥</span> Cohort Revenue</button>
-<button class="sidebar-item" data-page="feedback-heatmap" onclick="showPage('feedback-heatmap', this)"><span class="sidebar-emoji">🗺️</span> Feedback Heatmap</button>
-<button class="sidebar-item" data-page="perf-badges" onclick="showPage('perf-badges', this)"><span class="sidebar-emoji">🎖️</span> Perf Badges</button>
-<button class="sidebar-item" data-page="ieee-export" onclick="showPage('ieee-export', this)"><span class="sidebar-emoji">🏛️</span> IEEE Export</button>
-<button class="sidebar-item" data-page="visitor-stats" onclick="showPage('visitor-stats', this)"><span class="sidebar-emoji">👁️</span> Visitor Stats</button>
-<button class="sidebar-item" data-page="referral-leaderboard" onclick="showPage('referral-leaderboard', this)"><span class="sidebar-emoji">🏆</span> Referral Leaders</button>
-<button class="sidebar-item" data-page="iso27001" onclick="showPage('iso27001', this)"><span class="sidebar-emoji">📋</span> ISO 27001</button>
-<button class="sidebar-item" data-page="nist" onclick="showPage('nist', this)"><span class="sidebar-emoji">🏛️</span> NIST Framework</button>
-<button class="sidebar-item" data-page="pci-dss" onclick="showPage('pci-dss', this)"><span class="sidebar-emoji">💳</span> PCI-DSS</button>
-<button class="sidebar-item" data-page="chaos" onclick="showPage('chaos', this)"><span class="sidebar-emoji">💥</span> Chaos Engineering</button>
-<button class="sidebar-item" data-page="forensics" onclick="showPage('forensics', this)"><span class="sidebar-emoji">🔬</span> Forensics Timeline</button>
-<button class="sidebar-item" data-page="ablation" onclick="showPage('ablation', this)"><span class="sidebar-emoji">📊</span> Ablation Study</button>
-<button class="sidebar-item" data-page="significance" onclick="showPage('significance', this)"><span class="sidebar-emoji">📐</span> Stats Significance</button>
-<button class="sidebar-item" data-page="security-sla" onclick="showPage('security-sla', this)"><span class="sidebar-emoji">⏱️</span> Security SLA</button>
-<button class="sidebar-item" data-page="cicd" onclick="showPage('cicd', this)"><span class="sidebar-emoji">🔄</span> CI/CD Pipeline</button>
-<button class="sidebar-item" data-page="oss" onclick="showPage('oss', this)"><span class="sidebar-emoji">🌐</span> OSS Readiness</button>
-<button class="sidebar-item" data-page="abstract" onclick="showPage('abstract', this)"><span class="sidebar-emoji">📝</span> IEEE Abstract</button>
-<button class="sidebar-item" data-page="themes" onclick="showPage('themes', this)"><span class="sidebar-emoji">🎨</span> Admin Themes</button>
-<button class="sidebar-item" data-page="system-audit" onclick="showPage('system-audit', this)"><span class="sidebar-emoji">🔍</span> System Audit</button>
-<button class="sidebar-item" data-page="staff" onclick="showPage('staff', this)"><span class="sidebar-emoji">👨‍💼</span> Staff</button>
-<button class="sidebar-item" data-page="report-builder" onclick="showPage('report-builder', this)"><span class="sidebar-emoji">📊</span> Report Builder</button>
-<button class="sidebar-item" data-page="traffic-heatmap" onclick="showPage('traffic-heatmap', this)"><span class="sidebar-emoji">🗺️</span> Traffic Heatmap</button>
-<button class="sidebar-item" data-page="deep-links" onclick="showPage('deep-links', this)"><span class="sidebar-emoji">🔗</span> Deep Links & QR</button>
-<button class="sidebar-item" data-page="breach-check" onclick="showPage('breach-check', this)"><span class="sidebar-emoji">🌑</span> Breach Check</button>
-<button class="sidebar-item" data-page="competitor-report" onclick="showPage('competitor-report', this)"><span class="sidebar-emoji">🏁</span> Competitor Report</button>
-<button class="sidebar-item" data-page="review-summary" onclick="showPage('review-summary', this)"><span class="sidebar-emoji">⭐</span> Review Summary</button>
-<button class="sidebar-item" data-page="wishlist-analytics" onclick="showPage('wishlist-analytics', this)"><span class="sidebar-emoji">❤️</span> Wishlist Analytics</button>
-<button class="sidebar-item" data-page="gamification-lb" onclick="showPage('gamification-lb', this)"><span class="sidebar-emoji">🎮</span> Gamification LB</button>
-<button class="sidebar-item" data-page="agent-health" onclick="showPage('agent-health', this)"><span class="sidebar-emoji">💓</span> Agent Health</button>
-<button class="sidebar-item" data-page="data-quality" onclick="showPage('data-quality', this)"><span class="sidebar-emoji">✅</span> Data Quality</button>
-<button class="sidebar-item" data-page="pricing-calendar" onclick="showPage('pricing-calendar', this)"><span class="sidebar-emoji">📅</span> Pricing Calendar</button>
-<button class="sidebar-item" data-page="feature-registry" onclick="showPage('feature-registry', this)"><span class="sidebar-emoji">🏛️</span> Feature Registry</button>
-<button class="sidebar-item" data-page="annotations" onclick="showPage('annotations', this)"><span class="sidebar-emoji">📌</span> Annotations</button>
-<button class="sidebar-item" data-page="uptime-tracker" onclick="showPage('uptime-tracker', this)"><span class="sidebar-emoji">⏱️</span> Uptime Tracker</button>
-<button class="sidebar-item" data-page="spend-predictor" onclick="showPage('spend-predictor', this)"><span class="sidebar-emoji">💰</span> Spend Predictor</button>
-<button class="sidebar-item" data-page="cart-abandon-rate" onclick="showPage('cart-abandon-rate', this)"><span class="sidebar-emoji">🛒</span> Abandonment Rate</button>
-<button class="sidebar-item" data-page="product-heatmap" onclick="showPage('product-heatmap', this)"><span class="sidebar-emoji">🔥</span> Product Heatmap</button>
-<button class="sidebar-item" data-page="global-search" onclick="showPage('global-search', this)"><span class="sidebar-emoji">🔍</span> Global Search</button>
-<button class="sidebar-item" data-page="radar-metrics" onclick="showPage('radar-metrics', this)"><span class="sidebar-emoji">📡</span> Radar Metrics</button>
-<button class="sidebar-item" data-page="sub-analytics" onclick="showPage('sub-analytics', this)"><span class="sidebar-emoji">🔄</span> Sub Analytics</button>
-<button class="sidebar-item" data-page="pending-items" onclick="showPage('pending-items', this)"><span class="sidebar-emoji">✅</span> Item Approval</button>
-<button class="sidebar-item" data-page="celebrate" onclick="showPage('celebrate', this)"><span class="sidebar-emoji">🎉</span> 🎉 332 Features!</button>
-<button class="sidebar-item" data-page="store-settings" onclick="showPage('store-settings', this)"><span class="sidebar-emoji">⚙️</span> Store Settings</button>
-    </div>
-    <div class="sidebar-bottom">
-      <div class="sidebar-user" id="sidebarUserBtn" onclick="toggleProfilePanel()">
-        <div class="sidebar-avatar" id="sidebarAvatar">SA</div>
-        <div style="flex:1;min-width:0">
-          <div class="sidebar-username" id="sidebarUsername">Loading...</div>
-          <div class="sidebar-role" id="sidebarRole">ShelfSense AI</div>
-        </div>
-        <span class="sidebar-chevron" id="sidebarChevron">▲</span>
+  <div class="sidebar-inner">
+
+    <!-- GROUP: MAIN -->
+    <div class="sb-group">
+      <button class="sb-group-header" onclick="toggleGroup(this)"><span>📊 Main</span><span class="sb-arrow">▾</span></button>
+      <div class="sb-group-items open">
+        <button class="sidebar-item active" data-page="overview" onclick="showPage('overview',this)"><span class="sidebar-emoji">📊</span>Overview</button>
+        <button class="sidebar-item" data-page="inventory" onclick="showPage('inventory',this)"><span class="sidebar-emoji">📦</span>Inventory</button>
+        <button class="sidebar-item" data-page="agents" onclick="showPage('agents',this)"><span class="sidebar-emoji">🤖</span>AI Agents</button>
+        <button class="sidebar-item" data-page="shelf-scan" onclick="showPage('shelf-scan',this)"><span class="sidebar-emoji">📷</span>Shelf Scan</button>
+        <button class="sidebar-item" data-page="franchise" onclick="showPage('franchise',this)"><span class="sidebar-emoji">📍</span>Franchises</button>
+        <button class="sidebar-item" data-page="orders" onclick="showPage('orders',this)"><span class="sidebar-emoji">📋</span>Purchase Orders</button>
+        <button class="sidebar-item" data-page="manage-orders" onclick="showPage('manage-orders',this)"><span class="sidebar-emoji">🧾</span>Orders</button>
+        <button class="sidebar-item" data-page="settings-advanced" onclick="showPage('settings-advanced',this)"><span class="sidebar-emoji">⚙️</span>Settings</button>
+        <button class="sidebar-item" data-page="store-settings" onclick="showPage('store-settings',this)"><span class="sidebar-emoji">🏪</span>Store Settings</button>
       </div>
     </div>
-  </aside>
+
+    <!-- GROUP: ANALYTICS -->
+    <div class="sb-group">
+      <button class="sb-group-header" onclick="toggleGroup(this)"><span>📈 Analytics</span><span class="sb-arrow">▾</span></button>
+      <div class="sb-group-items">
+        <button class="sidebar-item" data-page="analytics" onclick="showPage('analytics',this)"><span class="sidebar-emoji">📊</span>Sales Analytics</button>
+        <button class="sidebar-item" data-page="health" onclick="showPage('health',this)"><span class="sidebar-emoji">💊</span>Inventory Health</button>
+        <button class="sidebar-item" data-page="heatmap" onclick="showPage('heatmap',this)"><span class="sidebar-emoji">🔥</span>Demand Heatmap</button>
+        <button class="sidebar-item" data-page="search-analytics" onclick="showPage('search-analytics',this)"><span class="sidebar-emoji">🔍</span>Search Analytics</button>
+        <button class="sidebar-item" data-page="funnel" onclick="showPage('funnel',this)"><span class="sidebar-emoji">📐</span>Funnel Analytics</button>
+        <button class="sidebar-item" data-page="ltv" onclick="showPage('ltv',this)"><span class="sidebar-emoji">💰</span>Customer LTV</button>
+        <button class="sidebar-item" data-page="turnover" onclick="showPage('turnover',this)"><span class="sidebar-emoji">🔄</span>Turnover Ratio</button>
+        <button class="sidebar-item" data-page="gross-margins" onclick="showPage('gross-margins',this)"><span class="sidebar-emoji">💹</span>Gross Margins</button>
+        <button class="sidebar-item" data-page="revenue-forecast" onclick="showPage('revenue-forecast',this)"><span class="sidebar-emoji">📈</span>Revenue Forecast</button>
+        <button class="sidebar-item" data-page="analytics-digest" onclick="showPage('analytics-digest',this)"><span class="sidebar-emoji">📋</span>Analytics Digest</button>
+        <button class="sidebar-item" data-page="purchase-heatmap" onclick="showPage('purchase-heatmap',this)"><span class="sidebar-emoji">🗓️</span>Purchase Heatmap</button>
+        <button class="sidebar-item" data-page="payment-analytics" onclick="showPage('payment-analytics',this)"><span class="sidebar-emoji">💳</span>Payment Analytics</button>
+        <button class="sidebar-item" data-page="cohort-revenue" onclick="showPage('cohort-revenue',this)"><span class="sidebar-emoji">👥</span>Cohort Revenue</button>
+        <button class="sidebar-item" data-page="velocity" onclick="showPage('velocity',this)"><span class="sidebar-emoji">⚡</span>Sales Velocity</button>
+        <button class="sidebar-item" data-page="product-performance" onclick="showPage('product-performance',this)"><span class="sidebar-emoji">🏅</span>Product Performance</button>
+        <button class="sidebar-item" data-page="bundle-analytics" onclick="showPage('bundle-analytics',this)"><span class="sidebar-emoji">📦</span>Bundle Analytics</button>
+        <button class="sidebar-item" data-page="abandoned-cart-analytics" onclick="showPage('abandoned-cart-analytics',this)"><span class="sidebar-emoji">🛒</span>Abandoned Carts</button>
+        <button class="sidebar-item" data-page="cart-abandon-rate" onclick="showPage('cart-abandon-rate',this)"><span class="sidebar-emoji">📉</span>Abandonment Rate</button>
+        <button class="sidebar-item" data-page="product-heatmap" onclick="showPage('product-heatmap',this)"><span class="sidebar-emoji">🔥</span>Product Heatmap</button>
+        <button class="sidebar-item" data-page="feedback-heatmap" onclick="showPage('feedback-heatmap',this)"><span class="sidebar-emoji">🗺️</span>Feedback Heatmap</button>
+        <button class="sidebar-item" data-page="traffic-heatmap" onclick="showPage('traffic-heatmap',this)"><span class="sidebar-emoji">🗺️</span>Traffic Heatmap</button>
+        <button class="sidebar-item" data-page="radar-metrics" onclick="showPage('radar-metrics',this)"><span class="sidebar-emoji">📡</span>Radar Metrics</button>
+        <button class="sidebar-item" data-page="sub-analytics" onclick="showPage('sub-analytics',this)"><span class="sidebar-emoji">🔄</span>Sub Analytics</button>
+      </div>
+    </div>
+
+    <!-- GROUP: INVENTORY -->
+    <div class="sb-group">
+      <button class="sb-group-header" onclick="toggleGroup(this)"><span>📦 Inventory Mgmt</span><span class="sb-arrow">▾</span></button>
+      <div class="sb-group-items">
+        <button class="sidebar-item" data-page="stockout" onclick="showPage('stockout',this)"><span class="sidebar-emoji">📉</span>Stockout Risk</button>
+        <button class="sidebar-item" data-page="returns" onclick="showPage('returns',this)"><span class="sidebar-emoji">↩️</span>Returns</button>
+        <button class="sidebar-item" data-page="aging" onclick="showPage('aging',this)"><span class="sidebar-emoji">📅</span>Aging Report</button>
+        <button class="sidebar-item" data-page="what-if" onclick="showPage('what-if',this)"><span class="sidebar-emoji">🔮</span>What-If Sim</button>
+        <button class="sidebar-item" data-page="planogram" onclick="showPage('planogram',this)"><span class="sidebar-emoji">🗺️</span>Planogram</button>
+        <button class="sidebar-item" data-page="inventory-value" onclick="showPage('inventory-value',this)"><span class="sidebar-emoji">💎</span>Inventory Value</button>
+        <button class="sidebar-item" data-page="category-matrix" onclick="showPage('category-matrix',this)"><span class="sidebar-emoji">🧮</span>Category Matrix</button>
+        <button class="sidebar-item" data-page="optimization-score" onclick="showPage('optimization-score',this)"><span class="sidebar-emoji">💯</span>Optimization Score</button>
+        <button class="sidebar-item" data-page="product-lifecycle" onclick="showPage('product-lifecycle',this)"><span class="sidebar-emoji">🔄</span>Product Lifecycle</button>
+        <button class="sidebar-item" data-page="reorder-calendar" onclick="showPage('reorder-calendar',this)"><span class="sidebar-emoji">📅</span>Reorder Calendar</button>
+        <button class="sidebar-item" data-page="expiry-cal" onclick="showPage('expiry-cal',this)"><span class="sidebar-emoji">📆</span>Expiry Calendar</button>
+        <button class="sidebar-item" data-page="seasonal-forecast" onclick="showPage('seasonal-forecast',this)"><span class="sidebar-emoji">🗓️</span>Seasonal Forecast</button>
+        <button class="sidebar-item" data-page="forecast-accuracy" onclick="showPage('forecast-accuracy',this)"><span class="sidebar-emoji">🎯</span>Forecast Accuracy</button>
+        <button class="sidebar-item" data-page="watchlist" onclick="showPage('watchlist',this)"><span class="sidebar-emoji">👁️</span>Watchlist</button>
+        <button class="sidebar-item" data-page="pricing-calendar" onclick="showPage('pricing-calendar',this)"><span class="sidebar-emoji">📅</span>Pricing Calendar</button>
+        <button class="sidebar-item" data-page="data-quality" onclick="showPage('data-quality',this)"><span class="sidebar-emoji">✅</span>Data Quality</button>
+        <button class="sidebar-item" data-page="pending-items" onclick="showPage('pending-items',this)"><span class="sidebar-emoji">✅</span>Item Approval</button>
+      </div>
+    </div>
+
+    <!-- GROUP: CUSTOMERS -->
+    <div class="sb-group">
+      <button class="sb-group-header" onclick="toggleGroup(this)"><span>👥 Customers</span><span class="sb-arrow">▾</span></button>
+      <div class="sb-group-items">
+        <button class="sidebar-item" data-page="customer-segments" onclick="showPage('customer-segments',this)"><span class="sidebar-emoji">👥</span>Segments</button>
+        <button class="sidebar-item" data-page="engagement" onclick="showPage('engagement',this)"><span class="sidebar-emoji">💫</span>Engagement</button>
+        <button class="sidebar-item" data-page="retention" onclick="showPage('retention',this)"><span class="sidebar-emoji">🔁</span>Retention</button>
+        <button class="sidebar-item" data-page="nps" onclick="showPage('nps',this)"><span class="sidebar-emoji">📣</span>NPS Score</button>
+        <button class="sidebar-item" data-page="gamification-lb" onclick="showPage('gamification-lb',this)"><span class="sidebar-emoji">🎮</span>Gamification LB</button>
+        <button class="sidebar-item" data-page="referral-leaderboard" onclick="showPage('referral-leaderboard',this)"><span class="sidebar-emoji">🏆</span>Referral Leaders</button>
+        <button class="sidebar-item" data-page="wishlist-analytics" onclick="showPage('wishlist-analytics',this)"><span class="sidebar-emoji">❤️</span>Wishlist Analytics</button>
+        <button class="sidebar-item" data-page="review-summary" onclick="showPage('review-summary',this)"><span class="sidebar-emoji">⭐</span>Review Summary</button>
+        <button class="sidebar-item" data-page="testimonials" onclick="showPage('testimonials',this)"><span class="sidebar-emoji">💬</span>Testimonials</button>
+        <button class="sidebar-item" data-page="spend-predictor" onclick="showPage('spend-predictor',this)"><span class="sidebar-emoji">💰</span>Spend Predictor</button>
+      </div>
+    </div>
+
+    <!-- GROUP: MARKETING -->
+    <div class="sb-group">
+      <button class="sb-group-header" onclick="toggleGroup(this)"><span>📢 Marketing</span><span class="sb-arrow">▾</span></button>
+      <div class="sb-group-items">
+        <button class="sidebar-item" data-page="coupons" onclick="showPage('coupons',this)"><span class="sidebar-emoji">🎟️</span>Coupons</button>
+        <button class="sidebar-item" data-page="campaigns" onclick="showPage('campaigns',this)"><span class="sidebar-emoji">📢</span>Campaigns</button>
+        <button class="sidebar-item" data-page="collections-admin" onclick="showPage('collections-admin',this)"><span class="sidebar-emoji">🗂️</span>Collections</button>
+        <button class="sidebar-item" data-page="competitor-report" onclick="showPage('competitor-report',this)"><span class="sidebar-emoji">🏁</span>Competitor Report</button>
+        <button class="sidebar-item" data-page="cross-sell" onclick="showPage('cross-sell',this)"><span class="sidebar-emoji">🔗</span>Cross-Sell</button>
+        <button class="sidebar-item" data-page="flash-deal-history" onclick="showPage('flash-deal-history',this)"><span class="sidebar-emoji">⚡</span>Flash Deals</button>
+        <button class="sidebar-item" data-page="alert-rules" onclick="showPage('alert-rules',this)"><span class="sidebar-emoji">🔔</span>Alert Rules</button>
+        <button class="sidebar-item" data-page="deep-links" onclick="showPage('deep-links',this)"><span class="sidebar-emoji">🔗</span>Deep Links & QR</button>
+      </div>
+    </div>
+
+    <!-- GROUP: FINANCE -->
+    <div class="sb-group">
+      <button class="sb-group-header" onclick="toggleGroup(this)"><span>💰 Finance</span><span class="sb-arrow">▾</span></button>
+      <div class="sb-group-items">
+        <button class="sidebar-item" data-page="financial-summary" onclick="showPage('financial-summary',this)"><span class="sidebar-emoji">💰</span>Financial Summary</button>
+        <button class="sidebar-item" data-page="gst-report" onclick="showPage('gst-report',this)"><span class="sidebar-emoji">🧾</span>GST Report</button>
+        <button class="sidebar-item" data-page="pl-statement" onclick="showPage('pl-statement',this)"><span class="sidebar-emoji">📊</span>P&L Statement</button>
+        <button class="sidebar-item" data-page="roi-calc" onclick="showPage('roi-calc',this)"><span class="sidebar-emoji">📈</span>ROI Calculator</button>
+        <button class="sidebar-item" data-page="roas-sim" onclick="showPage('roas-sim',this)"><span class="sidebar-emoji">📡</span>ROAS Simulator</button>
+        <button class="sidebar-item" data-page="compliance" onclick="showPage('compliance',this)"><span class="sidebar-emoji">📜</span>Compliance Cert</button>
+      </div>
+    </div>
+
+    <!-- GROUP: SECURITY -->
+    <div class="sb-group">
+      <button class="sb-group-header" onclick="toggleGroup(this)"><span>🛡️ Security</span><span class="sb-arrow">▾</span></button>
+      <div class="sb-group-items">
+        <button class="sidebar-item" data-page="security" onclick="showPage('security',this)"><span class="sidebar-emoji">🛡️</span>Security</button>
+        <button class="sidebar-item" data-page="xai" onclick="showPage('xai',this)"><span class="sidebar-emoji">🧠</span>Explainable AI</button>
+        <button class="sidebar-item" data-page="attack-sim" onclick="showPage('attack-sim',this)"><span class="sidebar-emoji">🔴</span>Attack Simulator</button>
+        <button class="sidebar-item" data-page="security-posture" onclick="showPage('security-posture',this)"><span class="sidebar-emoji">🛡️</span>Security Posture</button>
+        <button class="sidebar-item" data-page="iso27001" onclick="showPage('iso27001',this)"><span class="sidebar-emoji">📋</span>ISO 27001</button>
+        <button class="sidebar-item" data-page="nist" onclick="showPage('nist',this)"><span class="sidebar-emoji">🏛️</span>NIST Framework</button>
+        <button class="sidebar-item" data-page="pci-dss" onclick="showPage('pci-dss',this)"><span class="sidebar-emoji">💳</span>PCI-DSS</button>
+        <button class="sidebar-item" data-page="chaos" onclick="showPage('chaos',this)"><span class="sidebar-emoji">💥</span>Chaos Engineering</button>
+        <button class="sidebar-item" data-page="forensics" onclick="showPage('forensics',this)"><span class="sidebar-emoji">🔬</span>Forensics</button>
+        <button class="sidebar-item" data-page="security-sla" onclick="showPage('security-sla',this)"><span class="sidebar-emoji">⏱️</span>Security SLA</button>
+        <button class="sidebar-item" data-page="breach-check" onclick="showPage('breach-check',this)"><span class="sidebar-emoji">🌑</span>Breach Check</button>
+        <button class="sidebar-item" data-page="zero-trust" onclick="showPage('zero-trust',this)"><span class="sidebar-emoji">🔒</span>Zero Trust Log</button>
+        <button class="sidebar-item" data-page="fraud-scores" onclick="showPage('fraud-scores',this)"><span class="sidebar-emoji">🚨</span>Fraud Scores</button>
+        <button class="sidebar-item" data-page="owasp" onclick="showPage('owasp',this)"><span class="sidebar-emoji">🔐</span>OWASP</button>
+      </div>
+    </div>
+
+    <!-- GROUP: AI & RESEARCH -->
+    <div class="sb-group">
+      <button class="sb-group-header" onclick="toggleGroup(this)"><span>🤖 AI & Research</span><span class="sb-arrow">▾</span></button>
+      <div class="sb-group-items">
+        <button class="sidebar-item" data-page="demand-surge" onclick="showPage('demand-surge',this)"><span class="sidebar-emoji">🌊</span>Demand Surge</button>
+        <button class="sidebar-item" data-page="store-narrative" onclick="showPage('store-narrative',this)"><span class="sidebar-emoji">📰</span>Store Narrative</button>
+        <button class="sidebar-item" data-page="ablation" onclick="showPage('ablation',this)"><span class="sidebar-emoji">📊</span>Ablation Study</button>
+        <button class="sidebar-item" data-page="significance" onclick="showPage('significance',this)"><span class="sidebar-emoji">📐</span>Stats Significance</button>
+        <button class="sidebar-item" data-page="multi-dataset" onclick="showPage('multi-dataset',this)"><span class="sidebar-emoji">🗂️</span>Multi-Dataset</button>
+        <button class="sidebar-item" data-page="model-accuracy" onclick="showPage('model-accuracy',this)"><span class="sidebar-emoji">🎯</span>Model Accuracy</button>
+        <button class="sidebar-item" data-page="ethical-ai" onclick="showPage('ethical-ai',this)"><span class="sidebar-emoji">⚖️</span>Ethical AI</button>
+        <button class="sidebar-item" data-page="benchmark" onclick="showPage('benchmark',this)"><span class="sidebar-emoji">📊</span>Benchmark</button>
+        <button class="sidebar-item" data-page="ieee-export" onclick="showPage('ieee-export',this)"><span class="sidebar-emoji">🏛️</span>IEEE Export</button>
+        <button class="sidebar-item" data-page="abstract" onclick="showPage('abstract',this)"><span class="sidebar-emoji">📝</span>IEEE Abstract</button>
+        <button class="sidebar-item" data-page="oss" onclick="showPage('oss',this)"><span class="sidebar-emoji">🌐</span>OSS Readiness</button>
+        <button class="sidebar-item" data-page="cicd" onclick="showPage('cicd',this)"><span class="sidebar-emoji">🔄</span>CI/CD Pipeline</button>
+      </div>
+    </div>
+
+    <!-- GROUP: SYSTEM -->
+    <div class="sb-group">
+      <button class="sb-group-header" onclick="toggleGroup(this)"><span>⚙️ System</span><span class="sb-arrow">▾</span></button>
+      <div class="sb-group-items">
+        <button class="sidebar-item" data-page="logs" onclick="showPage('logs',this)"><span class="sidebar-emoji">📝</span>Logs</button>
+        <button class="sidebar-item" data-page="sessions" onclick="showPage('sessions',this)"><span class="sidebar-emoji">🔑</span>Sessions</button>
+        <button class="sidebar-item" data-page="system-health" onclick="showPage('system-health',this)"><span class="sidebar-emoji">💻</span>System Health</button>
+        <button class="sidebar-item" data-page="system-audit" onclick="showPage('system-audit',this)"><span class="sidebar-emoji">🔍</span>System Audit</button>
+        <button class="sidebar-item" data-page="system-report" onclick="showPage('system-report',this)"><span class="sidebar-emoji">📋</span>System Report</button>
+        <button class="sidebar-item" data-page="uptime-tracker" onclick="showPage('uptime-tracker',this)"><span class="sidebar-emoji">⏱️</span>Uptime Tracker</button>
+        <button class="sidebar-item" data-page="agent-health" onclick="showPage('agent-health',this)"><span class="sidebar-emoji">💓</span>Agent Health</button>
+        <button class="sidebar-item" data-page="complexity" onclick="showPage('complexity',this)"><span class="sidebar-emoji">🧬</span>Complexity Score</button>
+        <button class="sidebar-item" data-page="onboarding-progress" onclick="showPage('onboarding-progress',this)"><span class="sidebar-emoji">🚀</span>Onboarding</button>
+        <button class="sidebar-item" data-page="global-search" onclick="showPage('global-search',this)"><span class="sidebar-emoji">🔍</span>Global Search</button>
+        <button class="sidebar-item" data-page="feature-registry" onclick="showPage('feature-registry',this)"><span class="sidebar-emoji">🏛️</span>Feature Registry</button>
+        <button class="sidebar-item" data-page="staff" onclick="showPage('staff',this)"><span class="sidebar-emoji">👨‍💼</span>Staff</button>
+        <button class="sidebar-item" data-page="annotations" onclick="showPage('annotations',this)"><span class="sidebar-emoji">📌</span>Annotations</button>
+        <button class="sidebar-item" data-page="themes" onclick="showPage('themes',this)"><span class="sidebar-emoji">🎨</span>Themes</button>
+        <button class="sidebar-item" data-page="celebrate" onclick="showPage('celebrate',this)"><span class="sidebar-emoji">🎉</span>332 Features!</button>
+      </div>
+    </div>
+
+  </div><!-- end sidebar-inner -->
+</aside>
 
   <!-- CONTENT -->
   <main class="content">
@@ -2749,7 +2796,27 @@ function getAuthHeaders() {
   return { "Authorization": t || "" };
 }
 
-function safeRedirect() {
+function toggleGroup(btn) {
+  const items = btn.nextElementSibling;
+  const arrow = btn.querySelector('.sb-arrow');
+  const isOpen = items.classList.contains('open');
+  items.classList.toggle('open', !isOpen);
+  arrow.classList.toggle('rotated', isOpen);
+}
+
+// Auto-open the group containing the active page
+function openGroupForPage(pageId) {
+  const activeBtn = document.querySelector(`.sidebar-item[data-page="${pageId}"]`);
+  if (!activeBtn) return;
+  const groupItems = activeBtn.closest('.sb-group-items');
+  if (groupItems) {
+    groupItems.classList.add('open');
+    const arrow = groupItems.previousElementSibling?.querySelector('.sb-arrow');
+    if (arrow) arrow.classList.remove('rotated');
+  }
+}
+
+
   // Prevent redirect loop — only redirect if not already redirecting
   if (window.location.href.includes("login.html")) return;
   if (sessionStorage.getItem("redirecting")) return;
@@ -2822,6 +2889,7 @@ function showPage(page, clickedBtn) {
   document.getElementById("page-" + page).classList.add("active");
   document.querySelectorAll(".sidebar-item").forEach(item => item.classList.toggle("active", item.dataset.page === page));
   document.querySelectorAll(".topbar-nav-item").forEach(item => item.classList.toggle("active", item.dataset.page === page));
+  openGroupForPage(page);
   if (["overview","inventory","logs"].includes(page)) loadAdmin();
   if (page === "franchise") loadAllFranchises();
   if (page === "shelf-scan") { loadRecentScans(); loadMLUrl(); }
