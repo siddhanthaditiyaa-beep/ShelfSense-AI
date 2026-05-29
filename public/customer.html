@@ -1285,9 +1285,18 @@
 <button class="settings-fab" id="settingsFab" onclick="toggleSettings()">⚙️</button>
 <div class="settings-panel" id="settingsPanel">
   <h3>🎨 Appearance</h3>
-  <div class="theme-option" data-theme="light" onclick="setTheme('light')"><span class="theme-option-icon">☀️</span> Light Mode</div>
-  <div class="theme-option" data-theme="dark" onclick="setTheme('dark')"><span class="theme-option-icon">🌙</span> Dark Mode</div>
-  <div class="theme-option" data-theme="system" onclick="setTheme('system')"><span class="theme-option-icon">💻</span> System Default</div>
+  <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em">🌙 Dark Themes</div>
+  <div class="theme-option" data-theme="default"     onclick="setCustomerTheme('default')"><span class="theme-option-icon">🌌</span> ShelfSense Dark</div>
+  <div class="theme-option" data-theme="midnight"    onclick="setCustomerTheme('midnight')"><span class="theme-option-icon">🖥️</span> Midnight Command</div>
+  <div class="theme-option" data-theme="cyberpunk"   onclick="setCustomerTheme('cyberpunk')"><span class="theme-option-icon">⚡</span> Cyberpunk</div>
+  <div class="theme-option" data-theme="ocean"       onclick="setCustomerTheme('ocean')"><span class="theme-option-icon">🌊</span> Deep Ocean</div>
+  <div class="theme-option" data-theme="rose"        onclick="setCustomerTheme('rose')"><span class="theme-option-icon">🌹</span> Rose Gold</div>
+  <div style="font-size:0.72rem;color:var(--text-muted);margin:12px 0 8px;text-transform:uppercase;letter-spacing:0.05em">☀️ Light Themes</div>
+  <div class="theme-option" data-theme="light-clean"    onclick="setCustomerTheme('light-clean')"><span class="theme-option-icon">⬜</span> ShelfSense White</div>
+  <div class="theme-option" data-theme="light-mint"     onclick="setCustomerTheme('light-mint')"><span class="theme-option-icon">🌿</span> Mint Fresh</div>
+  <div class="theme-option" data-theme="light-sky"      onclick="setCustomerTheme('light-sky')"><span class="theme-option-icon">🩵</span> Sky Blue</div>
+  <div class="theme-option" data-theme="light-peach"    onclick="setCustomerTheme('light-peach')"><span class="theme-option-icon">🍑</span> Warm Peach</div>
+  <div class="theme-option" data-theme="light-lavender" onclick="setCustomerTheme('light-lavender')"><span class="theme-option-icon">💜</span> Lavender</div>
 </div>
 
 <div id="toast"></div>
@@ -1328,7 +1337,23 @@ const TRANSLATIONS = {
     "share-whatsapp": "📲 Share on WhatsApp",
     "greeting-morning": "Good morning",
     "greeting-afternoon": "Good afternoon",
-    "greeting-evening": "Good evening"
+    "greeting-evening": "Good evening",
+    "units-available": "units available",
+    "showing": "Showing",
+    "of": "of",
+    "products": "products",
+    "cart-title": "🛒 Your Cart",
+    "clear-cart": "Clear",
+    "total": "Total",
+    "items": "items",
+    "products-en": {
+      "chocolates":"Chocolates","biscuits":"Biscuits","chips":"Chips",
+      "juice":"Juice","soft-drinks":"Soft Drinks","canned-food":"Canned Food",
+      "rice":"Rice","salt":"Salt","amul-butter":"Amul Butter",
+      "maggi-noodles":"Maggi Noodles","coca-cola-600ml":"Coca-Cola 600ml",
+      "lays-chips":"Lays Chips","frooti-mango-200ml":"Frooti Mango 200ml",
+      "tata-salt-1kg":"Tata Salt 1kg","bourbon-biscuits":"Bourbon Biscuits"
+    }
   },
   hi: {
     "hero-title": "ताज़े उत्पाद हर दिन 🛍️",
@@ -1362,7 +1387,23 @@ const TRANSLATIONS = {
     "share-whatsapp": "📲 WhatsApp पर शेयर करें",
     "greeting-morning": "सुप्रभात",
     "greeting-afternoon": "नमस्कार",
-    "greeting-evening": "शुभ संध्या"
+    "greeting-evening": "शुभ संध्या",
+    "units-available": "इकाइयाँ उपलब्ध",
+    "showing": "दिखाया जा रहा है",
+    "of": "में से",
+    "products": "उत्पाद",
+    "cart-title": "🛒 आपकी कार्ट",
+    "clear-cart": "साफ़ करें",
+    "total": "कुल",
+    "items": "आइटम",
+    "products-en": {
+      "chocolates":"चॉकलेट","biscuits":"बिस्किट","chips":"चिप्स",
+      "juice":"जूस","soft-drinks":"शीतल पेय","canned-food":"डिब्बाबंद खाना",
+      "rice":"चावल","salt":"नमक","amul-butter":"अमूल मक्खन",
+      "maggi-noodles":"मैगी नूडल्स","coca-cola-600ml":"कोका-कोला 600मिली",
+      "lays-chips":"लेज़ चिप्स","frooti-mango-200ml":"फ्रूटी आम 200मिली",
+      "tata-salt-1kg":"टाटा नमक 1किग्रा","bourbon-biscuits":"बोर्बन बिस्किट"
+    }
   },
   mr: {
     "hero-title": "दररोज ताजे उत्पादन 🛍️",
@@ -1396,7 +1437,23 @@ const TRANSLATIONS = {
     "share-whatsapp": "📲 WhatsApp वर शेअर करा",
     "greeting-morning": "सुप्रभात",
     "greeting-afternoon": "नमस्कार",
-    "greeting-evening": "शुभ संध्याकाळ"
+    "greeting-evening": "शुभ संध्याकाळ",
+    "units-available": "युनिट्स उपलब्ध",
+    "showing": "दाखवत आहे",
+    "of": "पैकी",
+    "products": "उत्पादने",
+    "cart-title": "🛒 तुमची कार्ट",
+    "clear-cart": "साफ करा",
+    "total": "एकूण",
+    "items": "वस्तू",
+    "products-en": {
+      "chocolates":"चॉकलेट","biscuits":"बिस्किटे","chips":"चिप्स",
+      "juice":"रस","soft-drinks":"शीतपेये","canned-food":"डबाबंद अन्न",
+      "rice":"तांदूळ","salt":"मीठ","amul-butter":"अमूल लोणी",
+      "maggi-noodles":"मॅगी नूडल्स","coca-cola-600ml":"कोका-कोला 600मिली",
+      "lays-chips":"लेज चिप्स","frooti-mango-200ml":"फ्रूटी आंबा 200मिली",
+      "tata-salt-1kg":"टाटा मीठ 1किलो","bourbon-biscuits":"बोर्बन बिस्किटे"
+    }
   }
 };
 
@@ -1529,7 +1586,7 @@ function renderRecommended() {
   scroll.innerHTML = recommended.map(([key, item]) => `
     <div class="recommended-card" onclick="openProductModal('${key}')">
       <div class="rec-emoji">${EMOJIS[key] || EMOJIS.default}</div>
-      <div class="rec-name">${item.name}</div>
+      <div class="rec-name">${getProductName(key, item.name)}</div>
       <div class="rec-price">₹${item.price || 99}</div>
       <div class="rec-rating">${renderStars(item.avgRating || 0)} ${item.avgRating ? item.avgRating.toFixed(1) : "New"}</div>
     </div>
@@ -1543,7 +1600,8 @@ function renderProducts() {
 
   let filtered = Object.entries(allProducts).filter(([key, item]) => {
     const effectivePrice = item.onSale ? item.salePrice : item.price;
-    const matchSearch = item.name.toLowerCase().includes(search) || key.includes(search);
+    const displayName = getProductName(key, item.name);
+    const matchSearch = displayName.toLowerCase().includes(search) || item.name.toLowerCase().includes(search) || key.includes(search);
     const matchStatus =
       currentFilter === "all" ||
       (currentFilter === "available" && item.stock > 3) ||
@@ -1597,7 +1655,7 @@ function renderProducts() {
             onclick="event.stopPropagation(); toggleWishlist('${key}')">${isWishlisted ? '❤️' : '🤍'}</button>
         </div>
         <div class="product-info">
-          <div class="product-name">${item.name}</div>
+          <div class="product-name">${getProductName(key, item.name)}</div>
           ${hasCountdown ? `
             <div class="flash-sale-badge ${endingSoon ? 'sale-ending-soon' : ''}" id="flashBadge_${key}">
               ⚡ FLASH SALE &nbsp;
@@ -1675,7 +1733,7 @@ function openProductModal(key) {
   document.getElementById("modalContent").innerHTML = `
     <div class="modal-emoji-header">${emoji}</div>
     <div class="modal-body">
-      <div class="modal-name">${item.name}</div>
+      <div class="modal-name">${getProductName(key, item.name)}</div>
       <div class="modal-price">₹${item.price || 99}</div>
       <div class="modal-desc">${desc}</div>
       <div style="margin-bottom:14px">
@@ -2736,15 +2794,39 @@ function setLanguage(lang) {
   localStorage.setItem("shelfsense-lang", lang);
   ["en","hi","mr"].forEach(l => { const btn = document.getElementById(`lang-${l}`); if (btn) btn.classList.toggle("active", l === lang); });
   const tr = TRANSLATIONS[lang]; if (!tr) return;
-  const updates = { "txt-hero-title": tr["hero-title"], "txt-hero-sub": tr["hero-sub"], "tab-shop": tr["tab-shop"], "tab-wishlist": tr["tab-wishlist"], "tab-orders": tr["tab-orders"], "tab-loyalty": tr["tab-loyalty"], "tab-analytics": tr["tab-analytics"], "tab-referral": tr["tab-referral"], "txt-recommended": tr["recommended"], "txt-filter": tr["filter"], "txt-wishlist-title": tr["wishlist-title"], "txt-orders-title": tr["orders-title"] };
+
+  // Update static UI text
+  const updates = {
+    "txt-hero-title": tr["hero-title"], "txt-hero-sub": tr["hero-sub"],
+    "tab-shop": tr["tab-shop"], "tab-wishlist": tr["tab-wishlist"],
+    "tab-orders": tr["tab-orders"], "tab-loyalty": tr["tab-loyalty"],
+    "tab-analytics": tr["tab-analytics"], "tab-referral": tr["tab-referral"],
+    "txt-recommended": tr["recommended"], "txt-filter": tr["filter"],
+    "txt-wishlist-title": tr["wishlist-title"], "txt-orders-title": tr["orders-title"]
+  };
   Object.entries(updates).forEach(([id, text]) => { const el = document.getElementById(id); if (el) el.innerText = text; });
+
   const searchEl = document.getElementById("searchInput"); if (searchEl) searchEl.placeholder = tr["search-placeholder"];
   const payBtn = document.getElementById("payBtn"); if (payBtn) payBtn.innerText = tr["pay-btn"];
   const checkoutBtn = document.getElementById("checkoutBtn"); if (checkoutBtn) checkoutBtn.innerText = tr["checkout-btn"];
+
+  // Translate greeting — fname stays as-is (it's a personal name, not translated)
   const hour = new Date().getHours(), greetKey = hour < 12 ? "greeting-morning" : hour < 17 ? "greeting-afternoon" : "greeting-evening";
-  const greetEl = document.getElementById("heroGreeting"); if (greetEl) greetEl.innerText = `${tr[greetKey]}, ${fname}! 👋`;
+  const greetEl = document.getElementById("heroGreeting");
+  if (greetEl) greetEl.innerText = `${tr[greetKey]}, ${fname}! 👋`;
+
+  // Re-render products with translated names
   renderProducts();
+  renderRecommended();
+
   showToast(lang === "hi" ? "भाषा बदली ✅" : lang === "mr" ? "भाषा बदलली ✅" : "Language changed ✅");
+}
+
+// Helper: get translated product name
+function getProductName(key, originalName) {
+  const tr = TRANSLATIONS[currentLanguage];
+  if (!tr || currentLanguage === "en") return originalName;
+  return tr["products-en"]?.[key] || originalName;
 }
 
 function applyLanguage() {
@@ -2754,7 +2836,58 @@ function applyLanguage() {
 
 /* ===== SETTINGS ===== */
 function toggleSettings() { document.getElementById("settingsPanel").classList.toggle("open"); }
-function setTheme(theme) { document.documentElement.setAttribute("data-theme", theme); localStorage.setItem("shelfsense-theme", theme); document.querySelectorAll(".theme-option").forEach(o => o.classList.toggle("active", o.getAttribute("data-theme") === theme)); document.getElementById("settingsPanel").classList.remove("open"); }
+/* ===== FULL 10-THEME ENGINE (matches admin) ===== */
+const CUSTOMER_THEMES = {
+  "default":        { primary:"#6366f1", bg:"#0f0f23", secondary:"#16162a", accent:"#a78bfa", border:"rgba(99,102,241,0.2)", textPrimary:"#e2e8f0", textSecondary:"#a0aec0", textMuted:"#718096" },
+  "midnight":       { primary:"#22c55e", bg:"#030712", secondary:"#0a1628", accent:"#4ade80", border:"rgba(34,197,94,0.2)",   textPrimary:"#f0fdf4", textSecondary:"#86efac", textMuted:"#4ade80" },
+  "cyberpunk":      { primary:"#f59e0b", bg:"#09090b", secondary:"#18100a", accent:"#fbbf24", border:"rgba(245,158,11,0.2)", textPrimary:"#fef3c7", textSecondary:"#fcd34d", textMuted:"#d97706" },
+  "ocean":          { primary:"#06b6d4", bg:"#0c1a29", secondary:"#0d2137", accent:"#67e8f9", border:"rgba(6,182,212,0.2)",  textPrimary:"#e0f7fa", textSecondary:"#67e8f9", textMuted:"#22d3ee" },
+  "rose":           { primary:"#f43f5e", bg:"#1a0a0f", secondary:"#2a0e1a", accent:"#fb7185", border:"rgba(244,63,94,0.2)",  textPrimary:"#fff1f2", textSecondary:"#fda4af", textMuted:"#fb7185" },
+  "light-clean":    { primary:"#6366f1", bg:"#ffffff", secondary:"#f1f5f9", accent:"#6366f1", border:"rgba(99,102,241,0.2)", textPrimary:"#1e293b", textSecondary:"#475569", textMuted:"#94a3b8" },
+  "light-mint":     { primary:"#059669", bg:"#f0fdf4", secondary:"#dcfce7", accent:"#059669", border:"rgba(5,150,105,0.2)",  textPrimary:"#14532d", textSecondary:"#166534", textMuted:"#15803d" },
+  "light-sky":      { primary:"#0284c7", bg:"#f0f9ff", secondary:"#e0f2fe", accent:"#0284c7", border:"rgba(2,132,199,0.2)",  textPrimary:"#0c4a6e", textSecondary:"#075985", textMuted:"#0369a1" },
+  "light-peach":    { primary:"#ea580c", bg:"#fff7ed", secondary:"#ffedd5", accent:"#ea580c", border:"rgba(234,88,12,0.2)",  textPrimary:"#431407", textSecondary:"#7c2d12", textMuted:"#9a3412" },
+  "light-lavender": { primary:"#7c3aed", bg:"#faf5ff", secondary:"#ede9fe", accent:"#7c3aed", border:"rgba(124,58,237,0.2)", textPrimary:"#2e1065", textSecondary:"#4c1d95", textMuted:"#5b21b6" },
+};
+
+function setCustomerTheme(themeId) {
+  const t = CUSTOMER_THEMES[themeId] || CUSTOMER_THEMES["default"];
+  const root = document.documentElement;
+  root.style.setProperty("--accent", t.primary);
+  root.style.setProperty("--bg-primary", t.bg);
+  root.style.setProperty("--bg-secondary", t.secondary);
+  root.style.setProperty("--bg-card", t.secondary);
+  root.style.setProperty("--bg-input", t.secondary);
+  root.style.setProperty("--bg-tertiary", t.secondary);
+  root.style.setProperty("--text-accent", t.accent);
+  root.style.setProperty("--accent-light", t.border);
+  root.style.setProperty("--border-color", t.border);
+  root.style.setProperty("--text-primary", t.textPrimary);
+  root.style.setProperty("--text-secondary", t.textSecondary);
+  root.style.setProperty("--text-muted", t.textMuted);
+  root.style.setProperty("--header-bg", t.secondary);
+  root.style.setProperty("--header-border", t.border);
+  document.body.style.background = t.bg;
+  document.body.style.color = t.textPrimary;
+  localStorage.setItem("customerTheme", themeId);
+  // Update active state
+  document.querySelectorAll(".theme-option").forEach(o =>
+    o.classList.toggle("active", o.getAttribute("data-theme") === themeId));
+  document.getElementById("settingsPanel").classList.remove("open");
+}
+
+// Legacy setTheme alias (for any old calls)
+function setTheme(theme) { setCustomerTheme(theme); }
+
+// Apply saved theme on load
+(function initCustomerTheme() {
+  const saved = localStorage.getItem("customerTheme") || localStorage.getItem("shelfsense-theme") || "default";
+  if (saved !== "default") setCustomerTheme(saved);
+  else {
+    document.querySelectorAll(".theme-option").forEach(o =>
+      o.classList.toggle("active", o.getAttribute("data-theme") === "default"));
+  }
+})();
 
 /* ===== MULTI-STORE CONTEXT ===== */
 // Show active store name in header if shopping a specific store

@@ -360,6 +360,18 @@
         <button class="submit-btn" id="customerLoginBtn" onclick="loginCustomer()">
           Login to My Account
         </button>
+        <div class="forgot-link" style="text-align:center;margin-top:10px">
+          <a href="#" onclick="openCustomerForgotPassword(); return false;">Forgot password?</a>
+          &nbsp;·&nbsp;
+          <a href="customer-register.html" style="color:var(--secondary);font-weight:600">Create account →</a>
+        </div>
+        <div class="demo-box" style="margin-top:14px">
+          <div class="demo-box-title">🛍️ Demo Customer</div>
+          <div class="demo-row" onclick="fillCustomerDemo('shopper@shelfsense.ai','shopper123')">
+            <span>Demo Shopper:</span><span>shopper@shelfsense.ai / shopper123</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--text-muted);margin-top:6px">👆 Click to auto-fill</div>
+        </div>
       </div>
 
     </div>
@@ -485,6 +497,13 @@ let otpTimerInterval = null;
     document.getElementById("storePassword").value = password;
     document.getElementById("storeEye").innerText = "👁️";
     document.getElementById("storePassword").type = "password";
+  }
+
+  function fillCustomerDemo(email, password) {
+    document.getElementById("customerUsername").value = email;
+    document.getElementById("customerPassword").value = password;
+    document.getElementById("customerEye").innerText = "👁️";
+    document.getElementById("customerPassword").type = "password";
   }
 
   /* ===== COUNTDOWN TIMER ===== */
@@ -787,6 +806,16 @@ function goBackToLogin() {
     if (email) document.getElementById("forgotEmail").value = email;
     document.getElementById("forgotError").style.display = "none";
     document.getElementById("forgotSuccess").style.display = "none";
+    document.querySelector("#forgotModal .modal-subtitle").textContent = "Enter your store email and we'll send you a reset link.";
+    document.getElementById("forgotModal").classList.add("open");
+  }
+
+  function openCustomerForgotPassword() {
+    const email = document.getElementById("customerUsername").value;
+    if (email) document.getElementById("forgotEmail").value = email;
+    document.getElementById("forgotError").style.display = "none";
+    document.getElementById("forgotSuccess").style.display = "none";
+    document.querySelector("#forgotModal .modal-subtitle").textContent = "Enter your customer email and we'll send you a reset link.";
     document.getElementById("forgotModal").classList.add("open");
   }
 

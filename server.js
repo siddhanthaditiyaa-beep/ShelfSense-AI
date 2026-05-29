@@ -10562,7 +10562,9 @@ app.get("/setup-demo-store", async (req, res) => {
       // Update existing store with rich data
       const storeId = existing._id;
       await seedDemoData(storeId);
-      return res.json({ message: "Demo store refreshed with rich data!", email, password: "demo1234", storeId });
+      await seedDemoCustomer(storeId);
+      return res.json({ message: "Demo store refreshed with rich data!", email, password: "demo1234", storeId,
+        demoCustomer: { email: "shopper@shelfsense.ai", password: "shopper123" } });
     }
     const hashedPassword = await bcrypt.hash("demo1234", 12);
     const store = await Store.create({
@@ -10571,7 +10573,9 @@ app.get("/setup-demo-store", async (req, res) => {
       alertEmail: email, city: "Mumbai", openHour: 9, closeHour: 22
     });
     await seedDemoData(store._id);
-    res.json({ message: "Demo store created!", email, password: "demo1234", storeId: store._id });
+    await seedDemoCustomer(store._id);
+    res.json({ message: "Demo store created!", email, password: "demo1234", storeId: store._id,
+      demoCustomer: { email: "shopper@shelfsense.ai", password: "shopper123" } });
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
@@ -10639,6 +10643,49 @@ async function seedDemoData(storeId) {
     await AgentLog.create({ storeId, agent: agentNames[i%agentNames.length], action: [`📦 Low stock detected: Frooti (2 units)`, `📊 Demand forecast: Parle-G needs restock in 3 days`, `🔔 Stock alert sent for Lays Chips (out of stock)`, `💰 Dynamic pricing: Coca-Cola +5% (high demand)`, `✅ Daily briefing sent: 45 orders, ₹3,240 revenue`, `🎯 Forecast accuracy: 87% this week`][i%6], severity: ["warning","info","critical","info","info","info"][i%6], createdAt: new Date(Date.now() - i * 3600000) });
   }
   console.log(`✅ Demo data seeded for store ${storeId}`);
+}
+
+/* Demo customer for the demo store */
+async function seedDemoCustomer(storeId) {
+  try {
+    const customerEmail = "shopper@shelfsense.ai";
+    const hashedPw = await bcrypt.hash("shopper123", 12);
+
+    let customer = await User.findOne({ email: customerEmail });
+    if (!customer) {
+      customer = await User.create({
+        fname: "Demo", lname: "Shopper",
+        email: customerEmail, password: hashedPw,
+        role: "customer", loyaltyPoints: 250, totalPointsEarned: 350,
+        referralCode: "DEMO123"
+      });
+    } else {
+      // Reset to known state
+      await User.updateOne({ email: customerEmail }, {
+        $set: { fname: "Demo", lname: "Shopper", loyaltyPoints: 250, totalPointsEarned: 350 }
+      });
+    }
+
+    // Create 5 sample orders for the demo customer at the demo store
+    await Order.deleteMany({ userEmail: customerEmail, storeId });
+    const sampleOrders = [
+      { cart: { "chocolates": 2, "biscuits": 3 }, totalAmount: 445, status: "delivered", paymentStatus: "paid" },
+      { cart: { "chips": 4, "soft-drinks": 2 }, totalAmount: 234, status: "delivered", paymentStatus: "paid" },
+      { cart: { "rice": 1, "salt": 2 }, totalAmount: 139, status: "processing", paymentStatus: "paid" },
+      { cart: { "juice": 3, "canned-food": 1 }, totalAmount: 496, status: "placed", paymentStatus: "pending" },
+      { cart: { "chocolates": 1, "chips": 2, "juice": 1 }, totalAmount: 276, status: "delivered", paymentStatus: "paid" },
+    ];
+    for (let i = 0; i < sampleOrders.length; i++) {
+      await Order.create({
+        storeId, userId: customer._id, userEmail: customerEmail,
+        ...sampleOrders[i],
+        createdAt: new Date(Date.now() - i * 2 * 24 * 3600000)
+      });
+    }
+    console.log(`✅ Demo customer seeded: ${customerEmail} / shopper123`);
+  } catch(err) {
+    console.error("Demo customer seed error:", err.message);
+  }
 }
 
 /* =========================
