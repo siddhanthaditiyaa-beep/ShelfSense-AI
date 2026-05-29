@@ -10296,7 +10296,7 @@ async function seedDemoData(storeId) {
       orderItems.push({ key: item.key, name: item.name, price: item.price, qty });
       total += item.price * qty;
     }
-    await Order.create({ storeId, customerEmail: ["customer1@demo.com","customer2@demo.com","customer3@demo.com","demo@customer.com"][i%4], items: orderItems, total, status: ["delivered","delivered","confirmed","placed"][i%4], paymentMethod: ["upi","card","cod","upi"][i%4], createdAt: orderDate });
+    await Order.create({ storeId, customerEmail: ["customer1@demo.com","customer2@demo.com","customer3@demo.com","demo@customer.com"][i%4], items: orderItems, total, status: ["delivered","delivered","processing","placed"][i%4], paymentMethod: ["upi","card","cod","upi"][i%4], createdAt: orderDate });
   }
   // Create NPS responses
   for (let i = 0; i < 12; i++) {
