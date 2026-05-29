@@ -5113,10 +5113,21 @@ async function askNLQ(prefill) {
       headers: { "Content-Type": "application/json", ...getAuthHeaders() },
       body: JSON.stringify({ question })
     });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      answerDiv.innerHTML = `<span style="color:var(--danger,#f87171)">❌ ${errData.answer || errData.message || "Server error. Please try again."}</span>`;
+      btn.textContent = "🔍 Ask AI"; btn.disabled = false; return;
+    }
+
     const data = await res.json();
-    answerDiv.innerHTML = `<strong>🧠 AI Answer:</strong><br><br>${data.answer || data.message}`;
+    const answer = data.answer || data.message || "No answer returned.";
+    const sourceBadge = data.source === "groq-ai"
+      ? `<span style="font-size:0.72rem;background:rgba(99,102,241,0.15);color:#a5b4fc;padding:2px 8px;border-radius:20px;margin-left:8px;vertical-align:middle">⚡ Groq AI</span>`
+      : `<span style="font-size:0.72rem;background:rgba(16,185,129,0.15);color:#6ee7b7;padding:2px 8px;border-radius:20px;margin-left:8px;vertical-align:middle">📊 Live Data</span>`;
+    answerDiv.innerHTML = `<strong>🧠 AI Answer${sourceBadge}</strong><br><br>${answer}`;
   } catch(err) {
-    answerDiv.innerHTML = "❌ Could not process query. Please try again.";
+    answerDiv.innerHTML = `<span style="color:var(--danger,#f87171)">❌ Network error — could not reach server. Please check your connection.</span>`;
   }
 
   btn.textContent = "🔍 Ask AI";

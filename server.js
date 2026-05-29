@@ -3420,48 +3420,105 @@ app.post("/admin/nlq", auth("admin"), async (req, res) => {
     const outOfStock = items.filter(i => i.stock === 0);
     const totalRevenue = orders.reduce((sum, o) => sum + (o.total || 0), 0);
 
+    // FIX: Use [...items] spread to avoid mutating the original array when sorting
+    const topSelling = [...items]
+      .sort((a, b) => (b.salesHistory?.slice(-7).reduce((s, v) => s + v, 0) || 0) - (a.salesHistory?.slice(-7).reduce((s, v) => s + v, 0) || 0))
+      .slice(0, 3)
+      .map(i => i.name)
+      .join(", ");
+
     const context = `
 STORE DATA (Live):
 - Total products: ${items.length}
-- Out of stock: ${outOfStock.map(i => i.name).join(", ") || "None"}
-- Low stock: ${lowStock.map(i => `${i.name} (${i.stock} left)`).join(", ") || "None"}
+- Out of stock (${outOfStock.length}): ${outOfStock.map(i => i.name).join(", ") || "None"}
+- Low stock (${lowStock.length}): ${lowStock.map(i => `${i.name} (${i.stock} left)`).join(", ") || "None"}
 - Recent orders: ${orders.length} orders, total revenue ₹${totalRevenue.toFixed(0)}
 - Pending reorders: ${purchaseOrders.filter(p => p.status === "pending").length}
-- Recent agent actions: ${agentLogs.slice(0, 5).map(l => l.action).join(" | ")}
-- Top selling products: ${items.sort((a, b) => (b.salesHistory?.slice(-7).reduce((s, v) => s + v, 0) || 0) - (a.salesHistory?.slice(-7).reduce((s, v) => s + v, 0) || 0)).slice(0, 3).map(i => i.name).join(", ")}
+- Recent agent actions: ${agentLogs.slice(0, 5).map(l => l.action).join(" | ") || "None"}
+- Top selling products: ${topSelling || "Insufficient data"}
 `;
+
+    // Rule-based fallback function (used when Groq is unavailable OR fails)
+    function ruleBasedAnswer() {
+      const q = question.toLowerCase();
+      let answer = "📊 Here is your live store data: ";
+      if (q.includes("out of stock")) {
+        answer = outOfStock.length === 0
+          ? "✅ Great news! No products are currently out of stock."
+          : `🚨 ${outOfStock.length} product(s) are out of stock: ${outOfStock.map(i => i.name).join(", ")}.`;
+      } else if (q.includes("low stock") || q.includes("run out") || q.includes("running low")) {
+        answer = lowStock.length === 0
+          ? "✅ All products are above minimum stock levels."
+          : `⚠️ ${lowStock.length} product(s) are running low: ${lowStock.map(i => `${i.name} (${i.stock} left)`).join(", ")}.`;
+      } else if (q.includes("revenue") || q.includes("sales") || q.includes("earning")) {
+        answer = `💰 Revenue from ${orders.length} recent orders: ₹${totalRevenue.toFixed(0)}.`;
+      } else if (q.includes("reorder") || q.includes("pending")) {
+        const pending = purchaseOrders.filter(p => p.status === "pending").length;
+        answer = `📦 You have ${pending} pending reorder(s).`;
+      } else if (q.includes("top") || q.includes("best") || q.includes("selling")) {
+        answer = `🏆 Top selling products: ${topSelling || "Insufficient sales data"}.`;
+      } else if (q.includes("total") || q.includes("how many") || q.includes("count")) {
+        answer = `🏪 Store summary: ${items.length} total products, ${outOfStock.length} out of stock, ${lowStock.length} low stock, ${orders.length} recent orders.`;
+      } else {
+        answer = `🏪 Store summary — Products: ${items.length} total, ${outOfStock.length} out of stock, ${lowStock.length} low stock. Revenue: ₹${totalRevenue.toFixed(0)} from ${orders.length} orders. Pending reorders: ${purchaseOrders.filter(p => p.status === "pending").length}.`;
+      }
+      return answer;
+    }
 
     const GROQ_API_KEY = process.env.GROQ_API_KEY;
     if (!GROQ_API_KEY) {
-      // Fallback: rule-based answers without AI
-      let answer = "I can see your store data. ";
-      if (question.toLowerCase().includes("out of stock")) answer += `${outOfStock.length} products are out of stock: ${outOfStock.map(i => i.name).join(", ") || "None"}.`;
-      else if (question.toLowerCase().includes("low stock")) answer += `${lowStock.length} products are running low: ${lowStock.map(i => `${i.name} (${i.stock})`).join(", ") || "None"}.`;
-      else if (question.toLowerCase().includes("revenue")) answer += `Recent revenue from ${orders.length} orders: ₹${totalRevenue.toFixed(0)}.`;
-      else answer += `You have ${items.length} products, ${outOfStock.length} out of stock, ${lowStock.length} low stock.`;
-      return res.json({ answer, source: "rule-based" });
+      return res.json({ answer: ruleBasedAnswer(), source: "rule-based" });
     }
 
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${GROQ_API_KEY}` },
-      body: JSON.stringify({
-        model: "llama3-8b-8192",
-        max_tokens: 300,
-        messages: [
-          { role: "system", content: `You are a retail analytics AI. Answer the store manager's question using ONLY the data provided. Be direct, specific, max 2-3 sentences. Use numbers from the data.\n\n${context}` },
-          { role: "user", content: question }
-        ]
-      })
-    });
+    // Try Groq AI — with graceful fallback if it fails
+    try {
+      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${GROQ_API_KEY}` },
+        body: JSON.stringify({
+          model: "llama3-8b-8192",
+          max_tokens: 300,
+          messages: [
+            { role: "system", content: `You are ShelfSense AI, a retail analytics assistant. Answer the store manager's question using ONLY the data provided below. Be direct and specific. Use numbers. Max 2-3 sentences. Do not make up data.\n\n${context}` },
+            { role: "user", content: question }
+          ]
+        })
+      });
 
-    const data = await response.json();
-    const answer = data.choices?.[0]?.message?.content || "Could not process query.";
-    await logAgent(storeId, "NLQ Agent", `❓ Query: "${question}" → Answered`, { question }, "info");
-    res.json({ answer, source: "groq-ai" });
+      if (!response.ok) {
+        // Groq returned HTTP error (e.g. 401 invalid key, 429 rate limit, 503 down)
+        const errBody = await response.text();
+        console.error(`NLQ Groq HTTP ${response.status}:`, errBody);
+        // Fall through to rule-based
+        return res.json({ answer: ruleBasedAnswer(), source: "rule-based" });
+      }
+
+      const data = await response.json();
+
+      // Check for Groq-level error object (e.g. model not found, quota exceeded)
+      if (data.error) {
+        console.error("NLQ Groq API error:", data.error.message || data.error);
+        return res.json({ answer: ruleBasedAnswer(), source: "rule-based" });
+      }
+
+      const aiAnswer = data.choices?.[0]?.message?.content;
+      if (!aiAnswer) {
+        console.error("NLQ Groq empty choices:", JSON.stringify(data));
+        return res.json({ answer: ruleBasedAnswer(), source: "rule-based" });
+      }
+
+      await logAgent(storeId, "NLQ Agent", `❓ Query: "${question}" → Answered via Groq`, { question }, "info");
+      res.json({ answer: aiAnswer, source: "groq-ai" });
+
+    } catch (groqErr) {
+      // Network error reaching Groq — fall back gracefully
+      console.error("NLQ Groq fetch error:", groqErr.message);
+      res.json({ answer: ruleBasedAnswer(), source: "rule-based" });
+    }
+
   } catch (err) {
     console.error("NLQ error:", err.message);
-    res.status(500).json({ message: "Query failed" });
+    res.status(500).json({ message: "Query failed", answer: "Sorry, something went wrong. Please try again." });
   }
 });
 
