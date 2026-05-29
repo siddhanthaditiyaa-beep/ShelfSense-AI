@@ -1189,6 +1189,31 @@
     <h2 style="font-size:1.2rem;font-weight:800;margin-bottom:6px">🔄 Auto-Subscriptions</h2>
     <p style="color:var(--text-muted);font-size:0.875rem">Set up recurring orders for essentials. Never run out again!</p>
   </div>
+  <div style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);border-radius:14px;padding:20px;margin-bottom:20px">
+    <div style="font-weight:700;font-size:0.9rem;margin-bottom:14px">➕ New Subscription</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <select id="subItemSelect" style="padding:10px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);font-size:0.875rem">
+        <option value="">Select a product...</option>
+      </select>
+      <select id="subFrequency" style="padding:10px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);font-size:0.875rem">
+        <option value="7">Every week</option>
+        <option value="14">Every 2 weeks</option>
+        <option value="30" selected>Every month</option>
+        <option value="60">Every 2 months</option>
+        <option value="90">Every 3 months</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <div style="display:flex;align-items:center;gap:8px;flex:1">
+        <label style="font-size:0.82rem;color:var(--text-muted);white-space:nowrap">Qty:</label>
+        <input type="number" id="subQty" value="1" min="1" max="20" style="width:70px;padding:10px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);font-size:0.875rem">
+      </div>
+      <button onclick="createSubscription()" style="flex:1;padding:10px 20px;background:linear-gradient(135deg,#6366f1,#a78bfa);color:white;border:none;border-radius:8px;font-weight:700;font-size:0.875rem;cursor:pointer">
+        🔄 Subscribe
+      </button>
+    </div>
+  </div>
+  <div style="font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px">Active Subscriptions</div>
   <div id="subscriptionsList">Loading...</div>
 </div>
 
@@ -2933,7 +2958,6 @@ async function doCheckIn() {
   const status = document.getElementById("checkinStatus");
   btn.disabled = true; btn.textContent = "⏳ Checking in...";
   try {
-    const token = localStorage.getItem("customerToken");
     const res = await fetch("/customer/daily-checkin", { method:"POST", headers:{ "Authorization": token, "Content-Type":"application/json" }, body: JSON.stringify({}) });
     const data = await res.json();
     if (data.alreadyDone) {
@@ -2955,7 +2979,6 @@ async function loadCustomerAchievements() {
   const el = document.getElementById("customerAchievements");
   if (!el) return;
   try {
-    const token = localStorage.getItem("customerToken");
     const res = await fetch("/customer/achievements", { headers: { "Authorization": token } });
     const data = await res.json();
     el.innerHTML = data.badges.map(b => `
@@ -2971,9 +2994,15 @@ async function loadCustomerAchievements() {
 /* SUBSCRIPTIONS */
 async function loadSubscriptions() {
   const el = document.getElementById("subscriptionsList");
+  const sel = document.getElementById("subItemSelect");
   if (!el) return;
+  // Populate product dropdown from live inventory
+  if (sel && Object.keys(allProducts).length) {
+    const inStock = Object.entries(allProducts).filter(([k,v]) => v.stock > 0);
+    sel.innerHTML = '<option value="">Select a product...</option>' +
+      inStock.map(([key, item]) => `<option value="${key}" data-name="${item.name}">${item.name} — ₹${item.price}</option>`).join("");
+  }
   try {
-    const token = localStorage.getItem("customerToken");
     const res = await fetch("/customer/subscriptions", { headers: { "Authorization": token } });
     const data = await res.json();
     if (!data.subscriptions?.length) {
@@ -2992,10 +3021,29 @@ async function loadSubscriptions() {
   } catch(err) { el.innerHTML = "Please login to view subscriptions"; }
 }
 
+async function createSubscription() {
+  const sel = document.getElementById("subItemSelect");
+  const qty = parseInt(document.getElementById("subQty")?.value) || 1;
+  const freq = parseInt(document.getElementById("subFrequency")?.value) || 30;
+  const itemKey = sel?.value;
+  const itemName = sel?.selectedOptions[0]?.dataset?.name;
+  const storeId = window.currentStoreId || localStorage.getItem("activeStoreId") || "";
+  if (!itemKey) { showToast("Please select a product first", "warning"); return; }
+  try {
+    const res = await fetch("/customer/subscribe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": token },
+      body: JSON.stringify({ itemKey, itemName, quantity: qty, frequencyDays: freq, storeId })
+    });
+    const data = await res.json();
+    showToast(data.message || "Subscribed successfully!", "success");
+    loadSubscriptions();
+  } catch(err) { showToast("Failed to create subscription", "error"); }
+}
+
 async function cancelSubscription(id) {
   if (!confirm("Cancel this subscription?")) return;
   try {
-    const token = localStorage.getItem("customerToken");
     await fetch(`/customer/subscribe/${id}`, { method:"DELETE", headers:{ "Authorization": token } });
     loadSubscriptions();
   } catch(err) {}
@@ -3006,7 +3054,6 @@ async function loadSavings() {
   const el = document.getElementById("savingsDashboard");
   if (!el) return;
   try {
-    const token = localStorage.getItem("customerToken");
     const res = await fetch("/customer/savings", { headers: { "Authorization": token } });
     const d = await res.json();
     el.innerHTML = `
@@ -3029,7 +3076,6 @@ async function loadSupport() {
   const el = document.getElementById("ticketsList");
   if (!el) return;
   try {
-    const token = localStorage.getItem("customerToken");
     const res = await fetch("/customer/tickets", { headers: { "Authorization": token } });
     const data = await res.json();
     if (!data.tickets?.length) { el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted)">No tickets yet. Use the form above to get help!</div>'; return; }
@@ -3053,7 +3099,6 @@ async function submitTicket() {
   const storeId = window.currentStoreId || localStorage.getItem("storeId");
   if (!subject || !message) { alert("Please fill in subject and message"); return; }
   try {
-    const token = localStorage.getItem("customerToken");
     const res = await fetch("/customer/ticket", { method:"POST", headers:{ "Content-Type":"application/json","Authorization":token }, body: JSON.stringify({ subject, message, storeId }) });
     const data = await res.json();
     alert(data.message);

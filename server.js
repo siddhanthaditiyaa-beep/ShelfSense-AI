@@ -5011,22 +5011,22 @@ app.get("/customer/repeat-last-order", auth("customer"), async (req, res) => {
 /* FEATURE 57: PERSONAL SAVINGS DASHBOARD */
 app.get("/customer/savings", auth("customer"), async (req, res) => {
   try {
-    const orders = await Order.find({ customerEmail: req.user.email });
+    const orders = await Order.find({ userEmail: req.user.email });
     const user = await User.findOne({ email: req.user.email });
     let totalSaved = 0, totalSpent = 0, discountOrders = 0;
     orders.forEach(o => {
-      totalSpent += o.total || 0;
-      if (o.discount) { totalSaved += o.discount; discountOrders++; }
+      totalSpent += o.totalAmount || 0;
+      if (o.discountAmount) { totalSaved += o.discountAmount; discountOrders++; }
     });
     const pointsValue = (user?.loyaltyPoints || 0) * 0.1;
     res.json({
-      totalSpent: totalSpent.toFixed(2),
-      totalSaved: (totalSaved + pointsValue).toFixed(2),
+      totalSpent: totalSpent.toFixed(0),
+      totalSaved: (totalSaved + pointsValue).toFixed(0),
       discountOrders,
       loyaltyPoints: user?.loyaltyPoints || 0,
-      pointsValue: pointsValue.toFixed(2),
+      pointsValue: pointsValue.toFixed(0),
       totalOrders: orders.length,
-      avgOrderValue: orders.length ? (totalSpent / orders.length).toFixed(2) : 0
+      avgOrderValue: orders.length ? (totalSpent / orders.length).toFixed(0) : 0
     });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
@@ -5101,17 +5101,18 @@ app.get("/shop/flash-deal", async (req, res) => {
 /* FEATURE 61: ACHIEVEMENT BADGES */
 app.get("/customer/achievements", auth("customer"), async (req, res) => {
   try {
-    const orders = await Order.find({ customerEmail: req.user.email });
+    const orders = await Order.find({ userEmail: req.user.email });
     const user = await User.findOne({ email: req.user.email });
+    const totalSpent = orders.reduce((s, o) => s + (o.totalAmount || 0), 0);
     const badges = [
       { id: "first_purchase", name: "First Purchase", icon: "🏅", desc: "Completed your first order", earned: orders.length >= 1 },
       { id: "fifth_purchase", name: "Regular Shopper", icon: "🥈", desc: "Completed 5 orders", earned: orders.length >= 5 },
       { id: "tenth_purchase", name: "Loyal Customer", icon: "🥇", desc: "Completed 10 orders", earned: orders.length >= 10 },
-      { id: "big_spender", name: "Big Spender", icon: "💎", desc: "Spent over ₹10,000 total", earned: orders.reduce((s, o) => s + (o.total || 0), 0) >= 10000 },
+      { id: "big_spender", name: "Big Spender", icon: "💎", desc: "Spent over ₹10,000 total", earned: totalSpent >= 10000 },
       { id: "streak_3", name: "3-Day Streak", icon: "🔥", desc: "Checked in 3 days in a row", earned: (user?.checkinStreak || 0) >= 3 },
       { id: "streak_7", name: "Week Warrior", icon: "⚡", desc: "Checked in 7 days in a row", earned: (user?.checkinStreak || 0) >= 7 },
-      { id: "referral_king", name: "Referral King", icon: "👑", desc: "Referred 3+ friends", earned: (user?.referralCount || 0) >= 3 },
-      { id: "reviewer", name: "Critic", icon: "⭐", desc: "Rated 5+ products", earned: false },
+      { id: "referral_king", name: "Referral King", icon: "👑", desc: "Referred 3+ friends", earned: (user?.totalReferrals || 0) >= 3 },
+      { id: "reviewer", name: "Critic", icon: "⭐", desc: "Submitted a store review", earned: false },
     ];
     res.json({ badges, earned: badges.filter(b => b.earned).length, total: badges.length });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
