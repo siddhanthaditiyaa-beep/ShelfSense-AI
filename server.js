@@ -10240,37 +10240,6 @@ app.get("/shelfsense-complete", auth("admin"), (req, res) => {
 });
 
 /* =========================
-   ERROR HANDLERS
-========================= */
-app.use((err, req, res, next) => {
-  console.error("Error:", err.message);
-  res.status(err.status || 500).json({ message: err.message || "Internal server error" });
-});
-
-app.use((req, res) => {
-  res.status(404).json({ message: "Route not found" });
-});
-
-/* =========================
-   START SERVER
-========================= */
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`🚀 ShelfSense AI running at http://localhost:${PORT}`);
-  console.log(`🔒 Security layer active — CSRF, JWT Blacklist, Audit Log, IP Detection`);
-  console.log(`🤖 All 42 AI Agents initialized`);
-  console.log(`💳 Razorpay active`);
-  console.log(`📧 Email alerts active`);
-  console.log(`🔐 Google OAuth active`);
-  console.log(`🏪 Multi-tenant SaaS ready`);
-
-  // Self-ping every 4 minutes — double safety net with UptimeRobot
-  const SELF_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
-  setInterval(async () => {
-    try { await fetch(`${SELF_URL}/health`); } catch(e) {}
-  }, 4 * 60 * 1000);
-});
-/* =========================
    DEMO STORE SETUP (one-time)
 ========================= */
 app.get("/setup-demo-store", async (req, res) => {
@@ -10356,3 +10325,35 @@ async function seedDemoData(storeId) {
   }
   console.log(`✅ Demo data seeded for store ${storeId}`);
 }
+
+/* =========================
+   ERROR HANDLERS
+========================= */
+app.use((err, req, res, next) => {
+  console.error("Error:", err.message);
+  res.status(err.status || 500).json({ message: err.message || "Internal server error" });
+});
+
+app.use((req, res) => {
+  res.status(404).json({ message: "Route not found" });
+});
+
+/* =========================
+   START SERVER
+========================= */
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 ShelfSense AI running at http://localhost:${PORT}`);
+  console.log(`🔒 Security layer active — CSRF, JWT Blacklist, Audit Log, IP Detection`);
+  console.log(`🤖 All 42 AI Agents initialized`);
+  console.log(`💳 Razorpay active`);
+  console.log(`📧 Email alerts active`);
+  console.log(`🔐 Google OAuth active`);
+  console.log(`🏪 Multi-tenant SaaS ready`);
+
+  // Self-ping every 4 minutes — double safety net with UptimeRobot
+  const SELF_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
+  setInterval(async () => {
+    try { await fetch(`${SELF_URL}/health`); } catch(e) {}
+  }, 4 * 60 * 1000);
+});
