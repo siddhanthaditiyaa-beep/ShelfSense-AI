@@ -797,7 +797,7 @@
         <div class="stat-card"><div class="number" id="statLow" style="color:var(--warning)">-</div><div class="label">Low Stock</div></div>
         <div class="stat-card"><div class="number" id="statOut" style="color:var(--danger)">-</div><div class="label">Out of Stock</div></div>
         <div class="stat-card"><div class="number" id="statHealthy" style="color:var(--success)">-</div><div class="label">Healthy</div></div>
-        <div class="stat-card"><div class="number" id="statAgents" style="color:var(--accent)">18</div><div class="label">Active Agents</div></div>
+        <div class="stat-card"><div class="number" id="statAgents" style="color:var(--accent)">40</div><div class="label">Active Agents</div></div>
       </div>
       <!-- PERFORMANCE SCORE WIDGET -->
       <div class="card" id="performanceWidget" style="background:linear-gradient(135deg,var(--bg-card),var(--bg-secondary));margin-bottom:0">
@@ -1373,7 +1373,7 @@
           <div>
             <div class="settings-group"><label>🌦️ Weather City</label><input type="text" id="settingWeatherCity" placeholder="Mumbai"><p class="hint">Used by Weather Agent</p></div>
             <div class="card" style="background:var(--accent-light);border-color:var(--accent);margin-top:8px">
-              <h2 style="font-size:0.85rem">🤖 Agent Schedule (18 Agents)</h2>
+              <h2 style="font-size:0.85rem">🤖 Agent Schedule (40 Agents)</h2>
               <div style="font-size:0.8rem;color:var(--text-secondary);line-height:1.9">
                 🔔 Monitoring — every 30 seconds<br>
                 📊 Forecasting — every 15 minutes<br>
@@ -1505,7 +1505,7 @@
           <div class="sub-plan-name">Pro</div>
           <div class="sub-plan-price">₹999<span>/mo</span></div>
           <ul class="sub-plan-features">
-            <li>✅ Unlimited products</li><li>✅ All 18 AI Agents</li>
+            <li>✅ Unlimited products</li><li>✅ All 40 AI Agents</li>
             <li>✅ YOLOv8 Shelf Scan</li><li>✅ Razorpay Payments</li><li>✅ Real-time alerts</li>
           </ul>
           <button class="sub-plan-btn primary" onclick="selectPlan('pro')">Upgrade to Pro</button>
@@ -1536,7 +1536,7 @@
       </div>
       <div class="help-item" onclick="showAgentsGuide()">
         <span class="help-icon">🤖</span>
-        <div><div class="help-title">AI Agents Guide</div><div class="help-desc">15 agents explained — monitoring, forecasting, fraud detection and more</div></div>
+        <div><div class="help-title">AI Agents Guide</div><div class="help-desc">40 agents — 18 dashboard-controlled, 22 background — monitoring, forecasting, fraud detection and more</div></div>
         <span style="color:var(--text-muted);font-size:0.8rem">›</span>
       </div>
       <div class="help-item" onclick="window.open('privacy.html', '_blank')">
@@ -1575,7 +1575,7 @@
 <!-- AGENTS GUIDE MODAL -->
 <div class="modal-overlay" id="agentsGuideModal">
   <div class="modal-box" style="max-width:600px">
-    <div class="modal-header"><h2>🤖 18 AI Agents Guide</h2><button class="modal-close" onclick="closeModal('agentsGuideModal')">✕</button></div>
+    <div class="modal-header"><h2>🤖 40 AI Agents Guide</h2><button class="modal-close" onclick="closeModal('agentsGuideModal')">✕</button></div>
     <div class="modal-body" style="max-height:60vh;overflow-y:auto">
       <div style="display:flex;flex-direction:column;gap:10px">
         <div class="help-item" style="cursor:default"><span class="help-icon">🔔</span><div><div class="help-title">Monitoring Agent</div><div class="help-desc">Runs every 30 seconds. Alerts when stock = 0 (email sent) or stock ≤ minimum level (in-app warning).</div></div></div>
