@@ -719,7 +719,7 @@ body.reduce-motion * { animation: none !important; transition: none !important; 
   <h2 class="section-title">ShelfSense vs The Rest</h2>
   <p class="section-subtitle">See how we compare to manual inventory management and basic software.</p>
   <div style="max-width:900px;margin:0 auto;overflow-x:auto">
-    <table style="width:100%;border-collapse:collapse">
+    <table style="width:100%;border-collapse:collapse" id="comparisonTable">
       <thead>
         <tr>
           <th style="padding:14px 20px;text-align:left;font-size:0.85rem;color:rgba(255,255,255,0.5);border-bottom:1px solid rgba(255,255,255,0.1)">Feature</th>
@@ -729,23 +729,66 @@ body.reduce-motion * { animation: none !important; transition: none !important; 
         </tr>
       </thead>
       <tbody>
-        ${[
-          ["40 AI Agents running 24/7","✅","❌","❌"],
-          ["Automatic stockout prediction","✅","❌","⚠️ Manual"],
-          ["Fraud detection","✅","❌","❌"],
-          ["Dynamic pricing","✅","❌","❌"],
-          ["Shelf image scanning (YOLOv8)","✅","❌","❌"],
-          ["13-layer cybersecurity","✅","❌","⚠️ Basic"],
-          ["Multi-tenant SaaS","✅","❌","⚠️ Limited"],
-          ["Free to start","✅","✅","❌"],
-          ["Real-time alerts","✅","❌","⚠️ Email only"],
-          ["Explainable AI decisions","✅","N/A","❌"],
-        ].map(([f,a,b,c])=>`<tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
-          <td style="padding:12px 20px;font-size:0.875rem;color:rgba(255,255,255,0.8)">${f}</td>
-          <td style="padding:12px 20px;text-align:center;background:rgba(99,102,241,0.05);font-size:1rem">${a}</td>
-          <td style="padding:12px 20px;text-align:center;font-size:1rem">${b}</td>
-          <td style="padding:12px 20px;text-align:center;font-size:1rem">${c}</td>
-        </tr>`).join("")}
+        <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+          <td style="padding:12px 20px;font-size:0.875rem;color:rgba(255,255,255,0.8)">40 AI Agents running 24/7</td>
+          <td style="padding:12px 20px;text-align:center;background:rgba(99,102,241,0.05);font-size:1rem">✅</td>
+          <td style="padding:12px 20px;text-align:center;font-size:1rem">❌</td>
+          <td style="padding:12px 20px;text-align:center;font-size:1rem">❌</td>
+        </tr>
+        <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+          <td style="padding:12px 20px;font-size:0.875rem;color:rgba(255,255,255,0.8)">Automatic stockout prediction</td>
+          <td style="padding:12px 20px;text-align:center;background:rgba(99,102,241,0.05);font-size:1rem">✅</td>
+          <td style="padding:12px 20px;text-align:center;font-size:1rem">❌</td>
+          <td style="padding:12px 20px;text-align:center;font-size:0.85rem">⚠️ Manual</td>
+        </tr>
+        <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+          <td style="padding:12px 20px;font-size:0.875rem;color:rgba(255,255,255,0.8)">Fraud detection</td>
+          <td style="padding:12px 20px;text-align:center;background:rgba(99,102,241,0.05);font-size:1rem">✅</td>
+          <td style="padding:12px 20px;text-align:center;font-size:1rem">❌</td>
+          <td style="padding:12px 20px;text-align:center;font-size:1rem">❌</td>
+        </tr>
+        <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+          <td style="padding:12px 20px;font-size:0.875rem;color:rgba(255,255,255,0.8)">Dynamic pricing</td>
+          <td style="padding:12px 20px;text-align:center;background:rgba(99,102,241,0.05);font-size:1rem">✅</td>
+          <td style="padding:12px 20px;text-align:center;font-size:1rem">❌</td>
+          <td style="padding:12px 20px;text-align:center;font-size:1rem">❌</td>
+        </tr>
+        <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+          <td style="padding:12px 20px;font-size:0.875rem;color:rgba(255,255,255,0.8)">Shelf image scanning (YOLOv8)</td>
+          <td style="padding:12px 20px;text-align:center;background:rgba(99,102,241,0.05);font-size:1rem">✅</td>
+          <td style="padding:12px 20px;text-align:center;font-size:1rem">❌</td>
+          <td style="padding:12px 20px;text-align:center;font-size:1rem">❌</td>
+        </tr>
+        <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+          <td style="padding:12px 20px;font-size:0.875rem;color:rgba(255,255,255,0.8)">13-layer cybersecurity</td>
+          <td style="padding:12px 20px;text-align:center;background:rgba(99,102,241,0.05);font-size:1rem">✅</td>
+          <td style="padding:12px 20px;text-align:center;font-size:1rem">❌</td>
+          <td style="padding:12px 20px;text-align:center;font-size:0.85rem">⚠️ Basic</td>
+        </tr>
+        <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+          <td style="padding:12px 20px;font-size:0.875rem;color:rgba(255,255,255,0.8)">Multi-tenant SaaS</td>
+          <td style="padding:12px 20px;text-align:center;background:rgba(99,102,241,0.05);font-size:1rem">✅</td>
+          <td style="padding:12px 20px;text-align:center;font-size:1rem">❌</td>
+          <td style="padding:12px 20px;text-align:center;font-size:0.85rem">⚠️ Limited</td>
+        </tr>
+        <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+          <td style="padding:12px 20px;font-size:0.875rem;color:rgba(255,255,255,0.8)">Free to start</td>
+          <td style="padding:12px 20px;text-align:center;background:rgba(99,102,241,0.05);font-size:1rem">✅</td>
+          <td style="padding:12px 20px;text-align:center;font-size:1rem">✅</td>
+          <td style="padding:12px 20px;text-align:center;font-size:1rem">❌</td>
+        </tr>
+        <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+          <td style="padding:12px 20px;font-size:0.875rem;color:rgba(255,255,255,0.8)">Real-time alerts</td>
+          <td style="padding:12px 20px;text-align:center;background:rgba(99,102,241,0.05);font-size:1rem">✅</td>
+          <td style="padding:12px 20px;text-align:center;font-size:1rem">❌</td>
+          <td style="padding:12px 20px;text-align:center;font-size:0.85rem">⚠️ Email only</td>
+        </tr>
+        <tr>
+          <td style="padding:12px 20px;font-size:0.875rem;color:rgba(255,255,255,0.8)">Explainable AI decisions</td>
+          <td style="padding:12px 20px;text-align:center;background:rgba(99,102,241,0.05);font-size:1rem">✅</td>
+          <td style="padding:12px 20px;text-align:center;font-size:0.85rem;color:rgba(255,255,255,0.4)">N/A</td>
+          <td style="padding:12px 20px;text-align:center;font-size:1rem">❌</td>
+        </tr>
       </tbody>
     </table>
   </div>
