@@ -1497,10 +1497,10 @@ function renderProducts() {
     const stockColor = item.stock === 0 ? "var(--danger)" : item.stock <= 3 ? "var(--warning)" : "var(--success)";
     const isWishlisted = wishlist.includes(key);
    let badge = item.stock === 0
-      ? `<span class="stock-badge" style="background:var(--danger-bg);color:var(--danger-text)">❌ ${t("out-of-stock")}</span>`
+      ? `<span class="stock-badge" style="background:var(--danger-bg);color:var(--danger-text)">❌ Out of Stock</span>`
       : item.stock <= 3
-      ? `<span class="stock-badge" style="background:var(--warning-bg);color:var(--warning-text)">⚠️ ${t("low-stock")} ${item.stock} ${t("low-stock-suffix")}</span>`
-      : `<span class="stock-badge" style="background:var(--success-bg);color:var(--success-text)">✅ ${t("in-stock")}</span>`;
+      ? `<span class="stock-badge" style="background:var(--warning-bg);color:var(--warning-text)">⚠️ Only ${item.stock} left!</span>`
+      : `<span class="stock-badge" style="background:var(--success-bg);color:var(--success-text)">✅ In Stock</span>`;
    const hasCountdown = item.onSale && item.saleEndsAt && new Date(item.saleEndsAt) > new Date();
     const endsAt = hasCountdown ? new Date(item.saleEndsAt).getTime() : null;
     const msLeft = endsAt ? endsAt - Date.now() : 0;
@@ -1551,20 +1551,20 @@ function renderProducts() {
             </div>
             <div class="btn-row">
               <button class="add-to-cart-btn" onclick="event.stopPropagation(); addToCart('${key}', '${item.name}')">
-                🛒 ${qty > 0 ? `${t("add-to-cart")} ${qty}` : t("add-to-cart")}
+                🛒 ${qty > 0 ? `Add ${qty}` : 'Add'}
               </button>
               <button class="buy-now-btn" onclick="event.stopPropagation(); buyNow('${key}', '${item.name}', ${item.stock})">
-                ${t("buy-now")}
+                ⚡ Buy Now
               </button>
             </div>
             <button class="compare-btn ${compareList.includes(key) ? 'added' : ''}"
               onclick="event.stopPropagation(); toggleCompare('${key}')">
-              ${compareList.includes(key) ? t("compare-added") : t("compare")}
+              ${compareList.includes(key) ? '✅ Added to Compare' : '⚖️ Compare'}
             </button>
           ` : `
             <div class="out-of-stock-notice">Currently unavailable</div>
            <button class="find-nearby-btn" onclick="event.stopPropagation(); findNearby('${key}', '${item.name}')">
-              ${t("find-nearby")}
+              📍 Find Nearby Store
             </button>
           `}
         </div>
