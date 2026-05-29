@@ -3097,5 +3097,12 @@ async function submitTicket() {
   }
 }
 </script>
+<script src="i18n.js"></script>
+<script>
+// Bridge: sync global i18n.js with customer.html language system
+document.addEventListener("langchange", function(e) {
+  if (typeof setLanguage === "function") setLanguage(e.detail.lang);
+});
+</script>
 </body>
 </html>

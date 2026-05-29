@@ -1126,3 +1126,21 @@ button, .btn, .sidebar-item, .nav-link,
 button, a, input, select {
   touch-action: manipulation;
 }
+
+/* ============================================================
+   GLOBAL LANGUAGE SWITCHER (i18n.js)
+   ============================================================ */
+.i18n-switcher {
+  display: flex; align-items: center; gap: 3px;
+  background: var(--bg-tertiary, rgba(255,255,255,0.07));
+  border: 1px solid var(--border-color, rgba(255,255,255,0.1));
+  border-radius: 20px; padding: 3px;
+}
+.i18n-btn {
+  background: transparent; border: none; border-radius: 16px;
+  padding: 4px 9px; font-size: 0.75rem; font-weight: 600;
+  cursor: pointer; color: var(--text-muted, #94a3b8);
+  transition: all 0.18s; min-height: 28px; line-height: 1;
+}
+.i18n-btn:hover { color: var(--text-primary, #e2e8f0); background: var(--bg-secondary, rgba(255,255,255,0.08)); }
+.i18n-btn.i18n-active { background: var(--accent, #6366f1); color: white; }

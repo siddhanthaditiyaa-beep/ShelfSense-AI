@@ -227,8 +227,9 @@
     <div class="nav-logo-icon">🧠</div>
     ShelfSense AI
   </a>
-  <div class="nav-right">
-    New store? <a href="register.html">Register free →</a>
+  <div class="nav-right" style="display:flex;align-items:center;gap:12px">
+    <div id="i18n-mount"></div>
+    New store? <a href="register.html" data-i18n="login-register-free">Register free →</a>
   </div>
 </nav>
 
@@ -243,8 +244,8 @@
     <div class="login-card">
 
       <div class="login-tabs">
-        <button class="login-tab active" id="tabStore" onclick="switchTab('store')">🏪 Store Owner</button>
-        <button class="login-tab" id="tabCustomer" onclick="switchTab('customer')">👤 Customer</button>
+        <button class="login-tab active" id="tabStore" onclick="switchTab('store')" data-i18n="login-store-tab">🏪 Store Owner</button>
+        <button class="login-tab" id="tabCustomer" onclick="switchTab('customer')" data-i18n="login-customer-tab">👤 Customer</button>
       </div>
 
       <div class="error-msg" id="errorMsg"></div>
@@ -866,5 +867,6 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+<script src="i18n.js"></script>
 </body>
 </html>
