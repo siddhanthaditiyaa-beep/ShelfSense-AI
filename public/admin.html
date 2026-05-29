@@ -535,28 +535,27 @@
   <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">☰</button>
   <span class="topbar-logo" onclick="showPage('overview')" style="cursor:pointer;" title="Go to Overview">🧠 ShelfSense AI</span>
   <nav class="topbar-nav" id="topbarNav">
-    <button class="topbar-nav-item active" data-page="overview" onclick="showPage('overview', this)"><span data-i18n="nav-overview">Overview</span></button>
-    <button class="topbar-nav-item" data-page="inventory" onclick="showPage('inventory', this)"><span data-i18n="nav-inventory">Inventory</span></button>
+    <button class="topbar-nav-item active" data-page="overview" onclick="showPage('overview', this)"><span>Overview</span></button>
+    <button class="topbar-nav-item" data-page="inventory" onclick="showPage('inventory', this)"><span>Inventory</span></button>
     <button class="topbar-nav-item" data-page="agents" onclick="showPage('agents', this)">Agents</button>
-<button class="topbar-nav-item" data-page="analytics" onclick="showPage('analytics', this)"><span data-i18n="group-analytics">Analytics</span></button>
+<button class="topbar-nav-item" data-page="analytics" onclick="showPage('analytics', this)"><span>Analytics</span></button>
 <button class="topbar-nav-item" data-page="health" onclick="showPage('health', this)">Health</button>
     <button class="topbar-nav-item" data-page="shelf-scan" onclick="showPage('shelf-scan', this)">Shelf Scan</button>
     <button class="topbar-nav-item" data-page="planogram" onclick="showPage('planogram', this)">Planogram</button>
     <button class="topbar-nav-item" data-page="franchise" onclick="showPage('franchise', this)">Franchises</button>
-    <button class="topbar-nav-item" data-page="orders" onclick="showPage('orders', this)"><span data-i18n="nav-orders">Orders</span></button>
-    <button class="topbar-nav-item" data-page="store-settings" onclick="showPage('store-settings', this)"><span data-i18n="nav-settings">Settings</span></button>
+    <button class="topbar-nav-item" data-page="orders" onclick="showPage('orders', this)"><span>Orders</span></button>
+    <button class="topbar-nav-item" data-page="store-settings" onclick="showPage('store-settings', this)"><span>Settings</span></button>
   </nav>
   <div class="topbar-right">
     <!-- LANGUAGE SWITCHER -->
-    <div id="i18n-mount"></div>
     <!-- VOICE ALERT BUTTON -->
-    <button class="voice-alert-btn" id="voiceAlertBtn" onclick="speakAlerts()" title="Read alerts aloud" data-i18n="alerts">🔊 Alerts</button>
+    <button class="voice-alert-btn" id="voiceAlertBtn" onclick="speakAlerts()" title="Read alerts aloud">🔊 Alerts</button>
     <!-- NOTIFICATION BELL -->
     <button class="notif-bell-btn" id="notifBellBtn" onclick="toggleNotifPanel()" title="Notifications">
       🔔
       <span class="notif-badge" id="notifBadge" style="display:none">0</span>
     </button>
-    <button class="logout-btn" onclick="logout()" data-i18n="logout"><span data-i18n="logout">Logout</span></button>
+    <button class="logout-btn" onclick="logout()"><span>Logout</span></button>
   </div>
 </div>
 
@@ -584,15 +583,15 @@
 
     <!-- GROUP: MAIN -->
     <div class="sb-group">
-      <button class="sb-group-header" onclick="toggleGroup(this)"><span data-i18n="group-main">📊 Main</span><span class="sb-arrow">▾</span></button>
+      <button class="sb-group-header" onclick="toggleGroup(this)"><span>📊 Main</span><span class="sb-arrow">▾</span></button>
       <div class="sb-group-items open">
-        <button class="sidebar-item active" data-page="overview" onclick="showPage('overview',this)"><span class="sidebar-emoji">📊</span><span data-i18n="nav-overview">Overview</span></button>
-        <button class="sidebar-item" data-page="inventory" onclick="showPage('inventory',this)"><span class="sidebar-emoji">📦</span><span data-i18n="nav-inventory">Inventory</span></button>
-        <button class="sidebar-item" data-page="agents" onclick="showPage('agents',this)"><span class="sidebar-emoji">🤖</span><span data-i18n="nav-ai-agents">AI Agents</span></button>
-        <button class="sidebar-item" data-page="shelf-scan" onclick="showPage('shelf-scan',this)"><span class="sidebar-emoji">📷</span><span data-i18n="nav-shelf-scan">Shelf Scan</span></button>
-        <button class="sidebar-item" data-page="franchise" onclick="showPage('franchise',this)"><span class="sidebar-emoji">📍</span><span data-i18n="nav-franchises">Franchises</span></button>
-        <button class="sidebar-item" data-page="orders" onclick="showPage('orders',this)"><span class="sidebar-emoji">📋</span><span data-i18n="nav-purchase-orders">Purchase Orders</span></button>
-        <button class="sidebar-item" data-page="manage-orders" onclick="showPage('manage-orders',this)"><span class="sidebar-emoji">🧾</span><span data-i18n="nav-orders">Orders</span></button>
+        <button class="sidebar-item active" data-page="overview" onclick="showPage('overview',this)"><span class="sidebar-emoji">📊</span><span>Overview</span></button>
+        <button class="sidebar-item" data-page="inventory" onclick="showPage('inventory',this)"><span class="sidebar-emoji">📦</span><span>Inventory</span></button>
+        <button class="sidebar-item" data-page="agents" onclick="showPage('agents',this)"><span class="sidebar-emoji">🤖</span><span>AI Agents</span></button>
+        <button class="sidebar-item" data-page="shelf-scan" onclick="showPage('shelf-scan',this)"><span class="sidebar-emoji">📷</span><span>Shelf Scan</span></button>
+        <button class="sidebar-item" data-page="franchise" onclick="showPage('franchise',this)"><span class="sidebar-emoji">📍</span><span>Franchises</span></button>
+        <button class="sidebar-item" data-page="orders" onclick="showPage('orders',this)"><span class="sidebar-emoji">📋</span><span>Purchase Orders</span></button>
+        <button class="sidebar-item" data-page="manage-orders" onclick="showPage('manage-orders',this)"><span class="sidebar-emoji">🧾</span><span>Orders</span></button>
         <button class="sidebar-item" data-page="settings-advanced" onclick="showPage('settings-advanced',this)"><span class="sidebar-emoji">⚙️</span>Settings</button>
         <button class="sidebar-item" data-page="store-settings" onclick="showPage('store-settings',this)"><span class="sidebar-emoji">🏪</span>Store Settings</button>
       </div>
@@ -600,7 +599,7 @@
 
     <!-- GROUP: ANALYTICS -->
     <div class="sb-group">
-      <button class="sb-group-header" onclick="toggleGroup(this)"><span data-i18n="group-analytics">📈 Analytics</span><span class="sb-arrow">▾</span></button>
+      <button class="sb-group-header" onclick="toggleGroup(this)"><span>📈 Analytics</span><span class="sb-arrow">▾</span></button>
       <div class="sb-group-items">
         <button class="sidebar-item" data-page="analytics" onclick="showPage('analytics',this)"><span class="sidebar-emoji">📊</span>Sales Analytics</button>
         <button class="sidebar-item" data-page="health" onclick="showPage('health',this)"><span class="sidebar-emoji">💊</span>Inventory Health</button>
@@ -630,7 +629,7 @@
 
     <!-- GROUP: INVENTORY -->
     <div class="sb-group">
-      <button class="sb-group-header" onclick="toggleGroup(this)"><span data-i18n="group-inventory">📦 Inventory Mgmt</span><span class="sb-arrow">▾</span></button>
+      <button class="sb-group-header" onclick="toggleGroup(this)"><span>📦 Inventory Mgmt</span><span class="sb-arrow">▾</span></button>
       <div class="sb-group-items">
         <button class="sidebar-item" data-page="stockout" onclick="showPage('stockout',this)"><span class="sidebar-emoji">📉</span>Stockout Risk</button>
         <button class="sidebar-item" data-page="returns" onclick="showPage('returns',this)"><span class="sidebar-emoji">↩️</span>Returns</button>
@@ -654,9 +653,9 @@
 
     <!-- GROUP: CUSTOMERS -->
     <div class="sb-group">
-      <button class="sb-group-header" onclick="toggleGroup(this)"><span data-i18n="group-customers">👥 Customers</span><span class="sb-arrow">▾</span></button>
+      <button class="sb-group-header" onclick="toggleGroup(this)"><span>👥 Customers</span><span class="sb-arrow">▾</span></button>
       <div class="sb-group-items">
-        <button class="sidebar-item" data-page="my-customers" onclick="showPage('my-customers',this)"><span class="sidebar-emoji">🧑‍🤝‍🧑</span><span data-i18n="nav-my-customers">My Customers</span></button>
+        <button class="sidebar-item" data-page="my-customers" onclick="showPage('my-customers',this)"><span class="sidebar-emoji">🧑‍🤝‍🧑</span><span>My Customers</span></button>
         <button class="sidebar-item" data-page="customer-segments" onclick="showPage('customer-segments',this)"><span class="sidebar-emoji">👥</span>Segments</button>
         <button class="sidebar-item" data-page="engagement" onclick="showPage('engagement',this)"><span class="sidebar-emoji">💫</span>Engagement</button>
         <button class="sidebar-item" data-page="retention" onclick="showPage('retention',this)"><span class="sidebar-emoji">🔁</span>Retention</button>
@@ -672,7 +671,7 @@
 
     <!-- GROUP: MARKETING -->
     <div class="sb-group">
-      <button class="sb-group-header" onclick="toggleGroup(this)"><span data-i18n="group-marketing">📢 Marketing</span><span class="sb-arrow">▾</span></button>
+      <button class="sb-group-header" onclick="toggleGroup(this)"><span>📢 Marketing</span><span class="sb-arrow">▾</span></button>
       <div class="sb-group-items">
         <button class="sidebar-item" data-page="coupons" onclick="showPage('coupons',this)"><span class="sidebar-emoji">🎟️</span>Coupons</button>
         <button class="sidebar-item" data-page="campaigns" onclick="showPage('campaigns',this)"><span class="sidebar-emoji">📢</span>Campaigns</button>
@@ -687,7 +686,7 @@
 
     <!-- GROUP: FINANCE -->
     <div class="sb-group">
-      <button class="sb-group-header" onclick="toggleGroup(this)"><span data-i18n="group-finance">💰 Finance</span><span class="sb-arrow">▾</span></button>
+      <button class="sb-group-header" onclick="toggleGroup(this)"><span>💰 Finance</span><span class="sb-arrow">▾</span></button>
       <div class="sb-group-items">
         <button class="sidebar-item" data-page="financial-summary" onclick="showPage('financial-summary',this)"><span class="sidebar-emoji">💰</span>Financial Summary</button>
         <button class="sidebar-item" data-page="gst-report" onclick="showPage('gst-report',this)"><span class="sidebar-emoji">🧾</span>GST Report</button>
@@ -700,7 +699,7 @@
 
     <!-- GROUP: SECURITY -->
     <div class="sb-group">
-      <button class="sb-group-header" onclick="toggleGroup(this)"><span data-i18n="group-security">🛡️ Security</span><span class="sb-arrow">▾</span></button>
+      <button class="sb-group-header" onclick="toggleGroup(this)"><span>🛡️ Security</span><span class="sb-arrow">▾</span></button>
       <div class="sb-group-items">
         <button class="sidebar-item" data-page="security" onclick="showPage('security',this)"><span class="sidebar-emoji">🛡️</span>Security</button>
         <button class="sidebar-item" data-page="xai" onclick="showPage('xai',this)"><span class="sidebar-emoji">🧠</span>Explainable AI</button>
@@ -721,7 +720,7 @@
 
     <!-- GROUP: AI & RESEARCH -->
     <div class="sb-group">
-      <button class="sb-group-header" onclick="toggleGroup(this)"><span data-i18n="group-ai">🤖 AI & Research</span><span class="sb-arrow">▾</span></button>
+      <button class="sb-group-header" onclick="toggleGroup(this)"><span>🤖 AI & Research</span><span class="sb-arrow">▾</span></button>
       <div class="sb-group-items">
         <button class="sidebar-item" data-page="demand-surge" onclick="showPage('demand-surge',this)"><span class="sidebar-emoji">🌊</span>Demand Surge</button>
         <button class="sidebar-item" data-page="store-narrative" onclick="showPage('store-narrative',this)"><span class="sidebar-emoji">📰</span>Store Narrative</button>
@@ -734,7 +733,7 @@
 
     <!-- GROUP: SYSTEM -->
     <div class="sb-group">
-      <button class="sb-group-header" onclick="toggleGroup(this)"><span data-i18n="group-system">⚙️ System</span><span class="sb-arrow">▾</span></button>
+      <button class="sb-group-header" onclick="toggleGroup(this)"><span>⚙️ System</span><span class="sb-arrow">▾</span></button>
       <div class="sb-group-items">
         <button class="sidebar-item" data-page="logs" onclick="showPage('logs',this)"><span class="sidebar-emoji">📝</span>Logs</button>
         <button class="sidebar-item" data-page="sessions" onclick="showPage('sessions',this)"><span class="sidebar-emoji">🔑</span>Sessions</button>
@@ -1068,12 +1067,12 @@
         <h2>🧠 Ask AI About Your Store</h2>
         <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:16px">Type any question in plain English and get instant answers from your live store data.</p>
         <div class="nlq-suggestions">
-          <span class="nlq-chip" onclick="askNLQ(window.ssT?ssT('nlq-q1'):'Which products will run out this week?')" data-i18n="nlq-q1">Which products run out this week?</span>
-          <span class="nlq-chip" onclick="askNLQ(window.ssT?ssT('nlq-q2'):'What is my total revenue today?')" data-i18n="nlq-q2">Total revenue today?</span>
-          <span class="nlq-chip" onclick="askNLQ(window.ssT?ssT('nlq-q3'):'Which items are out of stock right now?')" data-i18n="nlq-q3">Out of stock items?</span>
-          <span class="nlq-chip" onclick="askNLQ(window.ssT?ssT('nlq-q4'):'What are my top selling products?')" data-i18n="nlq-q4">Top selling products?</span>
-          <span class="nlq-chip" onclick="askNLQ(window.ssT?ssT('nlq-q5'):'How many pending reorders do I have?')" data-i18n="nlq-q5">Pending reorders?</span>
-          <span class="nlq-chip" onclick="askNLQ(window.ssT?ssT('nlq-q6'):'Which agent has been most active today?')" data-i18n="nlq-q6">Most active agent?</span>
+          <span class="nlq-chip" onclick="askNLQ(window.ssT?ssT('nlq-q1'):'Which products will run out this week?')">Which products run out this week?</span>
+          <span class="nlq-chip" onclick="askNLQ(window.ssT?ssT('nlq-q2'):'What is my total revenue today?')">Total revenue today?</span>
+          <span class="nlq-chip" onclick="askNLQ(window.ssT?ssT('nlq-q3'):'Which items are out of stock right now?')">Out of stock items?</span>
+          <span class="nlq-chip" onclick="askNLQ(window.ssT?ssT('nlq-q4'):'What are my top selling products?')">Top selling products?</span>
+          <span class="nlq-chip" onclick="askNLQ(window.ssT?ssT('nlq-q5'):'How many pending reorders do I have?')">Pending reorders?</span>
+          <span class="nlq-chip" onclick="askNLQ(window.ssT?ssT('nlq-q6'):'Which agent has been most active today?')">Most active agent?</span>
         </div>
         <div class="nlq-input-row">
           <input type="text" class="nlq-input" id="nlqInput" placeholder="Ask anything... e.g. Which products will run out this weekend?" onkeydown="if(event.key==='Enter') askNLQ()" />
@@ -8739,12 +8738,6 @@ function filterCustomerTable() {
 const origShowPage = showPage;
 </script>
 
-<script src="i18n.js"></script>
-<script>
-// Re-apply all translations when language is switched
-document.addEventListener("langchange", function() {
-  if (window.SS_I18N) window.SS_I18N.applyAll();
-});
-</script>
+
 </body>
 </html>
