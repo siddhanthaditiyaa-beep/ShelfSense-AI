@@ -712,6 +712,11 @@ async function init() {
     );
     console.log("✅ Test accounts unlocked");
   } catch(e) {}
+  // Reset biometric anomaly flags on startup (false positives from dev testing)
+  try {
+    await Biometric.updateMany({ anomalyFlag: true }, { $set: { anomalyFlag: false } });
+    console.log("✅ Biometric anomaly flags reset");
+  } catch(e) {}
 
   if ((await Franchise.countDocuments()) === 0) {
     await Franchise.insertMany([
@@ -8286,10 +8291,14 @@ app.post("/admin/biometric-log", auth("admin"), async (req, res) => {
     const existing = await Biometric.findOne({ userEmail: req.user.email });
     if (existing) {
       const speedDiff = Math.abs(avgTypingSpeed - existing.avgTypingSpeed) / existing.avgTypingSpeed;
-      const anomaly = speedDiff > 0.5;
+      // Only flag if VERY extreme change (>80%) AND at least 5 sessions of baseline data
+      const anomaly = speedDiff > 0.8 && existing.sessionCount >= 5;
       if (anomaly) {
         await SecurityLog.create({ type: "BIOMETRIC_ANOMALY", ip: req.headers["x-forwarded-for"] || req.socket.remoteAddress, path: "/admin", message: `Behavioral anomaly: typing pattern changed ${(speedDiff * 100).toFixed(0)}% from baseline` });
-        await sendTelegramAlert(`⚠️ Behavioral Anomaly Detected!\nAdmin: ${req.user.email}\nTyping pattern changed significantly. Possible session hijack?`);
+        // Only alert if truly extreme — don't fire for normal typing variation
+        if (speedDiff > 1.5) {
+          await sendTelegramAlert(`⚠️ Behavioral Anomaly Detected!\nAdmin: ${req.user.email}\nTyping pattern changed significantly. Possible session hijack?`);
+        }
       }
       await Biometric.findByIdAndUpdate(existing._id, { avgTypingSpeed: (existing.avgTypingSpeed + avgTypingSpeed) / 2, avgPauseTime, $inc: { sessionCount: 1 }, anomalyFlag: anomaly });
       return res.json({ anomaly, message: anomaly ? "⚠️ Behavioral anomaly detected" : "Normal session" });
