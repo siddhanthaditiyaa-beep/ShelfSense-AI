@@ -1194,6 +1194,239 @@ view[i.key] = {
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
+/* ============================================================
+   MULTI-STORE MARKETPLACE SYSTEM
+   - Public store directory (no auth needed)
+   - Store profile page for customers
+   - Customer cross-store order history
+   - Superadmin global customer view
+   ============================================================ */
+
+/* 1. PUBLIC: List all active stores for the marketplace */
+app.get("/public/stores", async (req, res) => {
+  try {
+    const { search, category } = req.query;
+    let query = { isActive: true };
+    if (search) query.name = { $regex: search, $options: "i" };
+
+    const stores = await Store.find(query)
+      .select("name address phone openingTime closingTime weatherCity plan createdAt ownerName")
+      .lean();
+
+    // For each store, get live stats
+    const storeIds = stores.map(s => s._id);
+    const [itemCounts, orderCounts] = await Promise.all([
+      Item.aggregate([
+        { $match: { storeId: { $in: storeIds }, stock: { $gt: 0 } } },
+        { $group: { _id: "$storeId", count: { $sum: 1 }, categories: { $addToSet: "$category" } } }
+      ]),
+      Order.aggregate([
+        { $match: { storeId: { $in: storeIds } } },
+        { $group: { _id: "$storeId", totalOrders: { $sum: 1 } } }
+      ])
+    ]);
+
+    const itemMap = {};
+    itemCounts.forEach(i => { itemMap[i._id.toString()] = { count: i.count, categories: i.categories.filter(Boolean) }; });
+    const orderMap = {};
+    orderCounts.forEach(o => { orderMap[o._id.toString()] = o.totalOrders; });
+
+    const result = stores.map(s => ({
+      _id: s._id,
+      name: s.name,
+      ownerName: s.ownerName,
+      address: s.address || "Mumbai, India",
+      phone: s.phone,
+      openingTime: s.openingTime || "09:00",
+      closingTime: s.closingTime || "22:00",
+      plan: s.plan,
+      productCount: itemMap[s._id.toString()]?.count || 0,
+      categories: itemMap[s._id.toString()]?.categories || [],
+      totalOrders: orderMap[s._id.toString()] || 0,
+      joinedDate: s.createdAt
+    }));
+
+    // Sort: most products first
+    result.sort((a, b) => b.productCount - a.productCount);
+    res.json({ stores: result });
+  } catch (err) {
+    console.error("Public stores error:", err.message);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+/* 2. PUBLIC: Get single store profile + products (no auth needed to browse) */
+app.get("/public/store/:storeId", async (req, res) => {
+  try {
+    const store = await Store.findById(req.params.storeId)
+      .select("name address phone openingTime closingTime plan ownerName createdAt")
+      .lean();
+    if (!store) return res.status(404).json({ message: "Store not found" });
+
+    const items = await Item.find({ storeId: req.params.storeId, stock: { $gt: 0 } })
+      .select("name key stock price category onSale salePercent salePrice avgRating totalRatings")
+      .lean();
+
+    const categories = [...new Set(items.map(i => i.category).filter(Boolean))];
+
+    res.json({
+      store: {
+        _id: store._id,
+        name: store.name,
+        ownerName: store.ownerName,
+        address: store.address || "Mumbai, India",
+        phone: store.phone,
+        openingTime: store.openingTime,
+        closingTime: store.closingTime,
+        plan: store.plan,
+        joinedDate: store.createdAt,
+        categories,
+        productCount: items.length
+      },
+      products: items
+    });
+  } catch (err) {
+    console.error("Store profile error:", err.message);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+/* 3. CUSTOMER: Get orders across ALL stores (cross-store order history) */
+app.get("/customer/all-orders", auth("customer"), async (req, res) => {
+  try {
+    const orders = await Order.find({ userEmail: req.user.email })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    // Fetch store names for each unique storeId
+    const storeIds = [...new Set(orders.map(o => o.storeId?.toString()).filter(Boolean))];
+    const stores = await Store.find({ _id: { $in: storeIds } }).select("name address").lean();
+    const storeMap = {};
+    stores.forEach(s => { storeMap[s._id.toString()] = s; });
+
+    const enriched = orders.map(o => ({
+      ...o,
+      storeName: storeMap[o.storeId?.toString()]?.name || "Unknown Store",
+      storeAddress: storeMap[o.storeId?.toString()]?.address || ""
+    }));
+
+    res.json({ orders: enriched });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+/* 4. SUPERADMIN: Global customer view — all customers + which stores they buy from */
+app.get("/superadmin/customers", auth("superadmin"), async (req, res) => {
+  try {
+    const customers = await User.find({ role: "customer" })
+      .select("fname lname email loyaltyPoints createdAt totalPointsEarned")
+      .lean();
+
+    const customerEmails = customers.map(c => c.email);
+
+    // Get all orders grouped by customer email
+    const orderAgg = await Order.aggregate([
+      { $match: { userEmail: { $in: customerEmails } } },
+      {
+        $group: {
+          _id: "$userEmail",
+          totalOrders: { $sum: 1 },
+          totalSpent: { $sum: "$totalAmount" },
+          storeIds: { $addToSet: "$storeId" },
+          lastOrderAt: { $max: "$createdAt" }
+        }
+      }
+    ]);
+
+    const orderMap = {};
+    orderAgg.forEach(o => { orderMap[o._id] = o; });
+
+    // Get store names
+    const allStoreIds = [...new Set(orderAgg.flatMap(o => o.storeIds.map(id => id?.toString())).filter(Boolean))];
+    const stores = await Store.find({ _id: { $in: allStoreIds } }).select("name").lean();
+    const storeMap = {};
+    stores.forEach(s => { storeMap[s._id.toString()] = s.name; });
+
+    const result = customers.map(c => {
+      const od = orderMap[c.email] || {};
+      const storeNames = (od.storeIds || []).map(id => storeMap[id?.toString()] || "Unknown").filter(Boolean);
+      return {
+        _id: c._id,
+        name: `${c.fname || ""} ${c.lname || ""}`.trim() || "—",
+        email: c.email,
+        loyaltyPoints: c.loyaltyPoints || 0,
+        totalOrders: od.totalOrders || 0,
+        totalSpent: od.totalSpent || 0,
+        storesShoppedAt: storeNames,
+        storeCount: storeNames.length,
+        lastOrderAt: od.lastOrderAt || null,
+        joinedDate: c.createdAt
+      };
+    });
+
+    // Sort: most active customers first
+    result.sort((a, b) => b.totalOrders - a.totalOrders);
+    res.json({ customers: result, total: result.length });
+  } catch (err) {
+    console.error("Superadmin customers error:", err.message);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+/* 5. ADMIN: See customers who have ordered from their store specifically */
+app.get("/admin/store-customers", auth("admin"), async (req, res) => {
+  try {
+    const storeId = req.user.storeId;
+    const orders = await Order.find({ storeId }).sort({ createdAt: -1 }).lean();
+
+    // Group by customer email
+    const customerMap = {};
+    orders.forEach(o => {
+      if (!customerMap[o.userEmail]) {
+        customerMap[o.userEmail] = {
+          email: o.userEmail,
+          orders: 0,
+          totalSpent: 0,
+          lastOrderAt: null,
+          items: new Set()
+        };
+      }
+      customerMap[o.userEmail].orders++;
+      customerMap[o.userEmail].totalSpent += o.totalAmount || 0;
+      if (!customerMap[o.userEmail].lastOrderAt || o.createdAt > customerMap[o.userEmail].lastOrderAt) {
+        customerMap[o.userEmail].lastOrderAt = o.createdAt;
+      }
+      if (o.cart) Object.keys(o.cart).forEach(k => customerMap[o.userEmail].items.add(k));
+    });
+
+    // Fetch user details
+    const emails = Object.keys(customerMap);
+    const users = await User.find({ email: { $in: emails } }).select("fname lname email loyaltyPoints createdAt").lean();
+    const userMap = {};
+    users.forEach(u => { userMap[u.email] = u; });
+
+    const result = Object.values(customerMap).map(c => {
+      const u = userMap[c.email] || {};
+      return {
+        name: `${u.fname || ""} ${u.lname || ""}`.trim() || c.email.split("@")[0],
+        email: c.email,
+        orders: c.orders,
+        totalSpent: c.totalSpent,
+        loyaltyPoints: u.loyaltyPoints || 0,
+        lastOrderAt: c.lastOrderAt,
+        uniqueItems: c.items.size,
+        joinedDate: u.createdAt || null
+      };
+    });
+
+    result.sort((a, b) => b.totalSpent - a.totalSpent);
+    res.json({ customers: result, total: result.length });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 /* NEW: Track product view */
 app.post("/track-view", auth("customer"), async (req, res) => {
   try {

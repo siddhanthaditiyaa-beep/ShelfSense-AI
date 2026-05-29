@@ -654,6 +654,7 @@
     <div class="sb-group">
       <button class="sb-group-header" onclick="toggleGroup(this)"><span>👥 Customers</span><span class="sb-arrow">▾</span></button>
       <div class="sb-group-items">
+        <button class="sidebar-item" data-page="my-customers" onclick="showPage('my-customers',this)"><span class="sidebar-emoji">🧑‍🤝‍🧑</span>My Customers</button>
         <button class="sidebar-item" data-page="customer-segments" onclick="showPage('customer-segments',this)"><span class="sidebar-emoji">👥</span>Segments</button>
         <button class="sidebar-item" data-page="engagement" onclick="showPage('engagement',this)"><span class="sidebar-emoji">💫</span>Engagement</button>
         <button class="sidebar-item" data-page="retention" onclick="showPage('retention',this)"><span class="sidebar-emoji">🔁</span>Retention</button>
@@ -2047,6 +2048,41 @@
 </div>
 
 <!-- CUSTOMER SEGMENTS PAGE -->
+<!-- MY CUSTOMERS PAGE -->
+<div class="page" id="page-my-customers">
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+      <div>
+        <h2 style="margin:0 0 4px">🧑‍🤝‍🧑 My Store Customers</h2>
+        <p style="color:var(--text-muted);font-size:0.875rem;margin:0">All customers who have placed orders at your store.</p>
+      </div>
+      <button class="btn btn-primary" onclick="loadStoreCustomers()" style="padding:8px 18px;font-size:0.85rem">🔄 Refresh</button>
+    </div>
+    <!-- Stats row -->
+    <div class="stats-row" id="customerStatsRow" style="margin-bottom:20px">
+      <div class="stat-card"><div class="number" id="cst-total">—</div><div class="label">Total Customers</div></div>
+      <div class="stat-card"><div class="number" id="cst-revenue">—</div><div class="label">Total Revenue</div></div>
+      <div class="stat-card"><div class="number" id="cst-orders">—</div><div class="label">Total Orders</div></div>
+      <div class="stat-card"><div class="number" id="cst-loyal">—</div><div class="label">Loyal (5+ orders)</div></div>
+    </div>
+    <!-- Search -->
+    <input type="text" id="customerSearch" placeholder="🔍 Search by name or email…"
+      oninput="filterCustomerTable()" style="max-width:360px;margin-bottom:16px">
+    <!-- Table -->
+    <div style="overflow-x:auto">
+      <table id="customerTable">
+        <thead><tr>
+          <th>Customer</th><th>Email</th><th>Orders</th>
+          <th>Total Spent</th><th>Loyalty Pts</th><th>Last Order</th>
+        </tr></thead>
+        <tbody id="customerTableBody">
+          <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted)">Click Refresh to load customers</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <div class="page" id="page-customer-segments">
   <div class="card">
     <h2>👥 Customer Segmentation</h2>
@@ -8640,6 +8676,64 @@ if ('serviceWorker' in navigator) {
       .catch(err => console.log('SW registration failed:', err));
   });
 }
+</script>
+
+<script>
+/* ===== MY STORE CUSTOMERS ===== */
+let storeCustomersData = [];
+
+async function loadStoreCustomers() {
+  const tbody = document.getElementById("customerTableBody");
+  tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted)">⏳ Loading customers…</td></tr>`;
+  try {
+    const res = await fetch("/admin/store-customers", { headers: getAuthHeaders() });
+    const data = await res.json();
+    storeCustomersData = data.customers || [];
+    updateCustomerStats(storeCustomersData);
+    renderCustomerTable(storeCustomersData);
+  } catch(err) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--danger-text)">❌ Failed to load</td></tr>`;
+  }
+}
+
+function updateCustomerStats(customers) {
+  document.getElementById("cst-total").textContent = customers.length;
+  const totalRev = customers.reduce((s, c) => s + (c.totalSpent || 0), 0);
+  document.getElementById("cst-revenue").textContent = `₹${totalRev.toLocaleString("en-IN", {maximumFractionDigits:0})}`;
+  document.getElementById("cst-orders").textContent = customers.reduce((s, c) => s + (c.orders || 0), 0);
+  document.getElementById("cst-loyal").textContent = customers.filter(c => c.orders >= 5).length;
+}
+
+function renderCustomerTable(customers) {
+  const tbody = document.getElementById("customerTableBody");
+  if (!customers.length) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted)">No customers yet. Share your store link to attract shoppers!</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = customers.map(c => {
+    const lastOrder = c.lastOrderAt ? new Date(c.lastOrderAt).toLocaleDateString("en-IN") : "—";
+    const loyalBadge = c.orders >= 5 ? `<span style="background:rgba(99,102,241,0.15);color:#a5b4fc;padding:2px 7px;border-radius:10px;font-size:0.7rem;margin-left:6px">⭐ Loyal</span>` : "";
+    return `<tr>
+      <td><strong>${c.name || "—"}</strong>${loyalBadge}</td>
+      <td style="color:var(--text-muted)">${c.email}</td>
+      <td><strong>${c.orders}</strong></td>
+      <td>₹${(c.totalSpent || 0).toLocaleString("en-IN", {maximumFractionDigits:0})}</td>
+      <td>🪙 ${c.loyaltyPoints || 0}</td>
+      <td style="color:var(--text-muted);font-size:0.82rem">${lastOrder}</td>
+    </tr>`;
+  }).join("");
+}
+
+function filterCustomerTable() {
+  const q = document.getElementById("customerSearch").value.toLowerCase().trim();
+  if (!q) { renderCustomerTable(storeCustomersData); return; }
+  renderCustomerTable(storeCustomersData.filter(c =>
+    (c.name || "").toLowerCase().includes(q) || c.email.toLowerCase().includes(q)
+  ));
+}
+
+// Auto-load when page is shown
+const origShowPage = showPage;
 </script>
 
 </body>

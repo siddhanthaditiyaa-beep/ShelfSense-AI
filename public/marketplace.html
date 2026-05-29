@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#6366f1">
+  <title>Marketplace | ShelfSense AI</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="theme.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Inter', system-ui, sans-serif; min-height: 100vh;
+      background: var(--bg-primary); color: var(--text-primary); }
+
+    /* ── HEADER ── */
+    .mp-header {
+      background: var(--header-bg); border-bottom: 1px solid var(--header-border);
+      padding: 12px 24px; display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100; backdrop-filter: blur(12px);
+      gap: 12px; flex-wrap: wrap;
+    }
+    .mp-logo { font-size: 1.15rem; font-weight: 700; color: var(--text-accent);
+      display: flex; align-items: center; gap: 8px; text-decoration: none; }
+    .mp-header-right { display: flex; align-items: center; gap: 10px; }
+    .mp-btn { padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600;
+      cursor: pointer; border: none; transition: all 0.2s; text-decoration: none; display: inline-flex;
+      align-items: center; gap: 6px; }
+    .mp-btn-primary { background: linear-gradient(135deg, #6366f1, #a78bfa); color: white; }
+    .mp-btn-ghost { background: var(--bg-tertiary); color: var(--text-secondary);
+      border: 1px solid var(--border-color); }
+    .mp-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+
+    /* ── HERO ── */
+    .mp-hero {
+      background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(167,139,250,0.08));
+      border-bottom: 1px solid var(--border-color);
+      padding: 48px 24px 36px; text-align: center;
+    }
+    .mp-hero h1 { font-size: 2.2rem; font-weight: 800; margin: 0 0 10px;
+      background: linear-gradient(135deg, #6366f1, #a78bfa); -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent; background-clip: text; }
+    .mp-hero p { font-size: 1rem; color: var(--text-muted); margin: 0 auto 24px; max-width: 520px; }
+    .mp-search-bar {
+      max-width: 520px; margin: 0 auto; position: relative;
+    }
+    .mp-search-bar input {
+      width: 100%; padding: 14px 48px 14px 20px; border-radius: 30px;
+      border: 2px solid var(--border-color); background: var(--bg-secondary);
+      color: var(--text-primary); font-size: 0.95rem; outline: none; transition: border 0.2s;
+    }
+    .mp-search-bar input:focus { border-color: #6366f1; }
+    .mp-search-bar .search-icon { position: absolute; right: 18px; top: 50%;
+      transform: translateY(-50%); font-size: 1.1rem; color: var(--text-muted); }
+    .mp-stats-row { display: flex; gap: 32px; justify-content: center; margin-top: 28px; flex-wrap: wrap; }
+    .mp-stat { text-align: center; }
+    .mp-stat-num { font-size: 1.6rem; font-weight: 800; color: var(--text-accent); }
+    .mp-stat-label { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+
+    /* ── FILTERS ── */
+    .mp-filters {
+      padding: 16px 24px; display: flex; align-items: center; gap: 10px;
+      flex-wrap: wrap; border-bottom: 1px solid var(--border-color);
+      background: var(--bg-secondary);
+    }
+    .mp-filter-label { font-size: 0.82rem; color: var(--text-muted); font-weight: 600; }
+    .mp-chip { padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 500;
+      cursor: pointer; border: 1px solid var(--border-color); background: var(--bg-tertiary);
+      color: var(--text-secondary); transition: all 0.18s; white-space: nowrap; }
+    .mp-chip.active, .mp-chip:hover { background: rgba(99,102,241,0.15);
+      border-color: #6366f1; color: #a5b4fc; }
+    .mp-count { margin-left: auto; font-size: 0.82rem; color: var(--text-muted); }
+
+    /* ── GRID ── */
+    .mp-body { max-width: 1200px; margin: 0 auto; padding: 28px 20px; }
+    .mp-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    /* ── STORE CARD ── */
+    .store-card {
+      background: var(--bg-secondary); border: 1px solid var(--border-color);
+      border-radius: 16px; padding: 22px; cursor: pointer; transition: all 0.22s;
+      display: flex; flex-direction: column; gap: 14px;
+      position: relative; overflow: hidden;
+    }
+    .store-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, #6366f1, #a78bfa);
+    }
+    .store-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(99,102,241,0.18);
+      border-color: #6366f1; }
+    .store-card-header { display: flex; align-items: flex-start; gap: 14px; }
+    .store-avatar {
+      width: 52px; height: 52px; border-radius: 14px; flex-shrink: 0;
+      background: linear-gradient(135deg, #6366f1, #a78bfa);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; font-weight: 800; color: white;
+    }
+    .store-info { flex: 1; min-width: 0; }
+    .store-name { font-size: 1.05rem; font-weight: 700; color: var(--text-primary);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
+    .store-owner { font-size: 0.78rem; color: var(--text-muted); }
+    .store-address { font-size: 0.8rem; color: var(--text-secondary);
+      display: flex; align-items: center; gap: 5px; }
+    .store-badge { display: inline-block; padding: 2px 8px; border-radius: 10px;
+      font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+    .badge-free { background: rgba(16,185,129,0.15); color: #6ee7b7; }
+    .badge-pro { background: rgba(99,102,241,0.15); color: #a5b4fc; }
+    .badge-enterprise { background: rgba(245,158,11,0.15); color: #fcd34d; }
+
+    .store-meta { display: flex; gap: 16px; flex-wrap: wrap; }
+    .store-meta-item { display: flex; align-items: center; gap: 5px;
+      font-size: 0.8rem; color: var(--text-muted); }
+    .store-meta-item strong { color: var(--text-primary); font-weight: 700; }
+
+    .store-categories { display: flex; flex-wrap: wrap; gap: 5px; }
+    .cat-tag { padding: 3px 9px; background: var(--bg-tertiary); border: 1px solid var(--border-color);
+      border-radius: 10px; font-size: 0.72rem; color: var(--text-secondary); }
+
+    .store-hours { font-size: 0.78rem; color: var(--text-muted);
+      display: flex; align-items: center; gap: 5px; }
+    .hours-open { color: #6ee7b7; font-weight: 600; }
+    .hours-closed { color: #f87171; font-weight: 600; }
+
+    .store-cta { display: flex; gap: 8px; margin-top: 4px; }
+    .btn-shop-now {
+      flex: 1; padding: 10px; border-radius: 10px; border: none; font-weight: 700;
+      font-size: 0.85rem; cursor: pointer; transition: all 0.2s;
+      background: linear-gradient(135deg, #6366f1, #a78bfa); color: white;
+    }
+    .btn-shop-now:hover { opacity: 0.88; }
+    .btn-preview { padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border-color);
+      background: var(--bg-tertiary); color: var(--text-secondary); font-size: 0.85rem;
+      cursor: pointer; transition: all 0.2s; font-weight: 600; }
+    .btn-preview:hover { border-color: #6366f1; color: #a5b4fc; }
+
+    /* ── LOADING / EMPTY ── */
+    .mp-loading { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+    .mp-empty { text-align: center; padding: 60px 20px; }
+    .mp-empty-icon { font-size: 3.5rem; margin-bottom: 14px; }
+    .mp-empty h3 { font-size: 1.2rem; color: var(--text-primary); margin-bottom: 8px; }
+    .mp-empty p { color: var(--text-muted); font-size: 0.9rem; }
+
+    /* ── STORE MODAL (preview) ── */
+    .store-modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 2000;
+      display: none; align-items: center; justify-content: center; padding: 16px;
+      backdrop-filter: blur(6px);
+    }
+    .store-modal-overlay.open { display: flex; }
+    .store-modal {
+      background: var(--bg-secondary); border-radius: 20px; width: 100%;
+      max-width: 560px; max-height: 85vh; overflow-y: auto; padding: 28px;
+      border: 1px solid var(--border-color); position: relative;
+    }
+    .modal-close { position: absolute; top: 16px; right: 16px; background: var(--bg-tertiary);
+      border: 1px solid var(--border-color); border-radius: 8px; padding: 6px 10px;
+      cursor: pointer; font-size: 1rem; color: var(--text-muted); }
+    .modal-close:hover { color: var(--text-primary); }
+    .modal-store-name { font-size: 1.4rem; font-weight: 800; color: var(--text-primary);
+      margin-bottom: 6px; }
+    .modal-section-title { font-size: 0.78rem; font-weight: 700; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.06em; margin: 20px 0 10px; }
+    .modal-product-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .modal-product { background: var(--bg-tertiary); border: 1px solid var(--border-color);
+      border-radius: 10px; padding: 12px; }
+    .modal-product-name { font-size: 0.85rem; font-weight: 600; color: var(--text-primary);
+      margin-bottom: 4px; }
+    .modal-product-price { font-size: 0.9rem; font-weight: 700; color: #a5b4fc; }
+    .modal-product-stock { font-size: 0.72rem; color: var(--text-muted); }
+    .modal-go-btn { width: 100%; padding: 14px; margin-top: 20px; border-radius: 12px; border: none;
+      background: linear-gradient(135deg, #6366f1, #a78bfa); color: white; font-size: 1rem;
+      font-weight: 700; cursor: pointer; transition: all 0.2s; }
+    .modal-go-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+
+    /* ── SKELETON ── */
+    .skeleton-card { background: var(--bg-secondary); border: 1px solid var(--border-color);
+      border-radius: 16px; padding: 22px; }
+    @keyframes shimmer { 0% { opacity: 0.4; } 50% { opacity: 0.8; } 100% { opacity: 0.4; } }
+    .skel { background: var(--bg-tertiary); border-radius: 6px; animation: shimmer 1.4s infinite; }
+    .skel-lg { height: 52px; width: 52px; border-radius: 14px; }
+    .skel-line { height: 14px; margin-bottom: 8px; }
+    .skel-short { width: 60%; }
+    .skel-medium { width: 80%; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 767px) {
+      .mp-hero h1 { font-size: 1.6rem; }
+      .mp-hero { padding: 32px 16px 24px; }
+      .mp-grid { grid-template-columns: 1fr; gap: 14px; }
+      .mp-body { padding: 16px; }
+      .mp-stats-row { gap: 20px; }
+      .mp-stat-num { font-size: 1.3rem; }
+      .modal-product-list { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 479px) {
+      .mp-header { padding: 10px 14px; }
+      .mp-btn span { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="mp-header">
+  <a href="landing.html" class="mp-logo">🧠 ShelfSense</a>
+  <div class="mp-header-right">
+    <span id="welcomeUser" style="font-size:0.82rem;color:var(--text-muted)"></span>
+    <a href="customer.html" class="mp-btn mp-btn-ghost" id="myShopBtn" style="display:none">
+      🛍️ <span>My Shop</span>
+    </a>
+    <a href="login.html?tab=customer" class="mp-btn mp-btn-primary" id="loginBtn">
+      → <span>Login to Shop</span>
+    </a>
+    <button class="mp-btn mp-btn-ghost" onclick="logout()" id="logoutBtn" style="display:none">Logout</button>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="mp-hero">
+  <h1>🏪 ShelfSense Marketplace</h1>
+  <p>Discover stores near you. Browse live inventory, compare prices, and shop from multiple stores — all in one place.</p>
+  <div class="mp-search-bar">
+    <input type="text" id="searchInput" placeholder="Search stores by name…" oninput="filterStores()" autocomplete="off">
+    <span class="search-icon">🔍</span>
+  </div>
+  <div class="mp-stats-row" id="marketStats">
+    <div class="mp-stat"><div class="mp-stat-num" id="statStores">—</div><div class="mp-stat-label">Active Stores</div></div>
+    <div class="mp-stat"><div class="mp-stat-num" id="statProducts">—</div><div class="mp-stat-label">Products Listed</div></div>
+    <div class="mp-stat"><div class="mp-stat-num" id="statOrders">—</div><div class="mp-stat-label">Orders Fulfilled</div></div>
+  </div>
+</section>
+
+<!-- FILTERS -->
+<div class="mp-filters">
+  <span class="mp-filter-label">Filter:</span>
+  <span class="mp-chip active" onclick="setFilter('all', this)">All Stores</span>
+  <span class="mp-chip" onclick="setFilter('open', this)">🟢 Open Now</span>
+  <span class="mp-chip" onclick="setFilter('pro', this)">⭐ Pro Stores</span>
+  <span class="mp-chip" onclick="setFilter('enterprise', this)">🏆 Enterprise</span>
+  <span class="mp-count" id="filterCount"></span>
+</div>
+
+<!-- STORE GRID -->
+<div class="mp-body">
+  <div class="mp-grid" id="storeGrid">
+    <!-- Skeleton loading -->
+    ${[1,2,3,4,5,6].map(() => `
+    <div class="skeleton-card">
+      <div style="display:flex;gap:14px;margin-bottom:14px">
+        <div class="skel skel-lg"></div>
+        <div style="flex:1"><div class="skel skel-line skel-medium"></div><div class="skel skel-line skel-short"></div></div>
+      </div>
+      <div class="skel skel-line"></div>
+      <div class="skel skel-line skel-short"></div>
+    </div>`).join("")}
+  </div>
+</div>
+
+<!-- STORE PREVIEW MODAL -->
+<div class="store-modal-overlay" id="storeModal">
+  <div class="store-modal" id="storeModalContent">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modalBody">Loading…</div>
+  </div>
+</div>
+
+<script>
+  // ── Auth state ──
+  const token = localStorage.getItem("token");
+  let currentUser = null;
+  let allStores = [];
+  let activeFilter = "all";
+
+  // Decode token
+  if (token) {
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      if (payload.role === "customer") {
+        currentUser = payload;
+        document.getElementById("welcomeUser").textContent = `Hi, ${payload.fname || "there"} 👋`;
+        document.getElementById("myShopBtn").style.display = "inline-flex";
+        document.getElementById("loginBtn").style.display = "none";
+        document.getElementById("logoutBtn").style.display = "inline-flex";
+      }
+    } catch(e) {}
+  }
+
+  function logout() {
+    localStorage.removeItem("token");
+    window.location.href = "login.html?tab=customer";
+  }
+
+  // ── Load stores ──
+  async function loadStores() {
+    try {
+      const res = await fetch("/public/stores");
+      const data = await res.json();
+      allStores = data.stores || [];
+      renderStats();
+      renderStores(allStores);
+    } catch(err) {
+      document.getElementById("storeGrid").innerHTML = `
+        <div class="mp-empty" style="grid-column:1/-1">
+          <div class="mp-empty-icon">😕</div>
+          <h3>Could not load stores</h3>
+          <p>Please check your connection and refresh.</p>
+        </div>`;
+    }
+  }
+
+  function renderStats() {
+    document.getElementById("statStores").textContent = allStores.length;
+    document.getElementById("statProducts").textContent =
+      allStores.reduce((s, st) => s + (st.productCount || 0), 0).toLocaleString();
+    document.getElementById("statOrders").textContent =
+      allStores.reduce((s, st) => s + (st.totalOrders || 0), 0).toLocaleString();
+  }
+
+  function isStoreOpen(store) {
+    const now = new Date();
+    const h = now.getHours(), m = now.getMinutes();
+    const cur = h * 60 + m;
+    const [oh, om] = (store.openingTime || "09:00").split(":").map(Number);
+    const [ch, cm] = (store.closingTime || "22:00").split(":").map(Number);
+    return cur >= oh * 60 + om && cur <= ch * 60 + cm;
+  }
+
+  function storeInitials(name) {
+    return name.split(" ").slice(0,2).map(w => w[0]?.toUpperCase() || "").join("") || "SS";
+  }
+
+  function planBadge(plan) {
+    const map = { free: "badge-free", pro: "badge-pro", enterprise: "badge-enterprise" };
+    return `<span class="store-badge ${map[plan] || 'badge-free'}">${plan || "free"}</span>`;
+  }
+
+  function renderStores(stores) {
+    const grid = document.getElementById("storeGrid");
+    document.getElementById("filterCount").textContent =
+      `${stores.length} store${stores.length !== 1 ? "s" : ""}`;
+
+    if (!stores.length) {
+      grid.innerHTML = `
+        <div class="mp-empty" style="grid-column:1/-1">
+          <div class="mp-empty-icon">🏪</div>
+          <h3>No stores found</h3>
+          <p>Try a different search or check back later.</p>
+        </div>`;
+      return;
+    }
+
+    grid.innerHTML = stores.map(store => {
+      const open = isStoreOpen(store);
+      const initials = storeInitials(store.name);
+      const topCats = (store.categories || []).slice(0, 4);
+      return `
+      <div class="store-card" onclick="openModal('${store._id}')">
+        <div class="store-card-header">
+          <div class="store-avatar">${initials}</div>
+          <div class="store-info">
+            <div class="store-name">${store.name}</div>
+            <div class="store-owner" style="margin-bottom:5px">by ${store.ownerName || "Store Owner"} &nbsp;${planBadge(store.plan)}</div>
+            <div class="store-address">📍 ${store.address || "Mumbai, India"}</div>
+          </div>
+        </div>
+        <div class="store-meta">
+          <div class="store-meta-item">📦 <strong>${store.productCount}</strong> products</div>
+          <div class="store-meta-item">🛒 <strong>${store.totalOrders}</strong> orders</div>
+        </div>
+        ${topCats.length ? `<div class="store-categories">${topCats.map(c => `<span class="cat-tag">${c}</span>`).join("")}</div>` : ""}
+        <div class="store-hours">
+          🕐 ${store.openingTime || "09:00"} – ${store.closingTime || "22:00"}
+          &nbsp;·&nbsp; <span class="${open ? "hours-open" : "hours-closed"}">${open ? "Open now" : "Closed"}</span>
+        </div>
+        <div class="store-cta">
+          <button class="btn-shop-now" onclick="event.stopPropagation();shopNow('${store._id}','${store.name.replace(/'/g,"\\'")}')">
+            🛍️ Shop Now
+          </button>
+          <button class="btn-preview" onclick="event.stopPropagation();openModal('${store._id}')">👁️</button>
+        </div>
+      </div>`;
+    }).join("");
+  }
+
+  // ── Filter ──
+  function setFilter(filter, el) {
+    activeFilter = filter;
+    document.querySelectorAll(".mp-chip").forEach(c => c.classList.remove("active"));
+    el.classList.add("active");
+    applyFilters();
+  }
+
+  function filterStores() { applyFilters(); }
+
+  function applyFilters() {
+    const search = document.getElementById("searchInput").value.toLowerCase().trim();
+    let filtered = allStores;
+    if (search) filtered = filtered.filter(s =>
+      s.name.toLowerCase().includes(search) ||
+      (s.address || "").toLowerCase().includes(search) ||
+      (s.ownerName || "").toLowerCase().includes(search)
+    );
+    if (activeFilter === "open") filtered = filtered.filter(isStoreOpen);
+    if (activeFilter === "pro") filtered = filtered.filter(s => s.plan === "pro");
+    if (activeFilter === "enterprise") filtered = filtered.filter(s => s.plan === "enterprise");
+    renderStores(filtered);
+  }
+
+  // ── Shop Now ──
+  function shopNow(storeId, storeName) {
+    if (!currentUser) {
+      // Save intended store, redirect to login
+      localStorage.setItem("pendingStore", JSON.stringify({ storeId, storeName }));
+      window.location.href = "login.html?tab=customer&redirect=marketplace";
+      return;
+    }
+    // Logged in — go to customer.html with storeId
+    localStorage.setItem("activeStoreId", storeId);
+    localStorage.setItem("activeStoreName", storeName);
+    window.location.href = `customer.html?storeId=${storeId}`;
+  }
+
+  // ── Preview Modal ──
+  async function openModal(storeId) {
+    const overlay = document.getElementById("storeModal");
+    const body = document.getElementById("modalBody");
+    overlay.classList.add("open");
+    body.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-muted)">⏳ Loading store…</div>`;
+
+    try {
+      const res = await fetch(`/public/store/${storeId}`);
+      const data = await res.json();
+      const { store, products } = data;
+      const open = isStoreOpen(store);
+      const topProducts = products.slice(0, 6);
+
+      body.innerHTML = `
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+          <div class="store-avatar" style="width:60px;height:60px;font-size:1.6rem">${storeInitials(store.name)}</div>
+          <div>
+            <div class="modal-store-name">${store.name}</div>
+            <div style="font-size:0.82rem;color:var(--text-muted)">by ${store.ownerName || "Owner"} &nbsp;${planBadge(store.plan)}</div>
+            <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px">
+              📍 ${store.address || "Mumbai, India"} &nbsp;·&nbsp;
+              🕐 ${store.openingTime}–${store.closingTime} &nbsp;·&nbsp;
+              <span class="${open ? "hours-open" : "hours-closed"}">${open ? "Open" : "Closed"}</span>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:20px;padding:14px;background:var(--bg-tertiary);border-radius:12px;flex-wrap:wrap">
+          <div class="store-meta-item">📦 <strong>${store.productCount}</strong> products</div>
+          <div class="store-meta-item">🗂️ ${store.categories.join(", ") || "General"}</div>
+        </div>
+        ${topProducts.length ? `
+        <div class="modal-section-title">🛒 Available Products</div>
+        <div class="modal-product-list">
+          ${topProducts.map(p => `
+          <div class="modal-product">
+            <div class="modal-product-name">${p.name}</div>
+            <div class="modal-product-price">₹${p.price}</div>
+            <div class="modal-product-stock">${p.stock > 10 ? "✅ In stock" : p.stock > 0 ? `⚠️ Only ${p.stock} left` : "❌ Out of stock"}</div>
+          </div>`).join("")}
+        </div>` : `<div style="text-align:center;padding:20px;color:var(--text-muted)">No products listed yet.</div>`}
+        <button class="modal-go-btn" onclick="shopNow('${store._id}','${store.name.replace(/'/g,"\\'")}')">
+          🛍️ Shop at ${store.name}
+        </button>`;
+    } catch(err) {
+      body.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-muted)">❌ Could not load store. Please try again.</div>`;
+    }
+  }
+
+  function closeModal() {
+    document.getElementById("storeModal").classList.remove("open");
+  }
+  document.getElementById("storeModal").addEventListener("click", function(e) {
+    if (e.target === this) closeModal();
+  });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+
+  // ── Handle pending store redirect after login ──
+  window.addEventListener("load", () => {
+    const pending = localStorage.getItem("pendingStore");
+    if (pending && currentUser) {
+      const { storeId, storeName } = JSON.parse(pending);
+      localStorage.removeItem("pendingStore");
+      shopNow(storeId, storeName);
+    }
+  });
+
+  // ── Init ──
+  loadStores();
+</script>
+</body>
+</html>

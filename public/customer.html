@@ -771,8 +771,15 @@
 
 <!-- HEADER -->
 <div class="shop-header">
-  <div class="shop-logo">🧠 ShelfSense AI</div>
+  <div style="display:flex;flex-direction:column;gap:2px">
+    <div class="shop-logo" id="shopLogoName">🧠 ShelfSense AI</div>
+    <div id="shopStoreContext" style="display:none;font-size:0.72rem;color:var(--text-muted);display:flex;align-items:center;gap:6px">
+      <span id="shopStoreName"></span>
+      <a href="marketplace.html" style="color:#a5b4fc;text-decoration:none;font-size:0.7rem">↩ Browse all stores</a>
+    </div>
+  </div>
   <div class="header-actions">
+    <a href="marketplace.html" style="font-size:0.78rem;color:var(--text-muted);text-decoration:none;padding:6px 10px;border-radius:8px;border:1px solid var(--border-color);background:var(--bg-tertiary);white-space:nowrap" class="hide-on-xs">🏪 All Stores</a>
     <button class="header-btn" onclick="showMainTab('wishlist', this)">
       ❤️ Wishlist
       <span id="wishlistCount" style="background:var(--danger);color:white;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700">0</span>
@@ -1410,6 +1417,17 @@ if (oauthToken) {
   window.history.replaceState({}, document.title, "/customer.html");
 }
 
+// Multi-store: read storeId from URL or localStorage
+const urlStoreId = urlParams.get("storeId");
+if (urlStoreId) {
+  localStorage.setItem("activeStoreId", urlStoreId);
+  // Clean URL without losing state
+  const newUrl = window.location.pathname;
+  window.history.replaceState({}, document.title, newUrl);
+}
+window.currentStoreId = localStorage.getItem("activeStoreId") || null;
+window.currentStoreName = localStorage.getItem("activeStoreName") || null;
+
 const token = localStorage.getItem("token");
 const role = localStorage.getItem("role");
 if (!token || role !== "customer") window.location.href = "login.html?tab=customer";
@@ -1482,8 +1500,10 @@ function switchCartTab(tab, btn) {
 /* ===== LOAD PRODUCTS ===== */
 async function loadProducts() {
   try {
+    // Build URL with storeId if we're shopping a specific store
+    const storeParam = window.currentStoreId ? `?storeId=${window.currentStoreId}` : "";
     const [pRes, rRes] = await Promise.all([
-      fetch("/shop-items", { headers: { Authorization: token } }),
+      fetch(`/shop-items${storeParam}`, { headers: { Authorization: token } }),
       fetch("/my-ratings", { headers: { Authorization: token } })
     ]);
     if (!pRes.ok) { if (pRes.status === 401) { window.location.href = "login.html?tab=customer"; return; } }
@@ -2735,6 +2755,24 @@ function applyLanguage() {
 /* ===== SETTINGS ===== */
 function toggleSettings() { document.getElementById("settingsPanel").classList.toggle("open"); }
 function setTheme(theme) { document.documentElement.setAttribute("data-theme", theme); localStorage.setItem("shelfsense-theme", theme); document.querySelectorAll(".theme-option").forEach(o => o.classList.toggle("active", o.getAttribute("data-theme") === theme)); document.getElementById("settingsPanel").classList.remove("open"); }
+
+/* ===== MULTI-STORE CONTEXT ===== */
+// Show active store name in header if shopping a specific store
+(function initStoreContext() {
+  const storeName = window.currentStoreName || localStorage.getItem("activeStoreName");
+  const storeId = window.currentStoreId;
+  if (storeName && storeId) {
+    const ctx = document.getElementById("shopStoreContext");
+    const nameEl = document.getElementById("shopStoreName");
+    const logo = document.getElementById("shopLogoName");
+    if (ctx && nameEl) {
+      nameEl.textContent = `🏪 ${storeName}`;
+      ctx.style.display = "flex";
+    }
+    if (logo) logo.textContent = `🛍️ ${storeName}`;
+    document.title = `${storeName} | ShelfSense`;
+  }
+})();
 
 /* ===== INIT ===== */
 loadProducts();
