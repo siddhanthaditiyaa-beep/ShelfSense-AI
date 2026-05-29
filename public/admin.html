@@ -7735,46 +7735,21 @@ function copyAbstract() {
 async function loadAdminThemes(activeThemeId) {
   const el = document.getElementById("themesData");
   if (!el) return;
-  // Use passed themeId or fall back to localStorage or fetch from server
   const currentTheme = activeThemeId || localStorage.getItem("adminTheme") || "default";
+  // Light themes first, then dark — clean single grid, no labels, no extra boxes
   const themes = [
-    { id: "default",      name: "ShelfSense Dark",  primary: "#6366f1", bg: "#0f0f23", dark: true },
-    { id: "midnight",     name: "Midnight Command",  primary: "#22c55e", bg: "#030712", dark: true },
-    { id: "cyberpunk",    name: "Cyberpunk",          primary: "#f59e0b", bg: "#09090b", dark: true },
-    { id: "ocean",        name: "Deep Ocean",         primary: "#06b6d4", bg: "#0c1a29", dark: true },
-    { id: "rose",         name: "Rose Gold",          primary: "#f43f5e", bg: "#1a0a0f", dark: true },
-    { id: "light-clean",  name: "Clean White",        primary: "#6366f1", bg: "#ffffff", dark: false },
-    { id: "light-mint",   name: "Mint Fresh",         primary: "#059669", bg: "#f0fdf4", dark: false },
-    { id: "light-sky",    name: "Sky Blue",           primary: "#0284c7", bg: "#f0f9ff", dark: false },
-    { id: "light-peach",  name: "Warm Peach",         primary: "#ea580c", bg: "#fff7ed", dark: false },
-    { id: "light-lavender", name: "Lavender",         primary: "#7c3aed", bg: "#faf5ff", dark: false },
+    { id: "light-clean",    name: "Clean White",      primary: "#6366f1", bg: "#ffffff" },
+    { id: "light-mint",     name: "Mint Fresh",       primary: "#059669", bg: "#f0fdf4" },
+    { id: "light-sky",      name: "Sky Blue",         primary: "#0284c7", bg: "#f0f9ff" },
+    { id: "light-peach",    name: "Warm Peach",       primary: "#ea580c", bg: "#fff7ed" },
+    { id: "light-lavender", name: "Lavender",         primary: "#7c3aed", bg: "#faf5ff" },
+    { id: "default",        name: "ShelfSense Dark",  primary: "#6366f1", bg: "#0f0f23" },
+    { id: "midnight",       name: "Midnight Command", primary: "#22c55e", bg: "#030712" },
+    { id: "cyberpunk",      name: "Cyberpunk",        primary: "#f59e0b", bg: "#09090b" },
+    { id: "ocean",          name: "Deep Ocean",       primary: "#06b6d4", bg: "#0c1a29" },
+    { id: "rose",           name: "Rose Gold",        primary: "#f43f5e", bg: "#1a0a0f" },
   ];
-  el.innerHTML = `<div>
-    <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">🌙 Dark Themes</div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:16px">
-    ${themes.filter(t=>t.dark).map(t => `<div onclick="setAdminTheme('${t.id}')" style="cursor:pointer;border-radius:12px;overflow:hidden;border:2px solid ${t.id===currentTheme ? t.primary : 'var(--border-color)'};transition:all 0.2s" onmouseover="this.style.borderColor='${t.primary}'" onmouseout="this.style.borderColor='${t.id===currentTheme ? t.primary : 'var(--border-color)'}'">
-      <div style="height:56px;background:${t.bg};display:flex;align-items:center;justify-content:center">
-        <div style="width:28px;height:7px;background:${t.primary};border-radius:4px"></div>
-      </div>
-      <div style="padding:7px 8px;background:var(--bg-secondary);text-align:center">
-        <div style="font-size:0.78rem;font-weight:600">${t.name}</div>
-        ${t.id === currentTheme ? '<div style="font-size:0.65rem;color:#22c55e;margin-top:2px">✅ Active</div>' : ""}
-      </div>
-    </div>`).join("")}
-    </div>
-    <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">☀️ Light Themes</div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px">
-    ${themes.filter(t=>!t.dark).map(t => `<div onclick="setAdminTheme('${t.id}')" style="cursor:pointer;border-radius:12px;overflow:hidden;border:2px solid ${t.id===currentTheme ? t.primary : '#e2e8f0'};transition:all 0.2s" onmouseover="this.style.borderColor='${t.primary}'" onmouseout="this.style.borderColor='${t.id===currentTheme ? t.primary : '#e2e8f0'}'">
-      <div style="height:56px;background:${t.bg};display:flex;align-items:center;justify-content:center;border-bottom:1px solid #e2e8f0">
-        <div style="width:28px;height:7px;background:${t.primary};border-radius:4px"></div>
-      </div>
-      <div style="padding:7px 8px;background:#f8fafc;text-align:center">
-        <div style="font-size:0.78rem;font-weight:600;color:#1e293b">${t.name}</div>
-        ${t.id === currentTheme ? '<div style="font-size:0.65rem;color:#059669;margin-top:2px">✅ Active</div>' : ""}
-      </div>
-    </div>`).join("")}
-    </div>
-  </div>
+  el.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px">
     ${themes.map(t => `<div onclick="setAdminTheme('${t.id}')" style="cursor:pointer;border-radius:12px;overflow:hidden;border:2px solid ${t.id===currentTheme ? t.primary : 'var(--border-color)'};transition:all 0.2s" onmouseover="this.style.borderColor='${t.primary}'" onmouseout="this.style.borderColor='${t.id===currentTheme ? t.primary : 'var(--border-color)'}'">
       <div style="height:60px;background:${t.bg};display:flex;align-items:center;justify-content:center">
         <div style="width:30px;height:8px;background:${t.primary};border-radius:4px"></div>
@@ -7786,6 +7761,7 @@ async function loadAdminThemes(activeThemeId) {
     </div>`).join("")}
   </div>`;
 }
+
 const ADMIN_THEMES = {
   "default":        { primary:"#6366f1", bg:"#0f0f23", secondary:"#16162a", accent:"#a78bfa", text:"#e2e8f0", border:"rgba(99,102,241,0.2)" },
   "midnight":       { primary:"#22c55e", bg:"#030712", secondary:"#0a1628", accent:"#4ade80", text:"#f0fdf4", border:"rgba(34,197,94,0.2)" },
