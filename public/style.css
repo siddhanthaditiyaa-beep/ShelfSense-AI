@@ -796,3 +796,333 @@ tr:hover td { background: var(--accent-light); }
   .planogram-grid { grid-template-columns: repeat(3, 1fr); }
   .stats-row { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ============================================================
+   SHELFSENSE AI — FULL RESPONSIVE SYSTEM
+   Breakpoints:
+     xs  : 0–479px   (small phones)
+     sm  : 480–767px (large phones)
+     md  : 768–1023px (tablets)
+     lg  : 1024px+   (laptop/desktop)
+   ============================================================ */
+
+/* ---- BASE: prevent horizontal scroll on ALL pages ---- */
+html, body {
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+* { box-sizing: border-box; }
+img, video, iframe { max-width: 100%; height: auto; }
+table { width: 100%; table-layout: auto; }
+
+/* ---- TOUCH TARGETS: min 44px for all interactive elements ---- */
+button, .btn, .sidebar-item, .nav-link,
+.topbar-nav-item, .filter-tab, .nlq-chip,
+.agent-filter, input[type="checkbox"], input[type="radio"] {
+  min-height: 44px;
+}
+.sidebar-item { min-height: 40px; } /* sidebar items slightly smaller ok */
+
+/* ---- TABLES: horizontal scroll on small screens ---- */
+.table-wrapper, .table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 8px;
+}
+
+/* ============================================================
+   TABLET  (768px – 1023px)
+   ============================================================ */
+@media (max-width: 1023px) {
+  /* Sidebar becomes slide-in overlay on tablet */
+  .sidebar {
+    position: fixed;
+    top: 52px;
+    left: 0;
+    height: calc(100vh - 52px);
+    z-index: 400;
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+    width: 220px !important;
+    opacity: 1 !important;
+    border-right: 1px solid var(--border-color) !important;
+  }
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+  /* Content always full width on tablet — no push */
+  .content { margin-left: 0 !important; }
+  .main-area { overflow: visible; }
+
+  /* Sidebar overlay backdrop */
+  .sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    top: 52px;
+    background: rgba(0,0,0,0.5);
+    z-index: 399;
+    backdrop-filter: blur(2px);
+  }
+  .sidebar-backdrop.visible { display: block; }
+
+  /* Stats grid: 2 columns on tablet */
+  .stats-row { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* Agents grid */
+  .agents-grid { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* Settings grid */
+  .settings-grid { grid-template-columns: 1fr !important; }
+
+  /* Content padding */
+  .content { padding: 16px !important; }
+
+  /* Tables scroll horizontally */
+  table { min-width: 600px; }
+
+  /* NLQ chips wrap */
+  .nlq-suggestions { flex-wrap: wrap; }
+
+  /* Modal full width on tablet */
+  .modal-box { max-width: calc(100vw - 32px) !important; margin: 16px; }
+}
+
+/* ============================================================
+   MOBILE  (max 767px)
+   ============================================================ */
+@media (max-width: 767px) {
+  /* Topbar */
+  .topbar { padding: 0 10px !important; gap: 6px !important; height: 52px; }
+  .topbar-logo { font-size: 0.85rem !important; }
+  .topbar-right { gap: 6px !important; }
+  .topbar-right .btn { padding: 6px 10px !important; font-size: 0.78rem !important; }
+
+  /* Sidebar stays as slide-in from tablet rules above */
+
+  /* Content */
+  .content { padding: 12px !important; }
+
+  /* Stats: 2 col on phones */
+  .stats-row {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+  .stat-card .number { font-size: 1.3rem !important; }
+  .stat-card { padding: 14px !important; }
+
+  /* Agents grid: 1 col */
+  .agents-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
+
+  /* Purchase orders: stack */
+  .po-card { flex-direction: column !important; align-items: flex-start !important; gap: 10px; }
+  .po-actions { flex-wrap: wrap; }
+
+  /* Rows */
+  .row { grid-template-columns: 1fr !important; gap: 12px !important; }
+  .settings-grid { grid-template-columns: 1fr !important; }
+
+  /* Tables: scroll */
+  table { min-width: 500px; font-size: 0.78rem !important; }
+  th, td { padding: 8px 10px !important; }
+
+  /* NLQ */
+  .nlq-input-row { flex-direction: column !important; gap: 8px; }
+  .nlq-btn { width: 100%; }
+  .nlq-suggestions { gap: 6px; }
+  .nlq-chip { font-size: 0.72rem; padding: 5px 10px; }
+
+  /* Planogram */
+  .planogram-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .slot { width: 60px !important; height: 60px !important; font-size: 0.62rem !important; }
+
+  /* Toast */
+  #toast, .ss-toast { right: 10px !important; left: 10px !important; max-width: unset !important; bottom: 72px !important; }
+
+  /* Settings FAB */
+  .settings-fab { bottom: 14px !important; right: 14px !important; width: 40px !important; height: 40px !important; }
+  .settings-panel { right: 14px !important; bottom: 64px !important; width: calc(100vw - 28px) !important; max-width: 260px !important; }
+
+  /* Profile panel */
+  .profile-panel { width: calc(100vw - 24px) !important; left: 12px !important; right: 12px !important; top: 56px !important; }
+
+  /* Modals */
+  .modal-overlay { padding: 12px !important; align-items: flex-end !important; }
+  .modal-box {
+    border-radius: 20px 20px 0 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  /* Sub plans */
+  .sub-plans { grid-template-columns: 1fr !important; }
+
+  /* Slot grid */
+  .slot-grid { gap: 6px !important; }
+
+  /* Stock edit */
+  .stock-edit { flex-wrap: wrap; gap: 4px; }
+
+  /* Agent filters */
+  .agent-filters { gap: 6px; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; }
+  .agent-filter { white-space: nowrap; flex-shrink: 0; padding: 6px 12px; font-size: 0.75rem; }
+
+  /* Franchise cards */
+  .franchise-card { flex-direction: column; }
+
+  /* Chatbot FAB */
+  .chatbot-fab { bottom: 16px !important; right: 16px !important; }
+}
+
+/* ============================================================
+   SMALL PHONES  (max 479px)
+   ============================================================ */
+@media (max-width: 479px) {
+  .topbar-logo { display: none !important; }
+
+  /* Stats: keep 2 col but tighter */
+  .stats-row {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+  .stat-card { padding: 10px !important; }
+  .stat-card .number { font-size: 1.15rem !important; }
+  .stat-card .label { font-size: 0.68rem !important; }
+
+  /* Modals: full-screen bottom sheet */
+  .modal-box { max-height: 85vh; border-radius: 18px 18px 0 0 !important; }
+
+  /* Buttons in topbar shrink */
+  .topbar-right .btn span { display: none; } /* hide text, keep icon */
+  .topbar-right .btn { min-width: 36px; padding: 6px 8px !important; }
+
+  /* Content padding tighter */
+  .content { padding: 8px !important; }
+
+  /* Cards */
+  .card, .section-card { padding: 14px !important; border-radius: 12px !important; }
+
+  /* NLQ */
+  .nlq-panel { padding: 14px !important; }
+  .nlq-input { font-size: 0.82rem; }
+
+  /* Planogram 2 col */
+  .planogram-grid { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* Agent card */
+  .agent-card { padding: 14px !important; }
+  .agent-header { gap: 8px; }
+  .agent-icon { width: 36px !important; height: 36px !important; font-size: 1rem !important; }
+}
+
+/* ============================================================
+   ADMIN SIDEBAR — MOBILE DRAWER SYSTEM
+   ============================================================ */
+
+/* The backdrop div (injected by JS) */
+#sidebarBackdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  top: 52px;
+  background: rgba(0,0,0,0.55);
+  z-index: 398;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  cursor: pointer;
+  transition: opacity 0.25s;
+}
+#sidebarBackdrop.visible { display: block; }
+
+/* ============================================================
+   LANDING PAGE RESPONSIVE
+   ============================================================ */
+@media (max-width: 767px) {
+  .navbar { padding: 0 14px !important; height: 58px; }
+  .nav-links { display: none !important; }
+  .nav-hamburger { display: flex !important; }
+  .mobile-nav { display: none; flex-direction: column; position: fixed;
+    top: 58px; left: 0; right: 0; background: rgba(15,15,35,0.98);
+    backdrop-filter: blur(20px); border-bottom: 1px solid var(--border,rgba(255,255,255,0.1));
+    z-index: 999; padding: 12px 0; }
+  .mobile-nav.open { display: flex; }
+  .mobile-nav a { padding: 14px 24px; color: inherit; text-decoration: none;
+    font-size: 0.95rem; font-weight: 500; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .mobile-nav a:last-child { border-bottom: none; }
+
+  .hero { padding: 90px 16px 50px !important; }
+  .hero h1 { font-size: 1.8rem !important; line-height: 1.2; }
+  .hero p { font-size: 0.95rem !important; }
+  .hero-stats { gap: 20px !important; flex-wrap: wrap; justify-content: center; }
+  .hero-stat-num { font-size: 1.4rem !important; }
+
+  section { padding: 50px 16px !important; }
+  .footer-grid { grid-template-columns: 1fr 1fr !important; gap: 20px !important; }
+  .footer-bottom { flex-direction: column !important; gap: 8px; text-align: center; }
+}
+
+@media (max-width: 479px) {
+  .hero h1 { font-size: 1.5rem !important; }
+  .footer-grid { grid-template-columns: 1fr !important; }
+  .hero-actions .btn { width: 100% !important; max-width: 100% !important; }
+  .hero-stats { gap: 14px !important; }
+}
+
+/* ============================================================
+   LOGIN / REGISTER / AUTH PAGES
+   ============================================================ */
+@media (max-width: 479px) {
+  .auth-card { padding: 24px 16px !important; margin: 10px !important; border-radius: 16px !important; }
+  .auth-card h1 { font-size: 1.35rem !important; }
+  .auth-split { flex-direction: column !important; }
+  .auth-left { display: none !important; }
+  .auth-right { width: 100% !important; padding: 20px 16px !important; }
+}
+
+/* ============================================================
+   CUSTOMER PORTAL RESPONSIVE
+   ============================================================ */
+@media (max-width: 767px) {
+  .customer-header { padding: 10px 14px !important; gap: 8px; flex-wrap: wrap; }
+  .product-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
+  .product-card { padding: 12px !important; }
+  .cart-panel { width: 100% !important; right: 0 !important; border-radius: 20px 20px 0 0; bottom: 0 !important; top: auto !important; height: 80vh; }
+}
+@media (max-width: 479px) {
+  .product-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+  .product-card img { height: 100px !important; }
+  .product-card .product-name { font-size: 0.78rem !important; }
+  .product-card .product-price { font-size: 0.85rem !important; }
+}
+
+/* ============================================================
+   SUPERADMIN PAGE
+   ============================================================ */
+@media (max-width: 767px) {
+  .super-stats { grid-template-columns: repeat(2, 1fr) !important; }
+  .super-table { font-size: 0.78rem; overflow-x: auto; display: block; }
+}
+
+/* ============================================================
+   UTILITY: hide/show on mobile
+   ============================================================ */
+.hide-mobile { display: none !important; }
+.show-mobile { display: block !important; }
+
+@media (min-width: 768px) {
+  .hide-mobile { display: unset !important; }
+  .show-mobile { display: none !important; }
+}
+
+/* Smooth scrolling for touch */
+.content, .sidebar-section, .modal-box {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent double-tap zoom on buttons */
+button, a, input, select {
+  touch-action: manipulation;
+}

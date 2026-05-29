@@ -94,41 +94,15 @@
     .card h2 { font-size: 0.95rem; font-weight: 600; color: var(--text-accent); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
 
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    @media (max-width: 768px) {
-  .row { grid-template-columns: 1fr; }
-  .topbar { padding: 0 10px; gap: 8px; }
-  .topbar-logo { font-size: 0.875rem; }
-  .content { padding: 14px; }
-  .stats-row { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  .stat-card .number { font-size: 1.4rem; }
-  .agents-grid { grid-template-columns: 1fr; }
-  .agent-filters { gap: 6px; }
-  .agent-filter { padding: 4px 10px; font-size: 0.75rem; }
-  .settings-grid { grid-template-columns: 1fr; }
-  .planogram-grid { grid-template-columns: repeat(2, 1fr); }
-  .sub-plans { grid-template-columns: 1fr; }
-  .profile-panel { width: calc(100vw - 32px); left: 16px !important; }
-  .po-card { flex-direction: column; align-items: flex-start; }
-  table { font-size: 0.78rem; }
-  th, td { padding: 8px; }
-  .stock-edit { flex-wrap: wrap; }
-  .slot { width: 64px; height: 64px; font-size: 0.65rem; }
-  .settings-fab { bottom: 16px; right: 16px; width: 40px; height: 40px; font-size: 1rem; }
-  .settings-panel { right: 16px; bottom: 68px; width: 200px; }
-  #toast { right: 12px; left: 12px; max-width: unset; bottom: 70px; }
-  .sidebar { position: fixed; z-index: 300; height: calc(100vh - 52px); top: 52px; left: 0; }
-  .content { margin-left: 200px; }
-  .sidebar.collapsed ~ .content { margin-left: 0; }
-}
-
-@media (max-width: 480px) {
-  .stats-row { grid-template-columns: repeat(2, 1fr); }
-  .planogram-grid { grid-template-columns: repeat(2, 1fr); }
-  .modal-box { border-radius: 14px; }
-  .topbar-logo { display: none; }
-}
+    /* Responsive rules now in style.css — only admin-specific overrides here */
+    @media (max-width: 1023px) {
+      /* Sidebar desktop collapse disabled on mobile — handled by JS drawer */
+      .sidebar.collapsed { width: 220px; opacity: 1; border-right: 1px solid var(--border-color); }
+      .sidebar.collapsed ~ .content { margin-left: 0; }
+    }
 
     table { width: 100%; border-collapse: collapse; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; }
     th { background: var(--bg-tertiary); color: var(--text-muted); padding: 10px 14px; text-align: left; font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
     td { padding: 10px 14px; border-bottom: 1px solid var(--border-color); font-size: 0.875rem; color: var(--text-primary); }
     tr:hover td { background: var(--accent-light); }
@@ -3111,18 +3085,77 @@ function setTheme(theme) {
   showToast("Theme updated!");
 }
 
-/* ===== SIDEBAR ===== */
+/* ===== SIDEBAR — MOBILE DRAWER SYSTEM ===== */
+
+// Inject backdrop element once
+(function() {
+  const bd = document.createElement("div");
+  bd.id = "sidebarBackdrop";
+  bd.onclick = closeMobileSidebar;
+  document.body.appendChild(bd);
+})();
+
+function isMobile() { return window.innerWidth < 1024; }
+
 function toggleSidebar() {
-  sidebarOpen = !sidebarOpen;
-  const sidebar = document.getElementById("sidebar");
-  const topbarNav = document.getElementById("topbarNav");
-  if (sidebarOpen) { sidebar.classList.remove("collapsed"); topbarNav.classList.remove("visible"); }
-  else { sidebar.classList.add("collapsed"); topbarNav.classList.add("visible"); }
-  localStorage.setItem("sidebarOpen", sidebarOpen);
+  if (isMobile()) {
+    // Mobile/tablet: slide-in drawer
+    const sidebar = document.getElementById("sidebar");
+    const backdrop = document.getElementById("sidebarBackdrop");
+    const isOpen = sidebar.classList.contains("mobile-open");
+    if (isOpen) {
+      sidebar.classList.remove("mobile-open");
+      backdrop.classList.remove("visible");
+    } else {
+      sidebar.classList.add("mobile-open");
+      backdrop.classList.add("visible");
+    }
+  } else {
+    // Desktop: original collapse behaviour
+    sidebarOpen = !sidebarOpen;
+    const sidebar = document.getElementById("sidebar");
+    const topbarNav = document.getElementById("topbarNav");
+    if (sidebarOpen) { sidebar.classList.remove("collapsed"); topbarNav.classList.remove("visible"); }
+    else { sidebar.classList.add("collapsed"); topbarNav.classList.add("visible"); }
+    localStorage.setItem("sidebarOpen", sidebarOpen);
+  }
 }
+
+function closeMobileSidebar() {
+  document.getElementById("sidebar").classList.remove("mobile-open");
+  const bd = document.getElementById("sidebarBackdrop");
+  if (bd) bd.classList.remove("visible");
+}
+
+// Close mobile sidebar when a page is selected
+function afterSidebarNavClick() {
+  if (isMobile()) closeMobileSidebar();
+}
+
+// On resize: reset sidebar state cleanly
+window.addEventListener("resize", function() {
+  const sidebar = document.getElementById("sidebar");
+  const backdrop = document.getElementById("sidebarBackdrop");
+  if (!isMobile()) {
+    // Switching to desktop — remove mobile classes
+    sidebar.classList.remove("mobile-open");
+    if (backdrop) backdrop.classList.remove("visible");
+    // Restore desktop state
+    if (!sidebarOpen) sidebar.classList.add("collapsed");
+    else sidebar.classList.remove("collapsed");
+  } else {
+    // Switching to mobile — remove desktop collapse
+    sidebar.classList.remove("collapsed");
+  }
+});
 
 const savedSidebar = localStorage.getItem("sidebarOpen");
 if (savedSidebar === "false") { sidebarOpen = true; toggleSidebar(); }
+
+// On mobile, start with sidebar closed
+if (isMobile()) {
+  document.getElementById("sidebar").classList.remove("mobile-open");
+}
 
 /* ===== PAGE NAVIGATION ===== */
 function showPage(page, clickedBtn) {
@@ -3132,6 +3165,7 @@ function showPage(page, clickedBtn) {
   document.querySelectorAll(".sidebar-item").forEach(item => item.classList.toggle("active", item.dataset.page === page));
   document.querySelectorAll(".topbar-nav-item").forEach(item => item.classList.toggle("active", item.dataset.page === page));
   openGroupForPage(page);
+  afterSidebarNavClick(); // close mobile drawer on page change
   // Reset scroll on every possible container
   requestAnimationFrame(() => {
     const contentEl = document.querySelector(".content");
