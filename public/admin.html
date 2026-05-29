@@ -7736,48 +7736,55 @@ async function loadAdminThemes(activeThemeId) {
   const el = document.getElementById("themesData");
   if (!el) return;
   const currentTheme = activeThemeId || localStorage.getItem("adminTheme") || "default";
-  // Light themes first, then dark — clean single grid, no labels, no extra boxes
-  const themes = [
+  const lightThemes = [
     { id: "light-clean",    name: "Clean White",      primary: "#6366f1", bg: "#ffffff" },
     { id: "light-mint",     name: "Mint Fresh",       primary: "#059669", bg: "#f0fdf4" },
     { id: "light-sky",      name: "Sky Blue",         primary: "#0284c7", bg: "#f0f9ff" },
     { id: "light-peach",    name: "Warm Peach",       primary: "#ea580c", bg: "#fff7ed" },
     { id: "light-lavender", name: "Lavender",         primary: "#7c3aed", bg: "#faf5ff" },
+  ];
+  const darkThemes = [
     { id: "default",        name: "ShelfSense Dark",  primary: "#6366f1", bg: "#0f0f23" },
     { id: "midnight",       name: "Midnight Command", primary: "#22c55e", bg: "#030712" },
     { id: "cyberpunk",      name: "Cyberpunk",        primary: "#f59e0b", bg: "#09090b" },
     { id: "ocean",          name: "Deep Ocean",       primary: "#06b6d4", bg: "#0c1a29" },
     { id: "rose",           name: "Rose Gold",        primary: "#f43f5e", bg: "#1a0a0f" },
   ];
-  el.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px">
-    ${themes.map(t => `<div onclick="setAdminTheme('${t.id}')" style="cursor:pointer;border-radius:12px;overflow:hidden;border:2px solid ${t.id===currentTheme ? t.primary : 'var(--border-color)'};transition:all 0.2s" onmouseover="this.style.borderColor='${t.primary}'" onmouseout="this.style.borderColor='${t.id===currentTheme ? t.primary : 'var(--border-color)'}'">
-      <div style="height:60px;background:${t.bg};display:flex;align-items:center;justify-content:center">
-        <div style="width:30px;height:8px;background:${t.primary};border-radius:4px"></div>
-      </div>
-      <div style="padding:8px;background:var(--bg-secondary);text-align:center">
-        <div style="font-size:0.82rem;font-weight:600">${t.name}</div>
-        ${t.id === currentTheme ? '<div style="font-size:0.7rem;color:#22c55e;margin-top:2px">✅ Active</div>' : ""}
-      </div>
-    </div>`).join("")}
+  const card = (t) => `<div onclick="setAdminTheme('${t.id}')" style="cursor:pointer;border-radius:12px;overflow:hidden;border:2px solid ${t.id===currentTheme ? t.primary : 'var(--border-color)'};transition:all 0.2s" onmouseover="this.style.borderColor='${t.primary}'" onmouseout="this.style.borderColor='${t.id===currentTheme ? t.primary : 'var(--border-color)'}'">
+    <div style="height:60px;background:${t.bg};display:flex;align-items:center;justify-content:center">
+      <div style="width:40px;height:8px;background:${t.primary};border-radius:4px"></div>
+    </div>
+    <div style="padding:8px;background:var(--bg-secondary);text-align:center">
+      <div style="font-size:0.82rem;font-weight:600">${t.name}</div>
+      ${t.id === currentTheme ? '<div style="font-size:0.7rem;color:#22c55e;margin-top:2px">✅ Active</div>' : ""}
+    </div>
   </div>`;
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:12px">
+      ${lightThemes.map(card).join("")}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px">
+      ${darkThemes.map(card).join("")}
+    </div>`;
 }
 
 const ADMIN_THEMES = {
-  "default":        { primary:"#6366f1", bg:"#0f0f23", secondary:"#16162a", accent:"#a78bfa", text:"#e2e8f0", border:"rgba(99,102,241,0.2)" },
-  "midnight":       { primary:"#22c55e", bg:"#030712", secondary:"#0a1628", accent:"#4ade80", text:"#f0fdf4", border:"rgba(34,197,94,0.2)" },
-  "cyberpunk":      { primary:"#f59e0b", bg:"#09090b", secondary:"#18100a", accent:"#fbbf24", text:"#fef3c7", border:"rgba(245,158,11,0.2)" },
-  "ocean":          { primary:"#06b6d4", bg:"#0c1a29", secondary:"#0d2137", accent:"#67e8f9", text:"#e0f7fa", border:"rgba(6,182,212,0.2)" },
-  "rose":           { primary:"#f43f5e", bg:"#1a0a0f", secondary:"#2a0e1a", accent:"#fb7185", text:"#fff1f2", border:"rgba(244,63,94,0.2)" },
-  "light-clean":    { primary:"#6366f1", bg:"#ffffff", secondary:"#f1f5f9", accent:"#6366f1", text:"#1e293b", border:"rgba(99,102,241,0.15)" },
-  "light-mint":     { primary:"#059669", bg:"#f0fdf4", secondary:"#dcfce7", accent:"#059669", text:"#14532d", border:"rgba(5,150,105,0.15)" },
-  "light-sky":      { primary:"#0284c7", bg:"#f0f9ff", secondary:"#e0f2fe", accent:"#0284c7", text:"#0c4a6e", border:"rgba(2,132,199,0.15)" },
-  "light-peach":    { primary:"#ea580c", bg:"#fff7ed", secondary:"#ffedd5", accent:"#ea580c", text:"#431407", border:"rgba(234,88,12,0.15)" },
-  "light-lavender": { primary:"#7c3aed", bg:"#faf5ff", secondary:"#ede9fe", accent:"#7c3aed", text:"#2e1065", border:"rgba(124,58,237,0.15)" },
+  "default":        { primary:"#6366f1", bg:"#0f0f23", secondary:"#16162a", accent:"#a78bfa", border:"rgba(99,102,241,0.2)", textPrimary:"#e2e8f0", textSecondary:"#a0aec0", textMuted:"#718096" },
+  "midnight":       { primary:"#22c55e", bg:"#030712", secondary:"#0a1628", accent:"#4ade80", border:"rgba(34,197,94,0.2)",   textPrimary:"#f0fdf4", textSecondary:"#86efac", textMuted:"#4ade80" },
+  "cyberpunk":      { primary:"#f59e0b", bg:"#09090b", secondary:"#18100a", accent:"#fbbf24", border:"rgba(245,158,11,0.2)", textPrimary:"#fef3c7", textSecondary:"#fcd34d", textMuted:"#d97706" },
+  "ocean":          { primary:"#06b6d4", bg:"#0c1a29", secondary:"#0d2137", accent:"#67e8f9", border:"rgba(6,182,212,0.2)",  textPrimary:"#e0f7fa", textSecondary:"#67e8f9", textMuted:"#22d3ee" },
+  "rose":           { primary:"#f43f5e", bg:"#1a0a0f", secondary:"#2a0e1a", accent:"#fb7185", border:"rgba(244,63,94,0.2)",  textPrimary:"#fff1f2", textSecondary:"#fda4af", textMuted:"#fb7185" },
+  "light-clean":    { primary:"#6366f1", bg:"#ffffff", secondary:"#f1f5f9", accent:"#6366f1", border:"rgba(99,102,241,0.2)", textPrimary:"#1e293b", textSecondary:"#475569", textMuted:"#94a3b8" },
+  "light-mint":     { primary:"#059669", bg:"#f0fdf4", secondary:"#dcfce7", accent:"#059669", border:"rgba(5,150,105,0.2)",  textPrimary:"#14532d", textSecondary:"#166534", textMuted:"#15803d" },
+  "light-sky":      { primary:"#0284c7", bg:"#f0f9ff", secondary:"#e0f2fe", accent:"#0284c7", border:"rgba(2,132,199,0.2)",  textPrimary:"#0c4a6e", textSecondary:"#075985", textMuted:"#0369a1" },
+  "light-peach":    { primary:"#ea580c", bg:"#fff7ed", secondary:"#ffedd5", accent:"#ea580c", border:"rgba(234,88,12,0.2)",  textPrimary:"#431407", textSecondary:"#7c2d12", textMuted:"#9a3412" },
+  "light-lavender": { primary:"#7c3aed", bg:"#faf5ff", secondary:"#ede9fe", accent:"#7c3aed", border:"rgba(124,58,237,0.2)", textPrimary:"#2e1065", textSecondary:"#4c1d95", textMuted:"#5b21b6" },
 };
 
 function applyAdminTheme(themeId) {
   const t = ADMIN_THEMES[themeId] || ADMIN_THEMES["default"];
   const root = document.documentElement;
+  // Core colors
   root.style.setProperty("--accent", t.primary);
   root.style.setProperty("--bg-primary", t.bg);
   root.style.setProperty("--bg-secondary", t.secondary);
@@ -7787,10 +7794,21 @@ function applyAdminTheme(themeId) {
   root.style.setProperty("--text-accent", t.accent);
   root.style.setProperty("--accent-light", t.border);
   root.style.setProperty("--border-color", t.border);
-  // update body background directly too
-  document.body.style.setProperty("background", t.bg);
-  document.querySelector(".sidebar") && (document.querySelector(".sidebar").style.background = t.secondary);
-  document.querySelector(".topbar") && (document.querySelector(".topbar").style.background = t.secondary);
+  // Text colors — CRITICAL for light themes
+  root.style.setProperty("--text-primary", t.textPrimary);
+  root.style.setProperty("--text-secondary", t.textSecondary);
+  root.style.setProperty("--text-muted", t.textMuted);
+  root.style.setProperty("--header-bg", t.secondary);
+  root.style.setProperty("--header-border", t.border);
+  // Apply to body and major containers directly
+  document.body.style.background = t.bg;
+  document.body.style.color = t.textPrimary;
+  const sidebar = document.querySelector(".sidebar");
+  const topbar = document.querySelector(".topbar");
+  const content = document.querySelector(".content");
+  if (sidebar) sidebar.style.background = t.secondary;
+  if (topbar) { topbar.style.background = t.secondary; topbar.style.borderColor = t.border; }
+  if (content) content.style.color = t.textPrimary;
   localStorage.setItem("adminTheme", themeId);
 }
 
