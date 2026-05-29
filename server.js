@@ -704,6 +704,15 @@ async function init() {
     });
     console.log("✅ Super admin created");
   }
+  // Auto-reset lockout on test/demo accounts on every server start
+  try {
+    await Store.updateMany(
+      { ownerEmail: { $in: ["test@test.com", "demo@shelfsense.ai"] } },
+      { $set: { loginAttempts: 0, lockUntil: null } }
+    );
+    console.log("✅ Test accounts unlocked");
+  } catch(e) {}
+
   if ((await Franchise.countDocuments()) === 0) {
     await Franchise.insertMany([
       { name: "ShelfSense - Andheri West", address: "Andheri West, Mumbai", lat: 19.1360, lng: 72.8296, inventory: { chocolates: 10, biscuits: 5, chips: 8, juice: 3, "soft-drinks": 12 } },
@@ -10298,21 +10307,24 @@ async function seedDemoData(storeId) {
     }
     await Order.create({ storeId, customerEmail: ["customer1@demo.com","customer2@demo.com","customer3@demo.com","demo@customer.com"][i%4], items: orderItems, total, status: ["delivered","delivered","processing","placed"][i%4], paymentMethod: ["upi","card","cod","upi"][i%4], createdAt: orderDate });
   }
-  // Create NPS responses
+  // Create NPS responses (using correct schema fields)
   for (let i = 0; i < 12; i++) {
     await NPS.findOneAndUpdate(
       { storeId, customerEmail: `nps${i}@demo.com` },
-      { score: [9,8,10,7,9,8,6,9,10,8,9,7][i], comment: ["Great store!","Good variety","Fast service","Could be better","Excellent!","Love the deals","Nice products","Very helpful","Amazing AI features","Quick delivery","Good prices","Satisfied"][i] },
-      { upsert: true }
+      { storeId, customerEmail: `nps${i}@demo.com`, score: [9,8,10,7,9,8,6,9,10,8,9,7][i], comment: ["Great store!","Good variety","Fast service","Could be better","Excellent!","Love the deals","Nice products","Very helpful","Amazing AI features","Quick delivery","Good prices","Satisfied"][i] },
+      { upsert: true, new: true }
     );
   }
-  // Create ratings
+  // Create ratings (using correct schema: userId not userEmail)
+  const demoUserId = new mongoose.Types.ObjectId();
   for (let i = 0; i < items.length; i++) {
     await Rating.findOneAndUpdate(
-      { userEmail: `rater${i}@demo.com`, itemKey: items[i].key },
-      { storeId, rating: [5,4,5,3,4,5,4,5,4,5,4,4][i%12], review: "Great product! Highly recommend.", itemKey: items[i].key },
-      { upsert: true }
+      { storeId, itemKey: items[i].key },
+      { storeId, userId: demoUserId, itemKey: items[i].key, rating: [5,4,5,3,4,5,4,5,4,5,4,4][i%12], review: "Great product! Highly recommend." },
+      { upsert: true, new: true }
     );
+    // Update item avgRating
+    await Item.findByIdAndUpdate(items[i]._id, { avgRating: [5,4,5,3,4,5,4,5,4,5,4,4][i%12], totalRatings: Math.floor(Math.random()*20)+5 });
   }
   // Create goals
   await Goal.deleteMany({ storeId });
