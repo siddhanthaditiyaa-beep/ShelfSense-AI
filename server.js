@@ -10327,6 +10327,23 @@ async function seedDemoData(storeId) {
 }
 
 /* =========================
+   UNLOCK STORE ACCOUNT (emergency)
+========================= */
+app.get("/unlock-store/:email", async (req, res) => {
+  try {
+    const email = decodeURIComponent(req.params.email);
+    const store = await Store.findOneAndUpdate(
+      { ownerEmail: email.toLowerCase() },
+      { loginAttempts: 0, lockUntil: null },
+      { new: true }
+    );
+    if (!store) return res.json({ message: "Store not found", email });
+    res.json({ message: `✅ Account unlocked for ${email}`, store: store.name });
+  } catch(err) { res.status(500).json({ message: err.message }); }
+});
+
+
+/* =========================
    ERROR HANDLERS
 ========================= */
 app.use((err, req, res, next) => {
