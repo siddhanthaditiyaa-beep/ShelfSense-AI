@@ -315,6 +315,9 @@
           <div class="demo-row" onclick="fillDemo('superadmin@shelfsense.ai','superadmin123')">
             <span>Super Admin:</span><span>superadmin@shelfsense.ai</span>
           </div>
+          <div class="demo-row" onclick="fillDemo('demo@shelfsense.ai','demo1234')">
+            <span>Demo Store:</span><span>demo@shelfsense.ai / demo1234</span>
+          </div>
           <div class="demo-row" onclick="fillDemo('test@test.com','test123')">
             <span>Test Store:</span><span>test@test.com / test123</span>
           </div>
@@ -550,29 +553,40 @@ let otpTimerInterval = null;
     let fingerprint = "fp-fallback";
     try { fingerprint = await generateFingerprint(); } catch(e) {}
 
-    // Step 1: Wake server with /health ping first
+    // Step 1: Wake server — wait up to 60s for /health to respond
     btn.innerHTML = '<span class="spinner"></span>Connecting...';
-    try {
-      const wakeCtrl = new AbortController();
-      setTimeout(() => wakeCtrl.abort(), 8000);
-      await fetch("/health", { signal: wakeCtrl.signal }).catch(() => {});
-    } catch(e) {}
+    let serverAwake = false;
+    for (let w = 0; w < 4 && !serverAwake; w++) {
+      try {
+        const wakeCtrl = new AbortController();
+        const wt = setTimeout(() => wakeCtrl.abort(), 15000);
+        const wr = await fetch("/health", { signal: wakeCtrl.signal });
+        clearTimeout(wt);
+        if (wr.ok) { serverAwake = true; break; }
+      } catch(e) {
+        if (w < 3) {
+          for (let s = 10; s > 0; s--) {
+            btn.innerHTML = `<span class="spinner"></span>Waking server... ${s}s`;
+            await new Promise(r => setTimeout(r, 1000));
+          }
+        }
+      }
+    }
+    btn.innerHTML = '<span class="spinner"></span>Logging in...';
 
-    // Step 2: Smart retry login — up to 3 times with short gaps
-    const maxAttempts = 3;
+    // Step 2: Now attempt login with generous timeout
+    const maxAttempts = 2;
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
         if (attempt > 1) {
-          // Short countdown between retries
-          for (let sec = 8; sec > 0; sec--) {
+          for (let sec = 5; sec > 0; sec--) {
             btn.innerHTML = `<span class="spinner"></span>Retrying in ${sec}s...`;
             await new Promise(r => setTimeout(r, 1000));
           }
-          btn.innerHTML = `<span class="spinner"></span>Attempt ${attempt}/${maxAttempts}...`;
         }
 
         const controller = new AbortController();
-        const fetchTimeout = setTimeout(() => controller.abort(), 20000);
+        const fetchTimeout = setTimeout(() => controller.abort(), 30000);
 
         const res = await fetch("/login-store", {
           method: "POST",
