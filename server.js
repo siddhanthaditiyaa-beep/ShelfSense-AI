@@ -1584,6 +1584,29 @@ app.post("/checkout", auth("customer"), async (req, res) => {
 /* =========================
    RAZORPAY
 ========================= */
+
+/* Razorpay redirect-mode fallback — prevents about:blank on redirect */
+app.get("/payment-callback", (req, res) => {
+  // Razorpay redirect mode lands here — close popup and show result in main window
+  res.send(`<!DOCTYPE html><html><head><title>Payment</title></head><body>
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const status = params.get("razorpay_payment_id") ? "success" : "failed";
+      if (window.opener) {
+        window.opener.postMessage({ type: "razorpay_callback", status, params: Object.fromEntries(params) }, "*");
+        window.close();
+      } else {
+        window.location.href = "/customer.html";
+      }
+    </script>
+    <p style="font-family:sans-serif;text-align:center;margin-top:40px">Processing payment...</p>
+  </body></html>`);
+});
+
+app.post("/payment-callback", (req, res) => {
+  res.redirect("/customer.html");
+});
+
 app.post("/create-payment-order", auth("customer"), async (req, res) => {
   try {
     const { cart, storeId } = req.body;

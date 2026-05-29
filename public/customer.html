@@ -1864,23 +1864,35 @@ async function initiatePayment(buyNowCart = null) {
   const btn = document.getElementById("payBtn");
   btn.innerText = "⏳ Loading...";
   btn.disabled = true;
+
   try {
+    const storeId = window.currentStoreId || localStorage.getItem("activeStoreId") || "";
     const res = await fetch("/create-payment-order", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: token },
-      body: JSON.stringify({ cart: cartToUse })
+      body: JSON.stringify({ cart: cartToUse, storeId })
     });
     const orderData = await res.json();
-    if (!res.ok) throw new Error(orderData.message);
+    if (!res.ok) throw new Error(orderData.message || "Could not create payment order");
+
     const options = {
       key: orderData.keyId,
       amount: orderData.amount,
-      currency: orderData.currency,
+      currency: orderData.currency || "INR",
       name: "ShelfSense AI",
       description: "Purchase from ShelfSense AI",
+      image: "https://shelfsense-ai-lptz.onrender.com/icons/icon-192x192.png",
       order_id: orderData.orderId,
+
+      // CRITICAL: prevents Razorpay from opening about:blank in redirect mode
+      redirect: false,
+
+      // Fallback callback URL in case browser forces redirect mode
+      callback_url: window.location.origin + "/payment-callback",
+
       handler: async function(response) {
         try {
+          showToast("⏳ Verifying payment...", "info");
           const verifyRes = await fetch("/verify-payment", {
             method: "POST",
             headers: { "Content-Type": "application/json", Authorization: token },
@@ -1888,23 +1900,70 @@ async function initiatePayment(buyNowCart = null) {
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
-              cart: cartToUse
+              cart: cartToUse,
+              storeId
             })
           });
           const verifyData = await verifyRes.json();
-          if (!verifyRes.ok) throw new Error(verifyData.message);
+          if (!verifyRes.ok) throw new Error(verifyData.message || "Verification failed");
           if (!buyNowCart) { cart = {}; renderProducts(); updateCartUI(); toggleCart(); }
           loadProducts();
           showToast("✅ Payment successful! Order placed.", "success");
-        } catch (err) { showToast("Payment verification failed: " + err.message, "error"); }
+          showMainTab("orders", document.querySelector("[data-tab='orders']"));
+        } catch (err) {
+          showToast("❌ Payment verification failed: " + err.message, "error");
+        }
       },
-      prefill: { name: fname, email: userData.email || "" },
+
+      prefill: {
+        name: fname || "Customer",
+        email: userData?.email || "",
+        contact: ""
+      },
+
+      notes: { storeId },
+
       theme: { color: "#6366f1" },
-      modal: { ondismiss: function() { showToast("Payment cancelled", "warning"); } }
+
+      modal: {
+        // Prevent the modal from opening a new window/tab
+        escape: true,
+        backdropclose: false,
+        handleback: true,
+        confirm_close: false,
+        animation: true,
+        ondismiss: function() {
+          showToast("Payment cancelled", "warning");
+          btn.innerText = "💳 Pay with Razorpay";
+          btn.disabled = false;
+        }
+      }
     };
+
+    // Check if Razorpay is loaded
+    if (typeof Razorpay === "undefined") {
+      throw new Error("Payment gateway not loaded. Please refresh the page and try again.");
+    }
+
     const rzp = new Razorpay(options);
+
+    // Handle payment failure explicitly (network issues, card declined, etc.)
+    rzp.on("payment.failed", function(response) {
+      const reason = response.error?.description || response.error?.reason || "Payment failed";
+      const code = response.error?.code || "";
+      showToast(`❌ Payment failed: ${reason}`, "error");
+      console.error("Razorpay payment failed:", response.error);
+      btn.innerText = "💳 Pay with Razorpay";
+      btn.disabled = false;
+    });
+
     rzp.open();
-  } catch (err) { showToast("Failed to initiate payment: " + err.message, "error"); }
+
+  } catch (err) {
+    showToast("❌ " + (err.message || "Failed to initiate payment"), "error");
+    console.error("Razorpay init error:", err);
+  }
+
   btn.innerText = "💳 Pay with Razorpay";
   btn.disabled = false;
 }
@@ -2788,6 +2847,20 @@ function setTheme(theme) { setCustomerTheme(theme); }
     document.title = `${storeName} | ShelfSense`;
   }
 })();
+
+/* ===== RAZORPAY REDIRECT-MODE CALLBACK LISTENER ===== */
+window.addEventListener("message", function(event) {
+  if (event.data?.type === "razorpay_callback") {
+    if (event.data.status === "success") {
+      cart = {}; renderProducts(); updateCartUI();
+      loadProducts();
+      showToast("✅ Payment successful! Order placed.", "success");
+      showMainTab("orders", document.querySelector("[data-tab='orders']"));
+    } else {
+      showToast("❌ Payment failed or was cancelled.", "error");
+    }
+  }
+});
 
 /* ===== INIT ===== */
 loadProducts();
