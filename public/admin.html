@@ -1068,12 +1068,12 @@
         <h2>🧠 Ask AI About Your Store</h2>
         <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:16px">Type any question in plain English and get instant answers from your live store data.</p>
         <div class="nlq-suggestions">
-          <span class="nlq-chip" onclick="askNLQ('Which products will run out this week?')">Which products run out this week?</span>
-          <span class="nlq-chip" onclick="askNLQ('What is my total revenue today?')">Total revenue today?</span>
-          <span class="nlq-chip" onclick="askNLQ('Which items are out of stock right now?')">Out of stock items?</span>
-          <span class="nlq-chip" onclick="askNLQ('What are my top selling products?')">Top selling products?</span>
-          <span class="nlq-chip" onclick="askNLQ('How many pending reorders do I have?')">Pending reorders?</span>
-          <span class="nlq-chip" onclick="askNLQ('Which agent has been most active today?')">Most active agent?</span>
+          <span class="nlq-chip" onclick="askNLQ(window.ssT?ssT('nlq-q1'):'Which products will run out this week?')" data-i18n="nlq-q1">Which products run out this week?</span>
+          <span class="nlq-chip" onclick="askNLQ(window.ssT?ssT('nlq-q2'):'What is my total revenue today?')" data-i18n="nlq-q2">Total revenue today?</span>
+          <span class="nlq-chip" onclick="askNLQ(window.ssT?ssT('nlq-q3'):'Which items are out of stock right now?')" data-i18n="nlq-q3">Out of stock items?</span>
+          <span class="nlq-chip" onclick="askNLQ(window.ssT?ssT('nlq-q4'):'What are my top selling products?')" data-i18n="nlq-q4">Top selling products?</span>
+          <span class="nlq-chip" onclick="askNLQ(window.ssT?ssT('nlq-q5'):'How many pending reorders do I have?')" data-i18n="nlq-q5">Pending reorders?</span>
+          <span class="nlq-chip" onclick="askNLQ(window.ssT?ssT('nlq-q6'):'Which agent has been most active today?')" data-i18n="nlq-q6">Most active agent?</span>
         </div>
         <div class="nlq-input-row">
           <input type="text" class="nlq-input" id="nlqInput" placeholder="Ask anything... e.g. Which products will run out this weekend?" onkeydown="if(event.key==='Enter') askNLQ()" />
@@ -3213,6 +3213,7 @@ function showPage(page, clickedBtn) {
     window.scrollTo(0, 0);
   });
   if (["overview","inventory","logs"].includes(page)) loadAdmin();
+  if (page === "my-customers" && typeof loadStoreCustomers === "function") loadStoreCustomers();
   if (page === "franchise") loadAllFranchises();
   if (page === "shelf-scan") { loadRecentScans(); loadMLUrl(); }
   if (page === "planogram") loadPlanogram();
@@ -8739,5 +8740,11 @@ const origShowPage = showPage;
 </script>
 
 <script src="i18n.js"></script>
+<script>
+// Re-apply all translations when language is switched
+document.addEventListener("langchange", function() {
+  if (window.SS_I18N) window.SS_I18N.applyAll();
+});
+</script>
 </body>
 </html>

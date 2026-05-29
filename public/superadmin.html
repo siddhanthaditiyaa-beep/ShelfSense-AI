@@ -376,12 +376,41 @@ loadStores();
 setInterval(() => { loadStats(); loadStores(); }, 30000);
 </script>
 
-  <!-- STORE RANKINGS -->
-  <div class="section" style="margin-top:24px">
+  <!-- STORE RANKINGS -->\n  <div class="section" style="margin-top:24px">
     <div class="section-header">
       <div class="section-title">🏆 Store Performance Rankings</div>
     </div>
     <div id="storeRankings">Loading...</div>
+  </div>
+
+  <!-- ALL CUSTOMERS (cross-store) -->
+  <div class="section" style="margin-top:24px">
+    <div class="section-header">
+      <div class="section-title">🧑‍🤝‍🧑 All Customers</div>
+      <button onclick="loadSuperCustomers()" style="padding:7px 16px;border-radius:8px;background:var(--primary,#6366f1);color:white;border:none;font-size:0.82rem;font-weight:600;cursor:pointer">🔄 Refresh</button>
+    </div>
+    <p style="font-size:0.82rem;color:var(--text-muted,#94a3b8);margin:-8px 0 16px">Every customer across all stores — showing which stores they shop from.</p>
+    <!-- Summary stats -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px">
+      <div class="stat-card"><div class="stat-number" id="sc-total">—</div><div class="stat-label">Total Customers</div></div>
+      <div class="stat-card"><div class="stat-number" id="sc-active">—</div><div class="stat-label">Have Orders</div></div>
+      <div class="stat-card"><div class="stat-number" id="sc-multi">—</div><div class="stat-label">Multi-Store Shoppers</div></div>
+      <div class="stat-card"><div class="stat-number" id="sc-revenue">—</div><div class="stat-label">Total Platform Revenue</div></div>
+    </div>
+    <!-- Search -->
+    <input class="search-input" id="scSearch" placeholder="🔍 Search by name or email…" oninput="filterSuperCustomers()" style="margin-bottom:14px;max-width:360px">
+    <!-- Table -->
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Customer</th><th>Email</th><th>Orders</th>
+          <th>Total Spent</th><th>Stores Shopped</th><th>Loyalty Pts</th><th>Last Order</th>
+        </tr></thead>
+        <tbody id="scTableBody">
+          <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted,#94a3b8)">Click Refresh to load all customers</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <!-- ABUSE DETECTION -->
@@ -390,6 +419,54 @@ setInterval(() => { loadStats(); loadStores(); }, 30000);
       <div class="section-title">🚨 Abuse Detection</div>
     </div>
     <div id="abuseList">Loading...</div>
+  </div>
+
+  <!-- ALL CUSTOMERS — Cross-Store View -->
+  <div class="section" style="margin-top:24px">
+    <div class="section-header">
+      <div class="section-title">🧑‍🤝‍🧑 All Customers</div>
+      <button onclick="loadSuperCustomers()" style="padding:7px 16px;background:rgba(99,102,241,0.2);border:1px solid rgba(99,102,241,0.4);border-radius:8px;color:#a5b4fc;font-size:0.82rem;font-weight:600;cursor:pointer">🔄 Refresh</button>
+    </div>
+    <!-- Summary stats -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px" id="superCustStats">
+      <div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:14px;text-align:center">
+        <div style="font-size:1.4rem;font-weight:800;color:#a5b4fc" id="sc-total">—</div>
+        <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);margin-top:3px">Total Customers</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:14px;text-align:center">
+        <div style="font-size:1.4rem;font-weight:800;color:#6ee7b7" id="sc-multishop">—</div>
+        <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);margin-top:3px">Multi-Store Shoppers</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:14px;text-align:center">
+        <div style="font-size:1.4rem;font-weight:800;color:#fcd34d" id="sc-orders">—</div>
+        <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);margin-top:3px">Total Orders</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.05);border-radius:10px;padding:14px;text-align:center">
+        <div style="font-size:1.4rem;font-weight:800;color:#fb7185" id="sc-revenue">—</div>
+        <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);margin-top:3px">Total Revenue</div>
+      </div>
+    </div>
+    <!-- Search -->
+    <input type="text" id="superCustSearch" placeholder="🔍 Search by name or email…" oninput="filterSuperCustomers()"
+      style="width:100%;max-width:380px;padding:9px 14px;background:rgba(255,255,255,0.07);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit;font-size:0.875rem;margin-bottom:16px">
+    <!-- Table -->
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse">
+        <thead>
+          <tr style="background:rgba(255,255,255,0.05)">
+            <th style="padding:10px 12px;text-align:left;font-size:0.75rem;color:rgba(255,255,255,0.45);font-weight:600;text-transform:uppercase">Customer</th>
+            <th style="padding:10px 12px;text-align:left;font-size:0.75rem;color:rgba(255,255,255,0.45);font-weight:600;text-transform:uppercase">Email</th>
+            <th style="padding:10px 12px;text-align:left;font-size:0.75rem;color:rgba(255,255,255,0.45);font-weight:600;text-transform:uppercase">Stores Shopped</th>
+            <th style="padding:10px 12px;text-align:left;font-size:0.75rem;color:rgba(255,255,255,0.45);font-weight:600;text-transform:uppercase">Orders</th>
+            <th style="padding:10px 12px;text-align:left;font-size:0.75rem;color:rgba(255,255,255,0.45);font-weight:600;text-transform:uppercase">Total Spent</th>
+            <th style="padding:10px 12px;text-align:left;font-size:0.75rem;color:rgba(255,255,255,0.45);font-weight:600;text-transform:uppercase">Last Order</th>
+          </tr>
+        </thead>
+        <tbody id="superCustTable">
+          <tr><td colspan="6" style="padding:40px;text-align:center;color:rgba(255,255,255,0.3)">Click Refresh to load all customers</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <!-- BULK EMAIL -->
@@ -487,6 +564,131 @@ loadStoreRankings();
 loadAbuseDetection();
 
 </script>
+
+<script>
+/* ===== ALL CUSTOMERS (Superadmin) ===== */
+let superCustomersData = [];
+
+async function loadSuperCustomers() {
+  const tbody = document.getElementById("scTableBody");
+  tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted,#94a3b8)">⏳ Loading all customers…</td></tr>`;
+  try {
+    const token = localStorage.getItem("token");
+    const res = await fetch("/superadmin/customers", {
+      headers: { "Authorization": token || "" }
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    superCustomersData = data.customers || [];
+    updateSuperStats(superCustomersData);
+    renderSuperCustomers(superCustomersData);
+  } catch(err) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:30px;color:#f87171">❌ Failed: ${err.message}</td></tr>`;
+  }
+}
+
+function updateSuperStats(customers) {
+  document.getElementById("sc-total").textContent = customers.length;
+  document.getElementById("sc-active").textContent = customers.filter(c => c.totalOrders > 0).length;
+  document.getElementById("sc-multi").textContent = customers.filter(c => c.storeCount > 1).length;
+  const rev = customers.reduce((s, c) => s + (c.totalSpent || 0), 0);
+  document.getElementById("sc-revenue").textContent = "₹" + rev.toLocaleString("en-IN", {maximumFractionDigits:0});
+}
+
+function renderSuperCustomers(customers) {
+  const tbody = document.getElementById("scTableBody");
+  if (!customers.length) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px">No customers found</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = customers.map(c => {
+    const last = c.lastOrderAt ? new Date(c.lastOrderAt).toLocaleDateString("en-IN") : "—";
+    const storesList = c.storesShoppedAt.slice(0, 3).join(", ") + (c.storeCount > 3 ? ` +${c.storeCount - 3}` : "");
+    const multiTag = c.storeCount > 1
+      ? `<span style="background:rgba(99,102,241,0.15);color:#a5b4fc;padding:2px 7px;border-radius:10px;font-size:0.7rem;margin-left:6px">🛍️ ${c.storeCount} stores</span>`
+      : "";
+    return `<tr>
+      <td><strong>${c.name}</strong>${multiTag}</td>
+      <td style="color:var(--text-muted,#94a3b8);font-size:0.82rem">${c.email}</td>
+      <td><strong>${c.totalOrders}</strong></td>
+      <td>₹${(c.totalSpent||0).toLocaleString("en-IN",{maximumFractionDigits:0})}</td>
+      <td style="font-size:0.8rem;color:var(--text-muted,#94a3b8)">${storesList || "—"}</td>
+      <td>🪙 ${c.loyaltyPoints||0}</td>
+      <td style="font-size:0.8rem;color:var(--text-muted,#94a3b8)">${last}</td>
+    </tr>`;
+  }).join("");
+}
+
+function filterSuperCustomers() {
+  const q = document.getElementById("scSearch").value.toLowerCase().trim();
+  if (!q) { renderSuperCustomers(superCustomersData); return; }
+  renderSuperCustomers(superCustomersData.filter(c =>
+    c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q) ||
+    c.storesShoppedAt.some(s => s.toLowerCase().includes(q))
+  ));
+}
+</script>
+
+<script>
+/* ===== SUPERADMIN: ALL CUSTOMERS ===== */
+let superCustData = [];
+
+async function loadSuperCustomers() {
+  const tbody = document.getElementById("superCustTable");
+  tbody.innerHTML = `<tr><td colspan="6" style="padding:30px;text-align:center;color:rgba(255,255,255,0.4)">⏳ Loading customers…</td></tr>`;
+  try {
+    const token = localStorage.getItem("token");
+    const res = await fetch("/superadmin/customers", {
+      headers: { "Authorization": token || "" }
+    });
+    if (!res.ok) throw new Error("Not authorised");
+    const data = await res.json();
+    superCustData = data.customers || [];
+    // Stats
+    document.getElementById("sc-total").textContent = superCustData.length;
+    document.getElementById("sc-multishop").textContent = superCustData.filter(c => c.storeCount > 1).length;
+    document.getElementById("sc-orders").textContent = superCustData.reduce((s,c) => s + (c.totalOrders||0), 0);
+    const rev = superCustData.reduce((s,c) => s + (c.totalSpent||0), 0);
+    document.getElementById("sc-revenue").textContent = `₹${rev.toLocaleString("en-IN", {maximumFractionDigits:0})}`;
+    renderSuperCustomers(superCustData);
+  } catch(err) {
+    tbody.innerHTML = `<tr><td colspan="6" style="padding:30px;text-align:center;color:#f87171">❌ ${err.message}</td></tr>`;
+  }
+}
+
+function renderSuperCustomers(customers) {
+  const tbody = document.getElementById("superCustTable");
+  if (!customers.length) {
+    tbody.innerHTML = `<tr><td colspan="6" style="padding:40px;text-align:center;color:rgba(255,255,255,0.3)">No customers found</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = customers.map(c => {
+    const storeList = c.storesShoppedAt.length
+      ? c.storesShoppedAt.map(s => `<span style="background:rgba(99,102,241,0.18);color:#a5b4fc;padding:2px 7px;border-radius:8px;font-size:0.7rem;margin-right:3px">${s}</span>`).join("")
+      : `<span style="color:rgba(255,255,255,0.3);font-size:0.78rem">No orders yet</span>`;
+    const last = c.lastOrderAt ? new Date(c.lastOrderAt).toLocaleDateString("en-IN") : "—";
+    const multiTag = c.storeCount > 1 ? `<span style="background:rgba(110,231,183,0.18);color:#6ee7b7;padding:1px 6px;border-radius:6px;font-size:0.65rem;margin-left:5px">Multi-store</span>` : "";
+    return `<tr style="border-bottom:1px solid rgba(255,255,255,0.06)">
+      <td style="padding:10px 12px;font-weight:600;color:rgba(255,255,255,0.85)">${c.name}${multiTag}</td>
+      <td style="padding:10px 12px;color:rgba(255,255,255,0.5);font-size:0.82rem">${c.email}</td>
+      <td style="padding:10px 12px">${storeList}</td>
+      <td style="padding:10px 12px;font-weight:700;color:#a5b4fc">${c.totalOrders}</td>
+      <td style="padding:10px 12px;font-weight:700;color:#6ee7b7">₹${(c.totalSpent||0).toLocaleString("en-IN",{maximumFractionDigits:0})}</td>
+      <td style="padding:10px 12px;color:rgba(255,255,255,0.4);font-size:0.8rem">${last}</td>
+    </tr>`;
+  }).join("");
+}
+
+function filterSuperCustomers() {
+  const q = document.getElementById("superCustSearch").value.toLowerCase().trim();
+  if (!q) { renderSuperCustomers(superCustData); return; }
+  renderSuperCustomers(superCustData.filter(c =>
+    c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q) ||
+    c.storesShoppedAt.some(s => s.toLowerCase().includes(q))
+  ));
+}
+</script>
+
 <script src="i18n.js"></script>
 </body>
 </html>
