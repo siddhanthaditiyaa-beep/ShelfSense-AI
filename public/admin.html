@@ -247,7 +247,7 @@
 
     #toast { position: fixed; bottom: 80px; right: 24px; padding: 14px 20px; border-radius: 12px; font-weight: 600; font-size: 0.875rem; display: none; z-index: 9999; max-width: 300px; box-shadow: var(--shadow-lg); }
 
-    .settings-fab { position: fixed; bottom: 24px; right: 24px; width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #a78bfa); color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; box-shadow: var(--shadow-lg); transition: all 0.3s; padding: 0; z-index: 1000; }
+
     .settings-fab:hover { transform: scale(1.1) rotate(30deg); }
     .settings-panel { position: fixed; bottom: 80px; right: 24px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; width: 220px; box-shadow: var(--shadow-lg); z-index: 1001; display: none; }
     .settings-panel.open { display: block; animation: slideUp 0.2s ease; }
@@ -370,7 +370,7 @@
 .bulk-result-row.skipped { background: var(--warning-bg); color: var(--warning-text); }
 .bulk-result-row.notfound { background: var(--danger-bg); color: var(--danger-text); } 
 .chatbot-fab {
-  position: fixed; bottom: 24px; left: 220px;
+  position: fixed; bottom: 24px; right: 24px;
   width: 52px; height: 52px; border-radius: 50%;
   background: linear-gradient(135deg, #6366f1, #a78bfa);
   color: white; border: none; cursor: pointer;
@@ -2872,7 +2872,7 @@
 </div>
 
 <button class="chatbot-fab" id="chatbotFab" onclick="toggleChatbot()">🤖</button>
-<button class="settings-fab" id="settingsFab" onclick="toggleSettings()">⚙️</button>
+
 <div class="chatbot-panel" id="chatbotPanel">
   <div class="chatbot-header">
     <div class="chatbot-pulse"></div>
@@ -7738,13 +7738,43 @@ async function loadAdminThemes(activeThemeId) {
   // Use passed themeId or fall back to localStorage or fetch from server
   const currentTheme = activeThemeId || localStorage.getItem("adminTheme") || "default";
   const themes = [
-    { id: "default",   name: "ShelfSense Dark",   primary: "#6366f1", bg: "#0f0f23" },
-    { id: "midnight",  name: "Midnight Command",   primary: "#22c55e", bg: "#030712" },
-    { id: "cyberpunk", name: "Cyberpunk",           primary: "#f59e0b", bg: "#09090b" },
-    { id: "ocean",     name: "Deep Ocean",          primary: "#06b6d4", bg: "#0c1a29" },
-    { id: "rose",      name: "Rose Gold",           primary: "#f43f5e", bg: "#1a0a0f" },
+    { id: "default",      name: "ShelfSense Dark",  primary: "#6366f1", bg: "#0f0f23", dark: true },
+    { id: "midnight",     name: "Midnight Command",  primary: "#22c55e", bg: "#030712", dark: true },
+    { id: "cyberpunk",    name: "Cyberpunk",          primary: "#f59e0b", bg: "#09090b", dark: true },
+    { id: "ocean",        name: "Deep Ocean",         primary: "#06b6d4", bg: "#0c1a29", dark: true },
+    { id: "rose",         name: "Rose Gold",          primary: "#f43f5e", bg: "#1a0a0f", dark: true },
+    { id: "light-clean",  name: "Clean White",        primary: "#6366f1", bg: "#ffffff", dark: false },
+    { id: "light-mint",   name: "Mint Fresh",         primary: "#059669", bg: "#f0fdf4", dark: false },
+    { id: "light-sky",    name: "Sky Blue",           primary: "#0284c7", bg: "#f0f9ff", dark: false },
+    { id: "light-peach",  name: "Warm Peach",         primary: "#ea580c", bg: "#fff7ed", dark: false },
+    { id: "light-lavender", name: "Lavender",         primary: "#7c3aed", bg: "#faf5ff", dark: false },
   ];
-  el.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px">
+  el.innerHTML = `<div>
+    <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">🌙 Dark Themes</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:16px">
+    ${themes.filter(t=>t.dark).map(t => `<div onclick="setAdminTheme('${t.id}')" style="cursor:pointer;border-radius:12px;overflow:hidden;border:2px solid ${t.id===currentTheme ? t.primary : 'var(--border-color)'};transition:all 0.2s" onmouseover="this.style.borderColor='${t.primary}'" onmouseout="this.style.borderColor='${t.id===currentTheme ? t.primary : 'var(--border-color)'}'">
+      <div style="height:56px;background:${t.bg};display:flex;align-items:center;justify-content:center">
+        <div style="width:28px;height:7px;background:${t.primary};border-radius:4px"></div>
+      </div>
+      <div style="padding:7px 8px;background:var(--bg-secondary);text-align:center">
+        <div style="font-size:0.78rem;font-weight:600">${t.name}</div>
+        ${t.id === currentTheme ? '<div style="font-size:0.65rem;color:#22c55e;margin-top:2px">✅ Active</div>' : ""}
+      </div>
+    </div>`).join("")}
+    </div>
+    <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">☀️ Light Themes</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px">
+    ${themes.filter(t=>!t.dark).map(t => `<div onclick="setAdminTheme('${t.id}')" style="cursor:pointer;border-radius:12px;overflow:hidden;border:2px solid ${t.id===currentTheme ? t.primary : '#e2e8f0'};transition:all 0.2s" onmouseover="this.style.borderColor='${t.primary}'" onmouseout="this.style.borderColor='${t.id===currentTheme ? t.primary : '#e2e8f0'}'">
+      <div style="height:56px;background:${t.bg};display:flex;align-items:center;justify-content:center;border-bottom:1px solid #e2e8f0">
+        <div style="width:28px;height:7px;background:${t.primary};border-radius:4px"></div>
+      </div>
+      <div style="padding:7px 8px;background:#f8fafc;text-align:center">
+        <div style="font-size:0.78rem;font-weight:600;color:#1e293b">${t.name}</div>
+        ${t.id === currentTheme ? '<div style="font-size:0.65rem;color:#059669;margin-top:2px">✅ Active</div>' : ""}
+      </div>
+    </div>`).join("")}
+    </div>
+  </div>
     ${themes.map(t => `<div onclick="setAdminTheme('${t.id}')" style="cursor:pointer;border-radius:12px;overflow:hidden;border:2px solid ${t.id===currentTheme ? t.primary : 'var(--border-color)'};transition:all 0.2s" onmouseover="this.style.borderColor='${t.primary}'" onmouseout="this.style.borderColor='${t.id===currentTheme ? t.primary : 'var(--border-color)'}'">
       <div style="height:60px;background:${t.bg};display:flex;align-items:center;justify-content:center">
         <div style="width:30px;height:8px;background:${t.primary};border-radius:4px"></div>
@@ -7757,11 +7787,16 @@ async function loadAdminThemes(activeThemeId) {
   </div>`;
 }
 const ADMIN_THEMES = {
-  "default":   { primary:"#6366f1", bg:"#0f0f23", secondary:"#16162a", accent:"#a78bfa", text:"#e2e8f0", border:"rgba(99,102,241,0.2)" },
-  "midnight":  { primary:"#22c55e", bg:"#030712", secondary:"#0a1628", accent:"#4ade80", text:"#f0fdf4", border:"rgba(34,197,94,0.2)" },
-  "cyberpunk": { primary:"#f59e0b", bg:"#09090b", secondary:"#18100a", accent:"#fbbf24", text:"#fef3c7", border:"rgba(245,158,11,0.2)" },
-  "ocean":     { primary:"#06b6d4", bg:"#0c1a29", secondary:"#0d2137", accent:"#67e8f9", text:"#e0f7fa", border:"rgba(6,182,212,0.2)" },
-  "rose":      { primary:"#f43f5e", bg:"#1a0a0f", secondary:"#2a0e1a", accent:"#fb7185", text:"#fff1f2", border:"rgba(244,63,94,0.2)" },
+  "default":        { primary:"#6366f1", bg:"#0f0f23", secondary:"#16162a", accent:"#a78bfa", text:"#e2e8f0", border:"rgba(99,102,241,0.2)" },
+  "midnight":       { primary:"#22c55e", bg:"#030712", secondary:"#0a1628", accent:"#4ade80", text:"#f0fdf4", border:"rgba(34,197,94,0.2)" },
+  "cyberpunk":      { primary:"#f59e0b", bg:"#09090b", secondary:"#18100a", accent:"#fbbf24", text:"#fef3c7", border:"rgba(245,158,11,0.2)" },
+  "ocean":          { primary:"#06b6d4", bg:"#0c1a29", secondary:"#0d2137", accent:"#67e8f9", text:"#e0f7fa", border:"rgba(6,182,212,0.2)" },
+  "rose":           { primary:"#f43f5e", bg:"#1a0a0f", secondary:"#2a0e1a", accent:"#fb7185", text:"#fff1f2", border:"rgba(244,63,94,0.2)" },
+  "light-clean":    { primary:"#6366f1", bg:"#ffffff", secondary:"#f1f5f9", accent:"#6366f1", text:"#1e293b", border:"rgba(99,102,241,0.15)" },
+  "light-mint":     { primary:"#059669", bg:"#f0fdf4", secondary:"#dcfce7", accent:"#059669", text:"#14532d", border:"rgba(5,150,105,0.15)" },
+  "light-sky":      { primary:"#0284c7", bg:"#f0f9ff", secondary:"#e0f2fe", accent:"#0284c7", text:"#0c4a6e", border:"rgba(2,132,199,0.15)" },
+  "light-peach":    { primary:"#ea580c", bg:"#fff7ed", secondary:"#ffedd5", accent:"#ea580c", text:"#431407", border:"rgba(234,88,12,0.15)" },
+  "light-lavender": { primary:"#7c3aed", bg:"#faf5ff", secondary:"#ede9fe", accent:"#7c3aed", text:"#2e1065", border:"rgba(124,58,237,0.15)" },
 };
 
 function applyAdminTheme(themeId) {
@@ -8445,28 +8480,22 @@ document.addEventListener("keydown", e => {
   // Wait for DOM to be ready
   setTimeout(function() {
     const chatbot = document.getElementById("chatbotFab");
-    const settings = document.getElementById("settingsFab");
     const content = document.querySelector(".content");
-    if (!chatbot || !settings) return;
+    if (!chatbot) return;
 
     let hideTimer = null;
     let inNavbar = false;
 
-    const CHATBOT_BOTTOM = "position:fixed;bottom:24px;left:220px;width:52px;height:52px;font-size:1.4rem;border-radius:50%;background:linear-gradient(135deg,#6366f1,#a78bfa);color:white;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,0.3);transition:opacity 0.3s,transform 0.3s;z-index:1000;";
-    const SETTINGS_BOTTOM = "position:fixed;bottom:24px;right:24px;width:44px;height:44px;font-size:1.1rem;border-radius:50%;background:linear-gradient(135deg,#6366f1,#a78bfa);color:white;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,0.3);transition:opacity 0.3s,transform 0.3s;z-index:1000;";
-    const CHATBOT_NAV = "position:fixed;top:10px;right:130px;width:36px;height:36px;font-size:1rem;border-radius:50%;background:linear-gradient(135deg,#6366f1,#a78bfa);color:white;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,0.3);transition:all 0.3s;z-index:9999;opacity:1;pointer-events:all;";
-    const SETTINGS_NAV = "position:fixed;top:10px;right:82px;width:36px;height:36px;font-size:0.9rem;border-radius:50%;background:linear-gradient(135deg,#6366f1,#a78bfa);color:white;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,0.3);transition:all 0.3s;z-index:9999;opacity:1;pointer-events:all;";
+    const CHATBOT_BOTTOM = "position:fixed;bottom:24px;right:24px;width:52px;height:52px;font-size:1.4rem;border-radius:50%;background:linear-gradient(135deg,#6366f1,#a78bfa);color:white;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,0.3);transition:opacity 0.3s,transform 0.3s;z-index:1000;";
+    const CHATBOT_NAV = "position:fixed;top:10px;right:82px;width:36px;height:36px;font-size:1rem;border-radius:50%;background:linear-gradient(135deg,#6366f1,#a78bfa);color:white;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,0.3);transition:all 0.3s;z-index:9999;opacity:1;pointer-events:all;";
 
     // Set initial styles
     chatbot.style.cssText = CHATBOT_BOTTOM + "opacity:1;pointer-events:all;";
-    settings.style.cssText = SETTINGS_BOTTOM + "opacity:1;pointer-events:all;";
 
     function showFabs() {
       if (inNavbar) return;
       chatbot.style.opacity = "1";
       chatbot.style.pointerEvents = "all";
-      settings.style.opacity = "1";
-      settings.style.pointerEvents = "all";
       clearTimeout(hideTimer);
       hideTimer = setTimeout(hideFabs, 5000);
     }
@@ -8475,25 +8504,22 @@ document.addEventListener("keydown", e => {
       if (inNavbar) return;
       chatbot.style.opacity = "0";
       chatbot.style.pointerEvents = "none";
-      settings.style.opacity = "0";
-      settings.style.pointerEvents = "none";
     }
 
     // Auto-hide after 5s
     hideTimer = setTimeout(hideFabs, 5000);
 
-    // Show on mouse near bottom
+    // Show on mouse near bottom-right
     document.addEventListener("mousemove", function(e) {
       if (inNavbar) return;
       const nearBottom = e.clientY > window.innerHeight - 100;
-      const nearSides = e.clientX < 320 || e.clientX > window.innerWidth - 100;
-      if (nearBottom && nearSides) showFabs();
+      const nearRight = e.clientX > window.innerWidth - 100;
+      if (nearBottom && nearRight) showFabs();
     });
 
     chatbot.addEventListener("mouseenter", showFabs);
-    settings.addEventListener("mouseenter", showFabs);
 
-    // Scroll behaviour — listen on content div
+    // Scroll behaviour
     if (content) {
       content.addEventListener("scroll", function() {
         const scrolled = content.scrollTop > 80;
@@ -8501,11 +8527,9 @@ document.addEventListener("keydown", e => {
           inNavbar = true;
           clearTimeout(hideTimer);
           chatbot.style.cssText = CHATBOT_NAV;
-          settings.style.cssText = SETTINGS_NAV;
         } else if (!scrolled && inNavbar) {
           inNavbar = false;
           chatbot.style.cssText = CHATBOT_BOTTOM + "opacity:1;pointer-events:all;";
-          settings.style.cssText = SETTINGS_BOTTOM + "opacity:1;pointer-events:all;";
           hideTimer = setTimeout(hideFabs, 5000);
         }
       });
