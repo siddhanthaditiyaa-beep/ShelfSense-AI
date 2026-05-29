@@ -1884,11 +1884,23 @@ async function initiatePayment(buyNowCart = null) {
       image: "https://shelfsense-ai-lptz.onrender.com/icons/icon-192x192.png",
       order_id: orderData.orderId,
 
-      // CRITICAL: prevents Razorpay from opening about:blank in redirect mode
+      // Prevent Razorpay from opening about:blank in redirect mode
       redirect: false,
 
       // Fallback callback URL in case browser forces redirect mode
       callback_url: window.location.origin + "/payment-callback",
+
+      // Prevent Razorpay from opening external popup windows
+      config: {
+        display: {
+          blocks: {
+            banks: { name: "Pay via Netbanking", instruments: [{ method: "netbanking" }] },
+            upi: { name: "Pay via UPI", instruments: [{ method: "upi" }] },
+          },
+          sequence: ["block.upi", "block.banks"],
+          preferences: { show_default_blocks: true }
+        }
+      },
 
       handler: async function(response) {
         try {
@@ -1947,11 +1959,11 @@ async function initiatePayment(buyNowCart = null) {
 
     const rzp = new Razorpay(options);
 
-    // Handle payment failure explicitly (network issues, card declined, etc.)
+    // Handle payment failure — close modal, show clear error toast
     rzp.on("payment.failed", function(response) {
       const reason = response.error?.description || response.error?.reason || "Payment failed";
-      const code = response.error?.code || "";
-      showToast(`❌ Payment failed: ${reason}`, "error");
+      rzp.close();
+      showToast(`❌ ${reason}`, "error");
       console.error("Razorpay payment failed:", response.error);
       btn.innerText = "💳 Pay with Razorpay";
       btn.disabled = false;
