@@ -672,19 +672,6 @@
   background: var(--danger-bg) !important;
   color: var(--danger-text) !important;
 }
-.lang-switcher {
-  display: flex; align-items: center; gap: 4px;
-  background: var(--bg-card); border: 1px solid var(--border-color);
-  border-radius: 8px; padding: 3px; flex-shrink: 0;
-}
-.lang-btn {
-  padding: 4px 8px; border-radius: 6px; font-size: 0.72rem;
-  font-weight: 700; cursor: pointer; border: none;
-  background: transparent; color: var(--text-muted);
-  transition: all 0.2s;
-}
-.lang-btn.active { background: var(--accent); color: white; }
-.lang-btn:hover:not(.active) { color: var(--text-primary); background: var(--bg-tertiary); }
 .flash-sale-badge {
   display: inline-flex; align-items: center; gap: 6px;
   background: linear-gradient(135deg, #ef4444, #f97316);
@@ -788,11 +775,6 @@
     <button class="header-btn cart-btn" onclick="toggleCart()">
       🛒 Cart <div class="cart-count" id="cartCount">0</div>
     </button>
-    <div class="lang-switcher">
-      <button class="lang-btn active" id="lang-en" onclick="setLanguage('en')">EN</button>
-      <button class="lang-btn" id="lang-hi" onclick="setLanguage('hi')">हि</button>
-      <button class="lang-btn" id="lang-mr" onclick="setLanguage('mr')">म</button>
-    </div>
     <div class="customer-avatar" id="customerAvatar" onclick="toggleCustomerProfile()">P</div>
 
 <div class="cpp-overlay" id="cppOverlay" onclick="toggleCustomerProfile()"></div>
@@ -1339,167 +1321,8 @@
 
 <script>
 
-/* ===== TRANSLATIONS (must be first) ===== */
-const TRANSLATIONS = {
-  en: {
-    "hero-title": "Fresh Products Daily 🛍️",
-    "hero-sub": "Quality groceries, best prices",
-    "tab-shop": "🏪 Shop",
-    "tab-wishlist": "❤️ Wishlist",
-    "tab-orders": "📦 Order History",
-    "tab-loyalty": "⭐ Loyalty",
-    "tab-analytics": "📊 My Analytics",
-    "tab-referral": "🎁 Refer & Earn",
-    "recommended": "⭐ Recommended for You",
-    "filter": "🔍 Filter Products",
-    "wishlist-title": "❤️ Your Wishlist",
-    "orders-title": "📦 Your Order History",
-    "search-placeholder": "Search products...",
-    "in-stock": "In Stock",
-    "out-of-stock": "Out of Stock",
-    "low-stock": "Only",
-    "low-stock-suffix": "left!",
-    "add-to-cart": "Add",
-    "buy-now": "⚡ Buy Now",
-    "find-nearby": "📍 Find Nearby Store",
-    "compare": "⚖️ Compare",
-    "compare-added": "✅ Added to Compare",
-    "cart-empty": "Your cart is empty",
-    "pay-btn": "💳 Pay with Razorpay",
-    "checkout-btn": "Place Order (Free / Test)",
-    "loyalty-points": "Loyalty Points",
-    "refer-earn": "Refer & Earn",
-    "copy-link": "📋 Copy Link",
-    "share-whatsapp": "📲 Share on WhatsApp",
-    "greeting-morning": "Good morning",
-    "greeting-afternoon": "Good afternoon",
-    "greeting-evening": "Good evening",
-    "units-available": "units available",
-    "showing": "Showing",
-    "of": "of",
-    "products": "products",
-    "cart-title": "🛒 Your Cart",
-    "clear-cart": "Clear",
-    "total": "Total",
-    "items": "items",
-    "products-en": {
-      "chocolates":"Chocolates","biscuits":"Biscuits","chips":"Chips",
-      "juice":"Juice","soft-drinks":"Soft Drinks","canned-food":"Canned Food",
-      "rice":"Rice","salt":"Salt","amul-butter":"Amul Butter",
-      "maggi-noodles":"Maggi Noodles","coca-cola-600ml":"Coca-Cola 600ml",
-      "lays-chips":"Lays Chips","frooti-mango-200ml":"Frooti Mango 200ml",
-      "tata-salt-1kg":"Tata Salt 1kg","bourbon-biscuits":"Bourbon Biscuits"
-    }
-  },
-  hi: {
-    "hero-title": "ताज़े उत्पाद हर दिन 🛍️",
-    "hero-sub": "गुणवत्तापूर्ण किराना, सबसे अच्छे दाम",
-    "tab-shop": "🏪 दुकान",
-    "tab-wishlist": "❤️ इच्छा सूची",
-    "tab-orders": "📦 ऑर्डर इतिहास",
-    "tab-loyalty": "⭐ लॉयल्टी",
-    "tab-analytics": "📊 मेरा विश्लेषण",
-    "tab-referral": "🎁 रेफर करें और कमाएं",
-    "recommended": "⭐ आपके लिए अनुशंसित",
-    "filter": "🔍 उत्पाद फ़िल्टर करें",
-    "wishlist-title": "❤️ आपकी इच्छा सूची",
-    "orders-title": "📦 आपका ऑर्डर इतिहास",
-    "search-placeholder": "उत्पाद खोजें...",
-    "in-stock": "स्टॉक में है",
-    "out-of-stock": "स्टॉक में नहीं",
-    "low-stock": "केवल",
-    "low-stock-suffix": "बचे हैं!",
-    "add-to-cart": "जोड़ें",
-    "buy-now": "⚡ अभी खरीदें",
-    "find-nearby": "📍 नज़दीकी स्टोर खोजें",
-    "compare": "⚖️ तुलना करें",
-    "compare-added": "✅ तुलना में जोड़ा",
-    "cart-empty": "आपकी कार्ट खाली है",
-    "pay-btn": "💳 Razorpay से भुगतान करें",
-    "checkout-btn": "ऑर्डर दें (निःशुल्क / परीक्षण)",
-    "loyalty-points": "लॉयल्टी पॉइंट्स",
-    "refer-earn": "रेफर करें और कमाएं",
-    "copy-link": "📋 लिंक कॉपी करें",
-    "share-whatsapp": "📲 WhatsApp पर शेयर करें",
-    "greeting-morning": "सुप्रभात",
-    "greeting-afternoon": "नमस्कार",
-    "greeting-evening": "शुभ संध्या",
-    "units-available": "इकाइयाँ उपलब्ध",
-    "showing": "दिखाया जा रहा है",
-    "of": "में से",
-    "products": "उत्पाद",
-    "cart-title": "🛒 आपकी कार्ट",
-    "clear-cart": "साफ़ करें",
-    "total": "कुल",
-    "items": "आइटम",
-    "products-en": {
-      "chocolates":"चॉकलेट","biscuits":"बिस्किट","chips":"चिप्स",
-      "juice":"जूस","soft-drinks":"शीतल पेय","canned-food":"डिब्बाबंद खाना",
-      "rice":"चावल","salt":"नमक","amul-butter":"अमूल मक्खन",
-      "maggi-noodles":"मैगी नूडल्स","coca-cola-600ml":"कोका-कोला 600मिली",
-      "lays-chips":"लेज़ चिप्स","frooti-mango-200ml":"फ्रूटी आम 200मिली",
-      "tata-salt-1kg":"टाटा नमक 1किग्रा","bourbon-biscuits":"बोर्बन बिस्किट"
-    }
-  },
-  mr: {
-    "hero-title": "दररोज ताजे उत्पादन 🛍️",
-    "hero-sub": "दर्जेदार किराणा, सर्वोत्तम किमती",
-    "tab-shop": "🏪 दुकान",
-    "tab-wishlist": "❤️ इच्छा यादी",
-    "tab-orders": "📦 ऑर्डर इतिहास",
-    "tab-loyalty": "⭐ लॉयल्टी",
-    "tab-analytics": "📊 माझे विश्लेषण",
-    "tab-referral": "🎁 रेफर करा आणि कमवा",
-    "recommended": "⭐ तुमच्यासाठी शिफारस केलेले",
-    "filter": "🔍 उत्पादने फिल्टर करा",
-    "wishlist-title": "❤️ तुमची इच्छा यादी",
-    "orders-title": "📦 तुमचा ऑर्डर इतिहास",
-    "search-placeholder": "उत्पादने शोधा...",
-    "in-stock": "स्टॉकमध्ये आहे",
-    "out-of-stock": "स्टॉकमध्ये नाही",
-    "low-stock": "फक्त",
-    "low-stock-suffix": "शिल्लक!",
-    "add-to-cart": "जोडा",
-    "buy-now": "⚡ आत्ता खरेदी करा",
-    "find-nearby": "📍 जवळचे स्टोर शोधा",
-    "compare": "⚖️ तुलना करा",
-    "compare-added": "✅ तुलनेत जोडले",
-    "cart-empty": "तुमची कार्ट रिकामी आहे",
-    "pay-btn": "💳 Razorpay ने पेमेंट करा",
-    "checkout-btn": "ऑर्डर द्या (विनामूल्य / चाचणी)",
-    "loyalty-points": "लॉयल्टी पॉइंट्स",
-    "refer-earn": "रेफर करा आणि कमवा",
-    "copy-link": "📋 लिंक कॉपी करा",
-    "share-whatsapp": "📲 WhatsApp वर शेअर करा",
-    "greeting-morning": "सुप्रभात",
-    "greeting-afternoon": "नमस्कार",
-    "greeting-evening": "शुभ संध्याकाळ",
-    "units-available": "युनिट्स उपलब्ध",
-    "showing": "दाखवत आहे",
-    "of": "पैकी",
-    "products": "उत्पादने",
-    "cart-title": "🛒 तुमची कार्ट",
-    "clear-cart": "साफ करा",
-    "total": "एकूण",
-    "items": "वस्तू",
-    "products-en": {
-      "chocolates":"चॉकलेट","biscuits":"बिस्किटे","chips":"चिप्स",
-      "juice":"रस","soft-drinks":"शीतपेये","canned-food":"डबाबंद अन्न",
-      "rice":"तांदूळ","salt":"मीठ","amul-butter":"अमूल लोणी",
-      "maggi-noodles":"मॅगी नूडल्स","coca-cola-600ml":"कोका-कोला 600मिली",
-      "lays-chips":"लेज चिप्स","frooti-mango-200ml":"फ्रूटी आंबा 200मिली",
-      "tata-salt-1kg":"टाटा मीठ 1किलो","bourbon-biscuits":"बोर्बन बिस्किटे"
-    }
-  }
-};
 
-let currentLanguage = localStorage.getItem("shelfsense-lang") || "en";
 
-function t(key) {
-  return TRANSLATIONS[currentLanguage]?.[key] || TRANSLATIONS["en"][key] || key;
-}
-
-  
 
 /* ===== AUTH — Handle Google OAuth token + role check ===== */
 const urlParams = new URLSearchParams(window.location.search);
@@ -1623,7 +1446,7 @@ function renderRecommended() {
   scroll.innerHTML = recommended.map(([key, item]) => `
     <div class="recommended-card" onclick="openProductModal('${key}')">
       <div class="rec-emoji">${EMOJIS[key] || EMOJIS.default}</div>
-      <div class="rec-name">${getProductName(key, item.name)}</div>
+      <div class="rec-name">${item.name}</div>
       <div class="rec-price">₹${item.price || 99}</div>
       <div class="rec-rating">${renderStars(item.avgRating || 0)} ${item.avgRating ? item.avgRating.toFixed(1) : "New"}</div>
     </div>
@@ -1637,7 +1460,7 @@ function renderProducts() {
 
   let filtered = Object.entries(allProducts).filter(([key, item]) => {
     const effectivePrice = item.onSale ? item.salePrice : item.price;
-    const displayName = getProductName(key, item.name);
+    const displayName = item.name;
     const matchSearch = displayName.toLowerCase().includes(search) || item.name.toLowerCase().includes(search) || key.includes(search);
     const matchStatus =
       currentFilter === "all" ||
@@ -1692,7 +1515,7 @@ function renderProducts() {
             onclick="event.stopPropagation(); toggleWishlist('${key}')">${isWishlisted ? '❤️' : '🤍'}</button>
         </div>
         <div class="product-info">
-          <div class="product-name">${getProductName(key, item.name)}</div>
+          <div class="product-name">${item.name}</div>
           ${hasCountdown ? `
             <div class="flash-sale-badge ${endingSoon ? 'sale-ending-soon' : ''}" id="flashBadge_${key}">
               ⚡ FLASH SALE &nbsp;
@@ -1770,7 +1593,7 @@ function openProductModal(key) {
   document.getElementById("modalContent").innerHTML = `
     <div class="modal-emoji-header">${emoji}</div>
     <div class="modal-body">
-      <div class="modal-name">${getProductName(key, item.name)}</div>
+      <div class="modal-name">${item.name}</div>
       <div class="modal-price">₹${item.price || 99}</div>
       <div class="modal-desc">${desc}</div>
       <div style="margin-bottom:14px">
@@ -2889,49 +2712,8 @@ function addBundleToCart(items, bundleName) {
 }
 
 /* ===== MULTI-LANGUAGE FUNCTIONS ===== */
-function setLanguage(lang) {
-  currentLanguage = lang;
-  localStorage.setItem("shelfsense-lang", lang);
-  ["en","hi","mr"].forEach(l => { const btn = document.getElementById(`lang-${l}`); if (btn) btn.classList.toggle("active", l === lang); });
-  const tr = TRANSLATIONS[lang]; if (!tr) return;
 
-  // Update static UI text
-  const updates = {
-    "txt-hero-title": tr["hero-title"], "txt-hero-sub": tr["hero-sub"],
-    "tab-shop": tr["tab-shop"], "tab-wishlist": tr["tab-wishlist"],
-    "tab-orders": tr["tab-orders"], "tab-loyalty": tr["tab-loyalty"],
-    "tab-analytics": tr["tab-analytics"], "tab-referral": tr["tab-referral"],
-    "txt-recommended": tr["recommended"], "txt-filter": tr["filter"],
-    "txt-wishlist-title": tr["wishlist-title"], "txt-orders-title": tr["orders-title"]
-  };
-  Object.entries(updates).forEach(([id, text]) => { const el = document.getElementById(id); if (el) el.innerText = text; });
 
-  const searchEl = document.getElementById("searchInput"); if (searchEl) searchEl.placeholder = tr["search-placeholder"];
-  const payBtn = document.getElementById("payBtn"); if (payBtn) payBtn.innerText = tr["pay-btn"];
-  const checkoutBtn = document.getElementById("checkoutBtn"); if (checkoutBtn) checkoutBtn.innerText = tr["checkout-btn"];
-
-  // Translate greeting — fname stays as-is (it's a personal name, not translated)
-  const hour = new Date().getHours(), greetKey = hour < 12 ? "greeting-morning" : hour < 17 ? "greeting-afternoon" : "greeting-evening";
-  const greetEl = document.getElementById("heroGreeting");
-  if (greetEl) greetEl.innerText = `${tr[greetKey]}, ${fname}! 👋`;
-
-  // Re-render products with translated names
-  renderProducts();
-  renderRecommended();
-
-  showToast(lang === "hi" ? "भाषा बदली ✅" : lang === "mr" ? "भाषा बदलली ✅" : "Language changed ✅");
-}
-
-// Helper: get translated product name
-function getProductName(key, originalName) {
-  const tr = TRANSLATIONS[currentLanguage];
-  if (!tr || currentLanguage === "en") return originalName;
-  return tr["products-en"]?.[key] || originalName;
-}
-
-function applyLanguage() {
-  if (currentLanguage !== "en") setLanguage(currentLanguage);
-  else { const btn = document.getElementById("lang-en"); if (btn) btn.classList.add("active"); }
 }
 
 /* ===== SETTINGS ===== */
@@ -3012,7 +2794,6 @@ loadProducts();
 renderWishlist();
 loadCustomer2FAStatus();
 loadRecommendations();
-applyLanguage();
 setInterval(async () => {
   try {
     const [pRes, rRes] = await Promise.all([
