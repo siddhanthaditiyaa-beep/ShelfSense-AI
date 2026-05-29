@@ -890,8 +890,9 @@ const token = jwt.sign({ id: store._id, role: "admin", email: store.ownerEmail, 
 const fingerprint = req.body.fingerprint || null;
 const isNewDevice = await createSession(req, store.ownerEmail, "admin", token, store._id, fingerprint);
 
-// New device alert
+// New device alert — fire and forget, don't block login response
 if (isNewDevice && fingerprint) {
+  (async () => { try {
   const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "unknown";
   const geo = await getGeoLocation(ip);
   const ua = req.headers["user-agent"] || "Unknown";
@@ -924,9 +925,11 @@ if (isNewDevice && fingerprint) {
       </div>`
   }).catch(() => {});
   await logAudit(req, store.ownerEmail, "admin", "NEW_DEVICE_LOGIN", "warning", `Device: ${fingerprint.substring(0,16)}, IP: ${ip}`);
+  } catch(e) {} })();
 }
 
-// Geo-location login alert
+// Geo-location login alert — fire and forget
+(async () => { try {
 const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "unknown";
 const geo = await getGeoLocation(ip);
 const ua = req.headers["user-agent"] || "Unknown";
@@ -961,6 +964,7 @@ await emailTransporter.sendMail({
       </div>
     </div>`
 }).catch(() => {});
+} catch(e) {} })(); // end geo alert async
 
 res.json({ token, role: "admin", fname: store.ownerName, storeName: store.name, plan: store.plan });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
