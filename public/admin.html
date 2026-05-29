@@ -5668,7 +5668,30 @@ const pageLoaders = {
   "pl-statement": () => { fetch("/admin/pl-statement", { headers: getAuthHeaders() }).then(r=>r.json()).then(d=>{ const el=document.getElementById("plStatementData"); if(!el)return; el.innerHTML=`<div style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;padding:20px">${[["Revenue","₹"+(d.revenue||0).toFixed(2),"#22c55e"],["Cost of Goods","₹"+(d.cogs||0).toFixed(2),"#ef4444"],["Gross Profit","₹"+(d.grossProfit||0).toFixed(2),"#6366f1"],["Operating Expenses","₹"+(d.opex||0).toFixed(2),"#f59e0b"],["Net Profit","₹"+(d.netProfit||0).toFixed(2),(d.netProfit||0)>=0?"#22c55e":"#ef4444"]].map(([l,v,c])=>`<div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-color)"><span style="font-weight:600">${l}</span><span style="font-weight:800;color:${c}">${v}</span></div>`).join('')}</div>`; }).catch(()=>{ const el=document.getElementById("plStatementData"); if(el)el.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-muted)">No P&L data available yet.</div>'; }); },
   "roi-calc": () => { const el=document.getElementById("roiCalcData"); if(!el)return; el.innerHTML=`<div style="display:grid;gap:12px;max-width:400px"><div style="display:flex;gap:10px;align-items:center"><label style="width:150px;font-size:0.875rem">Investment (₹)</label><input type="number" id="roiInvest" value="1000" style="flex:1;padding:8px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary)"></div><div style="display:flex;gap:10px;align-items:center"><label style="width:150px;font-size:0.875rem">Returns (₹)</label><input type="number" id="roiReturn" value="1500" style="flex:1;padding:8px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary)"></div><button class="btn-primary" onclick="const i=parseFloat(document.getElementById('roiInvest').value);const r=parseFloat(document.getElementById('roiReturn').value);const roi=((r-i)/i*100).toFixed(1);document.getElementById('roiResult').innerHTML=\`<div style='margin-top:16px;padding:16px;background:rgba(34,197,94,0.1);border-radius:10px;text-align:center'><div style='font-size:2rem;font-weight:900;color:#22c55e'>\${roi}%</div><div style='color:var(--text-muted)'>ROI · Profit: ₹\${(r-i).toFixed(2)}</div></div>\`">Calculate ROI</button><div id="roiResult"></div></div>`; },
   "roas-sim": () => { const el=document.getElementById("roasSimData"); if(!el)return; el.innerHTML=`<div style="display:grid;gap:12px;max-width:500px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><label style="font-size:0.78rem;color:var(--text-muted)">Ad Budget (₹)</label><input type="number" id="rAdBudget" value="5000" style="width:100%;padding:8px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);margin-top:4px"></div><div><label style="font-size:0.78rem;color:var(--text-muted)">Expected CTR (%)</label><input type="number" id="rCTR" value="2" style="width:100%;padding:8px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);margin-top:4px"></div><div><label style="font-size:0.78rem;color:var(--text-muted)">Conv Rate (%)</label><input type="number" id="rConv" value="3" style="width:100%;padding:8px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);margin-top:4px"></div><div><label style="font-size:0.78rem;color:var(--text-muted)">Avg Order (₹)</label><input type="number" id="rAOV" value="500" style="width:100%;padding:8px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary);margin-top:4px"></div></div><button class="btn-primary" onclick="fetch('/admin/roas-simulator',{method:'POST',headers:{'Content-Type':'application/json',...getAuthHeaders()},body:JSON.stringify({adBudget:parseFloat(document.getElementById('rAdBudget').value),expectedCTR:parseFloat(document.getElementById('rCTR').value),expectedConvRate:parseFloat(document.getElementById('rConv').value),avgOrderValue:parseFloat(document.getElementById('rAOV').value)})}).then(r=>r.json()).then(d=>{document.getElementById('roasResult').innerHTML=\`<div style='margin-top:16px;padding:16px;background:rgba(99,102,241,0.1);border-radius:10px'><div style='font-size:1.6rem;font-weight:800;color:var(--accent)'>\${d.roas}x ROAS</div><div style='font-size:0.82rem;color:var(--text-muted);margin-top:4px'>\${d.recommendation}</div><div style='display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px'><div style='text-align:center'><div style='font-weight:700'>₹\${d.projectedRevenue}</div><div style='font-size:0.7rem;color:var(--text-muted)'>Revenue</div></div><div style='text-align:center'><div style='font-weight:700'>\${d.conversions}</div><div style='font-size:0.7rem;color:var(--text-muted)'>Conversions</div></div><div style='text-align:center'><div style='font-weight:700'>\${d.clicks}</div><div style='font-size:0.7rem;color:var(--text-muted)'>Clicks</div></div></div></div>\`;})">Simulate ROAS</button><div id="roasResult"></div></div>`; },
-  "compliance": () => { const el=document.getElementById("complianceData"); if(!el)return; const token2=localStorage.getItem("token"); el.innerHTML=`<div style="text-align:center;padding:20px"><p style="color:var(--text-muted);margin-bottom:16px">Download your store compliance certificate with current system stats.</p><a href="/admin/health-certificate" target="_blank" class="btn-primary" style="padding:12px 24px;display:inline-block;text-decoration:none;border-radius:10px">📜 Download Certificate</a></div>`; },
+  "compliance": async () => {
+    const el = document.getElementById("complianceData");
+    if (!el) return;
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted)">Generating certificate...</div>';
+    try {
+      const res = await fetch("/admin/health-certificate", { headers: getAuthHeaders() });
+      if (!res.ok) throw new Error("Failed");
+      const html2 = await res.text();
+      // Open in new window with content
+      const win = window.open("", "_blank");
+      if (win) {
+        win.document.write(html2);
+        win.document.close();
+      }
+      el.innerHTML = `<div style="text-align:center;padding:30px">
+        <div style="font-size:3rem;margin-bottom:12px">📜</div>
+        <div style="font-weight:700;margin-bottom:8px;font-size:1.1rem">Compliance Certificate Ready</div>
+        <p style="color:var(--text-muted);margin-bottom:20px;font-size:0.875rem">Certificate opened in new tab. If popup was blocked, click below.</p>
+        <button class="btn-primary" onclick="(async()=>{const r=await fetch('/admin/health-certificate',{headers:getAuthHeaders()});const h=await r.text();const w=window.open('','_blank');w.document.write(h);w.document.close();})()">📜 Open Certificate</button>
+      </div>`;
+    } catch(err) {
+      el.innerHTML = '<div style="text-align:center;padding:30px"><div style="font-size:2rem;margin-bottom:8px">⚠️</div><div style="color:var(--text-muted)">Could not load certificate. Make sure you are logged in.</div></div>';
+    }
+  },
   "zero-trust": () => { fetch("/admin/zero-trust-log", { headers: getAuthHeaders() }).then(r=>r.json()).then(d=>{ const el=document.getElementById("zeroTrustData"); if(!el)return; el.innerHTML=`<div style="margin-bottom:12px;display:flex;gap:12px"><span style="padding:4px 12px;border-radius:20px;background:rgba(34,197,94,0.1);color:#22c55e;font-size:0.78rem;font-weight:700">${d.totalVerified} Verified</span><span style="padding:4px 12px;border-radius:20px;background:rgba(239,68,68,0.1);color:#ef4444;font-size:0.78rem;font-weight:700">${d.totalDenied} Denied</span></div>${d.logs.slice(0,15).map(l=>`<div style="display:flex;gap:10px;padding:8px 12px;background:var(--bg-secondary);border-left:3px solid ${l.verified?'#22c55e':'#ef4444'};border-radius:0 8px 8px 0;margin-bottom:4px;font-size:0.78rem"><span style="color:var(--text-muted);flex-shrink:0">${new Date(l.time).toLocaleTimeString('en-IN')}</span><span style="flex:1">${l.action}</span><span style="color:${l.verified?'#22c55e':'#ef4444'}">${l.verified?'✅':'❌'}</span></div>`).join('')}`; }).catch(()=>{}); },
   "owasp": () => { fetch("/admin/owasp", { headers: getAuthHeaders() }).then(r=>r.json()).then(d=>{ const el=document.getElementById("owaspData"); if(!el)return; el.innerHTML=`<div style="margin-bottom:16px;text-align:center"><div style="font-size:2rem;font-weight:900;color:var(--accent)">${d.score}%</div><div>OWASP Compliance Score</div></div>${d.checks?.map(c=>`<div style="display:flex;gap:10px;padding:8px;background:var(--bg-secondary);border-radius:6px;margin-bottom:4px;font-size:0.82rem"><span>${c.pass?'✅':'❌'}</span><span style="flex:1">${c.name}</span></div>`).join('')||'<div style="text-align:center;padding:20px;color:var(--text-muted)">OWASP data loading...</div>'}`; }).catch(()=>{}); },
   "gross-margins": loadGrossMargins,
@@ -7728,13 +7751,58 @@ async function loadAdminThemes() {
     </div>`;
   } catch(err) { document.getElementById("themesData").innerHTML = "Failed"; }
 }
+const ADMIN_THEMES = {
+  "default":   { primary:"#6366f1", bg:"#0f0f23", secondary:"#16162a", accent:"#a78bfa", text:"#e2e8f0", border:"rgba(99,102,241,0.2)" },
+  "midnight":  { primary:"#22c55e", bg:"#030712", secondary:"#0a1628", accent:"#4ade80", text:"#f0fdf4", border:"rgba(34,197,94,0.2)" },
+  "cyberpunk": { primary:"#f59e0b", bg:"#09090b", secondary:"#18100a", accent:"#fbbf24", text:"#fef3c7", border:"rgba(245,158,11,0.2)" },
+  "ocean":     { primary:"#06b6d4", bg:"#0c1a29", secondary:"#0d2137", accent:"#67e8f9", text:"#e0f7fa", border:"rgba(6,182,212,0.2)" },
+  "rose":      { primary:"#f43f5e", bg:"#1a0a0f", secondary:"#2a0e1a", accent:"#fb7185", text:"#fff1f2", border:"rgba(244,63,94,0.2)" },
+};
+
+function applyAdminTheme(themeId) {
+  const t = ADMIN_THEMES[themeId] || ADMIN_THEMES["default"];
+  const root = document.documentElement;
+  root.style.setProperty("--accent", t.primary);
+  root.style.setProperty("--bg-primary", t.bg);
+  root.style.setProperty("--bg-secondary", t.secondary);
+  root.style.setProperty("--bg-card", t.secondary);
+  root.style.setProperty("--bg-input", t.secondary);
+  root.style.setProperty("--bg-tertiary", t.secondary);
+  root.style.setProperty("--text-accent", t.accent);
+  root.style.setProperty("--accent-light", t.border);
+  root.style.setProperty("--border-color", t.border);
+  // update body background directly too
+  document.body.style.setProperty("background", t.bg);
+  document.querySelector(".sidebar") && (document.querySelector(".sidebar").style.background = t.secondary);
+  document.querySelector(".topbar") && (document.querySelector(".topbar").style.background = t.secondary);
+  localStorage.setItem("adminTheme", themeId);
+}
+
 async function setAdminTheme(themeId) {
   try {
-    await fetch("/admin/theme-config", { method:"POST", headers:{ "Content-Type":"application/json",...getAuthHeaders() }, body: JSON.stringify({ themeId }) });
-    ssToast("Theme updated! Refresh to apply.","success");
+    // Apply immediately — no refresh needed
+    applyAdminTheme(themeId);
+    // Save to server in background
+    fetch("/admin/theme-config", { method:"POST", headers:{ "Content-Type":"application/json",...getAuthHeaders() }, body: JSON.stringify({ themeId }) }).catch(()=>{});
+    ssToast("Theme applied!","success");
     loadAdminThemes();
   } catch(err) { ssToast("Failed","error"); }
 }
+
+// Apply saved theme on every page load
+(function initTheme() {
+  const saved = localStorage.getItem("adminTheme");
+  if (saved && saved !== "default") applyAdminTheme(saved);
+  // Also fetch from server to sync (in case logged in on new device)
+  fetch("/admin/theme-config", { headers: { Authorization: localStorage.getItem("token") || "" } })
+    .then(r => r.json())
+    .then(d => {
+      if (d.currentTheme && d.currentTheme !== "default") {
+        applyAdminTheme(d.currentTheme);
+        localStorage.setItem("adminTheme", d.currentTheme);
+      }
+    }).catch(() => {});
+})();
 
 async function loadSystemAudit() {
   const el = document.getElementById("systemAuditData");
