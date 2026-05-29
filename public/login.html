@@ -59,10 +59,11 @@
     }
     .login-header p { color: var(--text-muted); font-size: 0.95rem; }
     .login-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
+      background: rgba(22, 22, 62, 0.92);
+      border: 1px solid rgba(99,102,241,0.3);
       border-radius: 20px; padding: 36px;
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(20px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
     }
     .login-tabs {
       display: flex; background: rgba(255,255,255,0.05);
@@ -549,24 +550,29 @@ let otpTimerInterval = null;
     let fingerprint = "fp-fallback";
     try { fingerprint = await generateFingerprint(); } catch(e) {}
 
-    // Smart retry — try up to 4 times with countdown between attempts
-    const maxAttempts = 4;
+    // Step 1: Wake server with /health ping first
+    btn.innerHTML = '<span class="spinner"></span>Connecting...';
+    try {
+      const wakeCtrl = new AbortController();
+      setTimeout(() => wakeCtrl.abort(), 8000);
+      await fetch("/health", { signal: wakeCtrl.signal }).catch(() => {});
+    } catch(e) {}
+
+    // Step 2: Smart retry login — up to 3 times with short gaps
+    const maxAttempts = 3;
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
-        // Show live countdown on button
-        if (attempt === 1) {
-          btn.innerHTML = '<span class="spinner"></span>Connecting...';
-        } else {
-          // Countdown before retry
-          for (let sec = 15; sec > 0; sec--) {
-            btn.innerHTML = `<span class="spinner"></span>Waking server... retrying in ${sec}s`;
+        if (attempt > 1) {
+          // Short countdown between retries
+          for (let sec = 8; sec > 0; sec--) {
+            btn.innerHTML = `<span class="spinner"></span>Retrying in ${sec}s...`;
             await new Promise(r => setTimeout(r, 1000));
           }
           btn.innerHTML = `<span class="spinner"></span>Attempt ${attempt}/${maxAttempts}...`;
         }
 
         const controller = new AbortController();
-        const fetchTimeout = setTimeout(() => controller.abort(), 25000);
+        const fetchTimeout = setTimeout(() => controller.abort(), 20000);
 
         const res = await fetch("/login-store", {
           method: "POST",
