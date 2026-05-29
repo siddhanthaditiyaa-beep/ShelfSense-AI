@@ -712,6 +712,29 @@ async function init() {
     );
     console.log("✅ Test accounts unlocked");
   } catch(e) {}
+
+  // Auto-create/unlock demo customer on every server restart
+  try {
+    const demoCustomerEmail = "shopper@shelfsense.ai";
+    const hashedPw = await bcrypt.hash("shopper123", 12);
+    const existing = await User.findOne({ email: demoCustomerEmail });
+    if (!existing) {
+      await User.create({
+        fname: "Demo", lname: "Shopper",
+        email: demoCustomerEmail, password: hashedPw,
+        role: "customer", loyaltyPoints: 250, totalPointsEarned: 350,
+        referralCode: "DEMO123", loginAttempts: 0, lockUntil: null
+      });
+      console.log("✅ Demo customer created: shopper@shelfsense.ai / shopper123");
+    } else {
+      // Unlock if locked
+      await User.updateOne({ email: demoCustomerEmail }, {
+        $set: { loginAttempts: 0, lockUntil: null }
+      });
+      console.log("✅ Demo customer unlocked");
+    }
+  } catch(e) { console.error("Demo customer init error:", e.message); }
+
   // Reset biometric anomaly flags on startup (false positives from dev testing)
   try {
     await Biometric.updateMany({ anomalyFlag: true }, { $set: { anomalyFlag: false } });
@@ -1873,6 +1896,19 @@ app.post("/admin/update-threshold", auth("admin"), async (req, res) => {
     if (isNaN(min) || min < 1 || min > 100) return res.status(400).json({ message: "Threshold must be between 1 and 100" });
     await Item.updateOne({ key, storeId }, { $set: { minStockLevel: min } });
     res.json({ message: `Alert threshold set to ${min} units` });
+  } catch(err) { res.status(500).json({ message: "Server error" }); }
+});
+
+app.post("/admin/update-expiry", auth("admin"), async (req, res) => {
+  try {
+    const { key, expiryDate } = req.body;
+    const storeId = req.user.storeId;
+    if (!key || !expiryDate) return res.status(400).json({ message: "Key and expiry date required" });
+    const expiry = new Date(expiryDate);
+    if (isNaN(expiry.getTime())) return res.status(400).json({ message: "Invalid date format" });
+    await Item.updateOne({ key, storeId }, { $set: { expiryDate: expiry } });
+    const daysLeft = Math.ceil((expiry - new Date()) / 86400000);
+    res.json({ message: `Expiry set to ${expiry.toLocaleDateString("en-IN")} (${daysLeft > 0 ? daysLeft + " days left" : "already expired"})` });
   } catch(err) { res.status(500).json({ message: "Server error" }); }
 });
 
@@ -5112,22 +5148,36 @@ app.get("/admin/search-analytics", auth("admin"), async (req, res) => {
 app.get("/admin/funnel-analytics", auth("admin"), async (req, res) => {
   try {
     const storeId = req.user.storeId;
-    const [totalUsers, usersWithOrders, repeatUsers] = await Promise.all([
-      User.countDocuments({ storeId }),
-      Order.distinct("customerEmail", { storeId }),
-      Order.aggregate([{ $match: { storeId: mongoose.Types.ObjectId(storeId) } }, { $group: { _id: "$customerEmail", count: { $sum: 1 } } }, { $match: { count: { $gt: 1 } } }])
+    const sid = new mongoose.Types.ObjectId(storeId);
+
+    // Count unique customers who have ever ordered from this store
+    const [usersWithOrders, repeatUsers, totalOrders] = await Promise.all([
+      Order.distinct("userEmail", { storeId: sid }),
+      Order.aggregate([
+        { $match: { storeId: sid } },
+        { $group: { _id: "$userEmail", count: { $sum: 1 } } },
+        { $match: { count: { $gt: 1 } } }
+      ]),
+      Order.countDocuments({ storeId: sid })
     ]);
-    const registered = totalUsers;
+
+    const visitors = Math.max(usersWithOrders.length * 4, totalOrders * 3, 1); // estimated
+    const registered = usersWithOrders.length;
     const firstPurchase = usersWithOrders.length;
     const repeat = repeatUsers.length;
+
     res.json({
       funnel: [
-        { stage: "Registered", count: registered, pct: 100 },
-        { stage: "First Purchase", count: firstPurchase, pct: registered ? Math.round(firstPurchase / registered * 100) : 0 },
+        { stage: "Visitors (est.)", count: visitors, pct: 100 },
+        { stage: "Registered Customers", count: registered, pct: Math.round(registered / visitors * 100) },
+        { stage: "First Purchase", count: firstPurchase, pct: Math.round(firstPurchase / visitors * 100) },
         { stage: "Repeat Customer", count: repeat, pct: firstPurchase ? Math.round(repeat / firstPurchase * 100) : 0 },
       ]
     });
-  } catch (err) { res.status(500).json({ message: "Server error" }); }
+  } catch (err) {
+    console.error("Funnel analytics error:", err.message);
+    res.status(500).json({ message: "Server error" });
+  }
 });
 
 /* FEATURE 65: CUSTOMER LIFETIME VALUE */
@@ -7712,6 +7762,23 @@ app.post("/admin/testimonials/:id/approve", auth("admin"), async (req, res) => {
     res.json({ message:"Testimonial approved" });
   } catch(err) { res.status(500).json({ message:"Server error" }); }
 });
+app.delete("/admin/testimonials/:id", auth("admin"), async (req, res) => {
+  try {
+    await Testimonial.findByIdAndDelete(req.params.id);
+    res.json({ message:"Testimonial deleted" });
+  } catch(err) { res.status(500).json({ message:"Server error" }); }
+});
+
+/* Customer: view their own reviews */
+app.get("/customer/my-reviews", auth("customer"), async (req, res) => {
+  try {
+    const query = { customerEmail: req.user.email };
+    if (req.query.storeId) query.storeId = req.query.storeId;
+    const reviews = await Testimonial.find(query).sort({ createdAt: -1 });
+    res.json({ reviews });
+  } catch(err) { res.status(500).json({ message: "Server error" }); }
+});
+
 app.get("/shop/testimonials", async (req, res) => {
   try {
     const { storeId } = req.query;

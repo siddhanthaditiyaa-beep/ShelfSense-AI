@@ -841,6 +841,7 @@
   <button class="main-tab" data-tab="loyalty" onclick="showMainTab('loyalty', this)" id="tab-loyalty">⭐ Loyalty</button>
   <button class="main-tab" data-tab="analytics" onclick="showMainTab('analytics', this)" id="tab-analytics">📊 My Analytics</button>
   <button class="main-tab" data-tab="referral" onclick="showMainTab('referral', this)" id="tab-referral">🎁 Refer & Earn</button>
+  <button class="main-tab" data-tab="reviews" onclick="showMainTab('reviews', this)" id="tab-reviews">💬 Reviews</button>
   <button class="main-tab" data-tab="bundles" onclick="showMainTab('bundles', this)" id="tab-bundles">🛍️ Bundles</button>
   <button class="main-tab" data-tab="checkin" onclick="showMainTab('checkin', this)" id="tab-checkin">📅 Check-In</button>
   <button class="main-tab" data-tab="achievements" onclick="showMainTab('achievements', this)" id="tab-achievements">🏅 Achievements</button>
@@ -1110,6 +1111,41 @@
       <div id="productBreakdownList"></div>
     </div>
 
+  </div>
+</div>
+
+<!-- REVIEWS PAGE -->
+<div class="page" id="page-reviews">
+  <div style="max-width:600px;margin:0 auto">
+    <div style="text-align:center;margin-bottom:28px">
+      <div style="font-size:2.5rem;margin-bottom:8px">💬</div>
+      <h2 style="margin:0 0 8px;font-size:1.4rem">Your Reviews</h2>
+      <p style="color:var(--text-muted);font-size:0.9rem">Share your experience with this store</p>
+    </div>
+    <!-- Submit review -->
+    <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:16px;padding:22px;margin-bottom:20px">
+      <h3 style="margin:0 0 16px;font-size:1rem;font-weight:700">✍️ Write a Review</h3>
+      <div style="margin-bottom:14px">
+        <label style="font-size:0.82rem;color:var(--text-muted);margin-bottom:6px;display:block">Rating</label>
+        <div id="starRating" style="display:flex;gap:6px;font-size:1.8rem;cursor:pointer">
+          <span onclick="setRating(1)" data-star="1">☆</span>
+          <span onclick="setRating(2)" data-star="2">☆</span>
+          <span onclick="setRating(3)" data-star="3">☆</span>
+          <span onclick="setRating(4)" data-star="4">☆</span>
+          <span onclick="setRating(5)" data-star="5">☆</span>
+        </div>
+      </div>
+      <textarea id="reviewText" rows="4" placeholder="Tell us about your experience — what did you buy? Would you recommend this store?"
+        style="width:100%;padding:12px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:10px;color:var(--text-primary);font-family:inherit;font-size:0.9rem;resize:vertical;box-sizing:border-box"></textarea>
+      <button onclick="submitReview()" style="margin-top:12px;width:100%;padding:12px;background:linear-gradient(135deg,#6366f1,#a78bfa);color:white;border:none;border-radius:10px;font-weight:700;font-size:0.95rem;cursor:pointer">
+        Submit Review
+      </button>
+    </div>
+    <!-- My past reviews -->
+    <div style="font-size:0.82rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px">Your Past Reviews</div>
+    <div id="myReviewsList">
+      <div style="text-align:center;padding:30px;color:var(--text-muted)">Loading your reviews…</div>
+    </div>
   </div>
 </div>
 
@@ -1538,6 +1574,7 @@ if (tab === "orders") loadOrders();
   if (tab === "loyalty") loadLoyalty();
   if (tab === "analytics") loadCustomerAnalytics();
   if (tab === "referral") loadReferral();
+  if (tab === "reviews") loadMyReviews();
   if (tab === "bundles") loadBundles();
   if (tab === "checkin") loadCheckin();
   if (tab === "achievements") loadCustomerAchievements();
@@ -2538,6 +2575,69 @@ function closeCompareModal() {
 
 /* ===== REFERRAL PROGRAM ===== */
 let referralData = null;
+
+/* ===== REVIEWS / TESTIMONIALS ===== */
+let selectedRating = 0;
+
+function setRating(n) {
+  selectedRating = n;
+  document.querySelectorAll("#starRating span").forEach((s, i) => {
+    s.textContent = i < n ? "★" : "☆";
+    s.style.color = i < n ? "#f59e0b" : "var(--text-muted)";
+  });
+}
+
+async function submitReview() {
+  const text = document.getElementById("reviewText").value.trim();
+  if (!selectedRating) { showToast("Please select a star rating", "warning"); return; }
+  if (text.length < 10) { showToast("Please write at least 10 characters", "warning"); return; }
+  const storeId = window.currentStoreId || localStorage.getItem("activeStoreId");
+  if (!storeId) { showToast("No store selected", "warning"); return; }
+  try {
+    const res = await fetch("/customer/testimonial", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: token },
+      body: JSON.stringify({ storeId, text, rating: selectedRating })
+    });
+    const data = await res.json();
+    showToast(data.message || "Review submitted! It will appear after approval ✅", "success");
+    document.getElementById("reviewText").value = "";
+    setRating(0);
+    loadMyReviews();
+  } catch(err) { showToast("Failed to submit review", "error"); }
+}
+
+async function loadMyReviews() {
+  const el = document.getElementById("myReviewsList");
+  if (!el) return;
+  const storeId = window.currentStoreId || localStorage.getItem("activeStoreId");
+  try {
+    const res = await fetch(`/customer/my-reviews${storeId ? "?storeId=" + storeId : ""}`, {
+      headers: { Authorization: token }
+    });
+    if (!res.ok) throw new Error("Failed");
+    const data = await res.json();
+    if (!data.reviews?.length) {
+      el.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-muted)">You haven't submitted any reviews yet.<br>Be the first to review this store!</div>`;
+      return;
+    }
+    el.innerHTML = data.reviews.map(r => {
+      const stars = "★".repeat(r.rating) + "☆".repeat(5 - r.rating);
+      const status = r.approved
+        ? `<span style="color:#22c55e;font-size:0.72rem">✅ Published</span>`
+        : `<span style="color:#f59e0b;font-size:0.72rem">⏳ Pending approval</span>`;
+      return `<div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:12px;padding:16px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <span style="color:#f59e0b;font-size:1.1rem">${stars}</span>${status}
+        </div>
+        <div style="font-size:0.9rem;color:var(--text-secondary)">${r.text}</div>
+        <div style="font-size:0.72rem;color:var(--text-muted);margin-top:6px">${new Date(r.createdAt).toLocaleDateString("en-IN")}</div>
+      </div>`;
+    }).join("");
+  } catch(err) {
+    el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted)">Could not load reviews.</div>`;
+  }
+}
 
 async function loadReferral() {
   try {
