@@ -1335,10 +1335,11 @@ if (oauthToken) {
 
 // Multi-store: read storeId from URL or localStorage
 const urlStoreId = urlParams.get("storeId");
+const urlTab = urlParams.get("tab");
 if (urlStoreId) {
   localStorage.setItem("activeStoreId", urlStoreId);
-  // Clean URL without losing state
-  const newUrl = window.location.pathname;
+  // Clean URL — keep tab param temporarily for initStoreContext to read
+  const newUrl = urlTab ? `${window.location.pathname}?tab=${urlTab}` : window.location.pathname;
   window.history.replaceState({}, document.title, newUrl);
 }
 window.currentStoreId = localStorage.getItem("activeStoreId") || null;
@@ -2852,6 +2853,20 @@ function setTheme(theme) { setCustomerTheme(theme); }
     }
     if (logo) logo.textContent = `🛍️ ${storeName}`;
     document.title = `${storeName} | ShelfSense`;
+
+    // Always land on Shop tab when arriving from marketplace
+    showMainTab("shop", document.getElementById("tab-shop"));
+  }
+
+  // Also support ?tab=xxx URL param
+  const tabParam = new URLSearchParams(window.location.search).get("tab");
+  if (tabParam) {
+    const tabBtn = document.getElementById(`tab-${tabParam}`);
+    if (tabBtn) showMainTab(tabParam, tabBtn);
+  }
+  // Clean the tab param from URL now that it's been consumed
+  if (window.location.search) {
+    window.history.replaceState({}, document.title, window.location.pathname);
   }
 })();
 

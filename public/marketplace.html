@@ -417,10 +417,10 @@
       window.location.href = "login.html?tab=customer&redirect=marketplace";
       return;
     }
-    // Logged in — go to customer.html with storeId
+    // Logged in — go to customer.html with storeId, land on shop tab
     localStorage.setItem("activeStoreId", storeId);
     localStorage.setItem("activeStoreName", storeName);
-    window.location.href = `customer.html?storeId=${storeId}`;
+    window.location.href = `customer.html?storeId=${storeId}&tab=shop`;
   }
 
   // ── Preview Modal ──
