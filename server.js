@@ -6059,7 +6059,7 @@ app.get("/admin/tax-report", auth("admin"), async (req, res) => {
     const storeId = req.user.storeId;
     const month = new Date(); month.setDate(1); month.setHours(0, 0, 0, 0);
     const orders = await Order.find({ storeId, createdAt: { $gte: month } });
-    const totalRevenue = orders.reduce((s, o) => s + (o.total || 0), 0);
+    const totalRevenue = orders.reduce((s, o) => s + (o.totalAmount || 0), 0);
     const gstRate = 0.18;
     const taxableAmount = totalRevenue / (1 + gstRate);
     const gstAmount = totalRevenue - taxableAmount;
@@ -7245,7 +7245,7 @@ app.get("/admin/financial-summary", auth("admin"), async (req, res) => {
       Order.find({ storeId, createdAt: { $gte: monthStart } }),
       Order.find({ storeId })
     ]);
-    const rev = (orders) => orders.reduce((s, o) => s + (o.total || 0), 0);
+    const rev = (orders) => orders.reduce((s, o) => s + (o.totalAmount || 0), 0);
     res.json({
       today: { revenue: rev(todayOrders).toFixed(2), orders: todayOrders.length },
       thisMonth: { revenue: rev(monthOrders).toFixed(2), orders: monthOrders.length },
