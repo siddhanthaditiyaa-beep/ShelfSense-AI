@@ -2092,11 +2092,78 @@ async function loadOrders() {
             <span>${order.totalItems || items.reduce((a,[,q]) => a+q, 0)} items</span>
             <span class="order-amount">₹${order.totalAmount || "—"}</span>
           </div>
+          ${status === "delivered" ? `
+          <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border-color)">
+            <button onclick="openReturnModal('${order._id}', ${JSON.stringify(items.map(([k,q]) => ({key:k, name: order.itemNames?.[k] || k, qty:q})))})"
+              style="padding:7px 16px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);color:#f87171;border-radius:8px;font-size:0.78rem;font-weight:600;cursor:pointer">
+              🔄 Request Return / Refund
+            </button>
+          </div>` : ""}
         </div>`;
     }).join("");
   } catch (err) {
     el.innerHTML = `<p style="color:var(--danger-text)">Failed to load orders</p>`;
   }
+}
+
+/* ===== RETURNS ===== */
+function openReturnModal(orderId, items) {
+  // Create modal dynamically
+  let modal = document.getElementById("returnModal");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "returnModal";
+    modal.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px";
+    document.body.appendChild(modal);
+  }
+  modal.innerHTML = `
+    <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:16px;padding:28px;max-width:460px;width:100%">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <h3 style="font-size:1.1rem;font-weight:800;margin:0">🔄 Request Return / Refund</h3>
+        <button onclick="document.getElementById('returnModal').remove()" style="background:none;border:none;color:var(--text-muted);font-size:1.3rem;cursor:pointer">✕</button>
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="font-size:0.82rem;color:var(--text-muted);margin-bottom:6px;display:block">Which item to return?</label>
+        <select id="returnItemSelect" style="width:100%;padding:10px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);font-size:0.875rem">
+          ${items.map(i => `<option value="${i.name}">${i.name} × ${i.qty}</option>`).join("")}
+        </select>
+      </div>
+      <div style="margin-bottom:20px">
+        <label style="font-size:0.82rem;color:var(--text-muted);margin-bottom:6px;display:block">Reason for return</label>
+        <select id="returnReason" style="width:100%;padding:10px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);font-size:0.875rem;margin-bottom:8px">
+          <option value="Defective product">Defective product</option>
+          <option value="Wrong item received">Wrong item received</option>
+          <option value="Item not as described">Item not as described</option>
+          <option value="Changed my mind">Changed my mind</option>
+          <option value="Expired product">Expired product</option>
+          <option value="Other">Other</option>
+        </select>
+        <textarea id="returnNote" placeholder="Additional details (optional)" rows="3"
+          style="width:100%;padding:10px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);font-size:0.875rem;resize:vertical;box-sizing:border-box"></textarea>
+      </div>
+      <button onclick="submitReturn('${orderId}')"
+        style="width:100%;padding:12px;background:linear-gradient(135deg,#6366f1,#a78bfa);color:white;border:none;border-radius:10px;font-weight:700;font-size:0.95rem;cursor:pointer">
+        Submit Return Request
+      </button>
+    </div>`;
+  modal.style.display = "flex";
+}
+
+async function submitReturn(orderId) {
+  const itemName = document.getElementById("returnItemSelect")?.value;
+  const reason = document.getElementById("returnReason")?.value;
+  const note = document.getElementById("returnNote")?.value;
+  const storeId = window.currentStoreId || localStorage.getItem("activeStoreId") || "";
+  try {
+    const res = await fetch("/customer/return-request", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: token },
+      body: JSON.stringify({ orderId, itemName, reason: note ? `${reason} — ${note}` : reason, storeId })
+    });
+    const data = await res.json();
+    showToast(data.message || "Return request submitted! Store owner will review it.", "success");
+    document.getElementById("returnModal")?.remove();
+  } catch(err) { showToast("Failed to submit return request", "error"); }
 }
 
 /* ===== FILTERS ===== */

@@ -1884,9 +1884,9 @@ app.get("/admin-data", auth("admin"), async (req, res) => {
   try {
     const storeId = req.user.storeId;
     const inventory = await Item.find({ storeId });
-    const monitoring = await Log.find({ storeId, type: "agent" }).sort({ _id: -1 }).limit(50);
-    const forecasting = await Log.find({ storeId, agent: "Forecasting Agent" }).sort({ _id: -1 }).limit(20);
-    res.json({ inventory, monitoring, forecasting });
+    const monitoring = await AgentLog.find({ storeId }).sort({ createdAt: -1 }).limit(50);
+    const forecasting = await AgentLog.find({ storeId, agent: "Forecasting Agent" }).sort({ createdAt: -1 }).limit(20);
+    res.json({ inventory, items: inventory, monitoring, forecasting });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
@@ -5462,14 +5462,16 @@ app.post("/admin/update-cost-price", auth("admin"), async (req, res) => {
 });
 app.get("/admin/gross-margins", auth("admin"), async (req, res) => {
   try {
-    const items = await Item.find({ storeId: req.user.storeId });
-    const margins = items.filter(i => i.costPrice > 0).map(i => ({
-      name: i.name, price: i.price, costPrice: i.costPrice,
+    const allItems = await Item.find({ storeId: req.user.storeId });
+    const margins = allItems.filter(i => i.costPrice > 0).map(i => ({
+      name: i.name, key: i.key, price: i.price, costPrice: i.costPrice,
       margin: (((i.price - i.costPrice) / i.price) * 100).toFixed(1),
       profit: (i.price - i.costPrice).toFixed(2),
       grade: ((i.price - i.costPrice) / i.price) >= 0.3 ? "Good" : ((i.price - i.costPrice) / i.price) >= 0.15 ? "Average" : "Low"
     })).sort((a, b) => parseFloat(b.margin) - parseFloat(a.margin));
-    res.json({ margins });
+    // Return items list so the frontend dropdown can be populated
+    const items = allItems.map(i => ({ key: i.key, name: i.name, price: i.price, costPrice: i.costPrice || 0 }));
+    res.json({ margins, items });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
