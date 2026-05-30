@@ -2092,15 +2092,30 @@ async function loadOrders() {
             <span>${order.totalItems || items.reduce((a,[,q]) => a+q, 0)} items</span>
             <span class="order-amount">₹${order.totalAmount || "—"}</span>
           </div>
-          ${status === "delivered" ? `
           <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border-color)">
-            <button onclick="openReturnModal('${order._id}', ${JSON.stringify(items.map(([k,q]) => ({key:k, name: order.itemNames?.[k] || k, qty:q})))})"
+            <button class="return-btn" data-orderid="${order._id}"
               style="padding:7px 16px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);color:#f87171;border-radius:8px;font-size:0.78rem;font-weight:600;cursor:pointer">
               🔄 Request Return / Refund
             </button>
-          </div>` : ""}
+          </div>
         </div>`;
     }).join("");
+
+    // Wire up return buttons — store items in a lookup map so no JSON-in-onclick needed
+    window._orderItemsMap = {};
+    orders.forEach(order => {
+      const items = Object.entries(order.cart || {}).map(([k, q]) => ({
+        key: k, name: order.itemNames?.[k] || k, qty: q
+      }));
+      window._orderItemsMap[order._id] = items;
+    });
+    el.querySelectorAll(".return-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const oid = btn.dataset.orderid;
+        openReturnModal(oid, window._orderItemsMap[oid] || []);
+      });
+    });
+
   } catch (err) {
     el.innerHTML = `<p style="color:var(--danger-text)">Failed to load orders</p>`;
   }
