@@ -1581,6 +1581,48 @@ app.post("/checkout", auth("customer"), async (req, res) => {
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
+/* Apply shelf scan results to inventory */
+app.post("/admin/apply-scan-inventory", auth("admin"), async (req, res) => {
+  try {
+    const { present_products, missing_products, empty_slots, stock_counts, shelf_id } = req.body;
+    const storeId = req.user.storeId;
+    const updates = [];
+
+    // If ML service returns actual per-product counts, use those (most accurate)
+    if (stock_counts && Object.keys(stock_counts).length > 0) {
+      for (const [productKey, count] of Object.entries(stock_counts)) {
+        if (typeof count !== "number") continue;
+        const item = await Item.findOne({ storeId, key: productKey });
+        if (!item) continue;
+        await Item.findOneAndUpdate({ storeId, key: productKey }, { $set: { stock: count } });
+        updates.push(`${item.name}: stock set to ${count} units (from scan)`);
+        await logAgent(storeId, "Monitoring Agent", `📸 Shelf scan: ${item.name} stock set to ${count}`, {}, "info");
+      }
+    }
+
+    // For missing products: reduce stock by number of empty slots detected
+    if (!Object.keys(stock_counts || {}).length && missing_products?.length) {
+      for (const productKey of missing_products) {
+        const item = await Item.findOne({ storeId, key: productKey });
+        if (!item) continue;
+        const reduction = empty_slots || 1;
+        const newStock = Math.max(0, item.stock - reduction);
+        await Item.findOneAndUpdate({ storeId, key: productKey }, { $set: { stock: newStock } });
+        updates.push(`${item.name}: ${item.stock} → ${newStock} (${reduction} empty slot${reduction !== 1 ? "s" : ""} detected)`);
+        await logAgent(storeId, "Monitoring Agent", `📸 Shelf scan updated: ${item.name} stock ${item.stock}→${newStock}`, {}, "warning");
+      }
+    }
+
+    if (updates.length === 0) {
+      return res.json({ message: "Scan processed — all products present, no changes needed!", updates: [] });
+    }
+    res.json({ message: `${updates.length} product${updates.length !== 1 ? "s" : ""} updated from shelf scan.`, updates });
+  } catch (err) {
+    console.error("Apply scan inventory error:", err.message);
+    res.status(500).json({ message: "Failed to apply scan: " + err.message });
+  }
+});
+
 /* =========================
    RAZORPAY
 ========================= */

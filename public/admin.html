@@ -1169,6 +1169,19 @@
           <div class="card"><h2>❌ Missing Products</h2><div class="product-tags" id="missingProducts"></div></div>
         </div>
         <div class="card"><h2>📍 Find Nearby Franchise</h2><div class="product-tags" id="missingProductBtns"></div><div id="franchiseResults" style="margin-top:16px"></div></div>
+
+        <!-- APPLY TO INVENTORY -->
+        <div class="card" id="applyInventoryCard" style="border:1px solid rgba(99,102,241,0.3);background:rgba(99,102,241,0.05)">
+          <h2>📦 Apply Scan to Inventory</h2>
+          <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:16px">
+            Based on the shelf scan, update your inventory stock levels. Empty slots reduce stock by 1 unit per slot. Occupied slots confirm stock is present.
+          </p>
+          <div id="scanInventoryPreview" style="margin-bottom:16px"></div>
+          <button class="btn-primary" onclick="applyShelfScanToInventory()" style="padding:10px 24px;font-size:0.9rem">
+            ✅ Apply Scan Results to Inventory
+          </button>
+          <div id="applyInventoryResult" style="margin-top:12px"></div>
+        </div>
       </div>
       <div class="card"><h2>📜 Recent Shelf Scans</h2><div id="recentScans">Loading...</div></div>
     </div>
@@ -4016,6 +4029,55 @@ function renderScanResult(data) {
   document.getElementById("presentProducts").innerHTML = data.present_products.length === 0 ? "<p style='color:var(--text-muted)'>None detected</p>" : data.present_products.map(p => `<span class="product-tag" style="background:var(--success-bg);color:var(--success-text)">✅ ${p}</span>`).join("");
   document.getElementById("missingProducts").innerHTML = data.missing_products.length === 0 ? "<p style='color:var(--text-muted)'>None missing ✅</p>" : data.missing_products.map(p => `<span class="product-tag" style="background:var(--danger-bg);color:var(--danger-text)">❌ ${p}</span>`).join("");
   document.getElementById("missingProductBtns").innerHTML = data.missing_products.length === 0 ? "<p style='color:var(--text-muted)'>No missing products 🎉</p>" : data.missing_products.map(p => `<button class="btn-warning" style="font-size:0.8rem" onclick="findFranchiseForProduct('${p}')">📍 Find ${p} nearby</button>`).join("");
+
+  // Store scan data for inventory apply
+  window.lastScanData = data;
+
+  // Show preview of what will be updated
+  const preview = document.getElementById("scanInventoryPreview");
+  if (preview) {
+    const presentHtml = data.present_products.length
+      ? data.present_products.map(p => `<span style="display:inline-flex;align-items:center;gap:5px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);color:#6ee7b7;padding:4px 10px;border-radius:8px;font-size:0.78rem;margin:3px">✅ ${p} — stock confirmed</span>`).join("")
+      : "<span style='color:var(--text-muted);font-size:0.82rem'>No products detected</span>";
+    const missingHtml = data.missing_products.length
+      ? data.missing_products.map(p => `<span style="display:inline-flex;align-items:center;gap:5px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;padding:4px 10px;border-radius:8px;font-size:0.78rem;margin:3px">⚠️ ${p} — ${data.empty_slot_numbers?.length || 1} empty slot(s) detected</span>`).join("")
+      : "<span style='color:#22c55e;font-size:0.82rem'>✅ All products present!</span>";
+    preview.innerHTML = `
+      <div style="margin-bottom:8px"><div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px">Products Present (stock will be confirmed):</div>${presentHtml}</div>
+      <div><div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px">Missing Products (stock will be reduced by empty slots):</div>${missingHtml}</div>`;
+  }
+}
+
+async function applyShelfScanToInventory() {
+  const data = window.lastScanData;
+  if (!data) { ssToast("No scan data found. Please run a scan first.", "warning"); return; }
+  const btn = event.target;
+  btn.disabled = true; btn.textContent = "⏳ Applying...";
+  const resultEl = document.getElementById("applyInventoryResult");
+  try {
+    const res = await fetch("/admin/apply-scan-inventory", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+      body: JSON.stringify({
+        present_products: data.present_products,
+        missing_products: data.missing_products,
+        empty_slots: data.empty_slots,
+        stock_counts: data.stock_counts || {},
+        shelf_id: data.shelf_id
+      })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.message);
+    resultEl.innerHTML = `<div style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:10px;padding:14px;color:#6ee7b7">
+      ✅ <strong>Inventory updated!</strong> ${result.message}
+      ${result.updates?.length ? `<ul style="margin:8px 0 0 16px;font-size:0.82rem">${result.updates.map(u => `<li>${u}</li>`).join("")}</ul>` : ""}
+    </div>`;
+    ssToast("Inventory updated from shelf scan ✅", "success");
+    loadAdmin();
+  } catch(err) {
+    resultEl.innerHTML = `<div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:10px;padding:14px;color:#fca5a5">❌ ${err.message}</div>`;
+  }
+  btn.disabled = false; btn.textContent = "✅ Apply Scan Results to Inventory";
 }
 
 async function loadRecentScans() {
