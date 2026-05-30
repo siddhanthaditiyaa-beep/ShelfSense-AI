@@ -4364,13 +4364,13 @@ const ReturnRequest = mongoose.model("ReturnRequest", ReturnRequestSchema);
 app.post("/customer/return-request", auth("customer"), async (req, res) => {
   try {
     const { orderId, itemName, reason } = req.body;
-    const order = await Order.findOne({ _id:orderId, customerEmail:req.user.email });
-    if (!order) return res.status(404).json({ message:"Order not found" });
-    const existing = await ReturnRequest.findOne({ orderId, itemName, customerEmail:req.user.email });
-    if (existing) return res.status(400).json({ message:"Return already requested for this item" });
-    const ret = await ReturnRequest.create({ storeId:order.storeId, orderId, customerEmail:req.user.email, itemName, reason });
-    res.json({ message:"Return request submitted", id:ret._id });
-  } catch(err){ res.status(500).json({message:"Server error"}); }
+    const order = await Order.findOne({ _id: orderId, userEmail: req.user.email });
+    if (!order) return res.status(404).json({ message: "Order not found" });
+    const existing = await ReturnRequest.findOne({ orderId, itemName, customerEmail: req.user.email });
+    if (existing) return res.status(400).json({ message: "Return already requested for this item" });
+    const ret = await ReturnRequest.create({ storeId: order.storeId, orderId, customerEmail: req.user.email, itemName, reason });
+    res.json({ message: "✅ Return request submitted! The store owner will review it within 24 hours.", id: ret._id });
+  } catch(err) { res.status(500).json({ message: "Server error" }); }
 });
 
 app.get("/admin/return-requests", auth("admin"), async (req, res) => {
