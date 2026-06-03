@@ -1938,15 +1938,32 @@ app.post("/admin/bulk-update-stock", auth("admin"), async (req, res) => {
     for (const row of updates) {
       const key = row.key?.toLowerCase().trim().replace(/\s+/g, "-");
       const stock = parseInt(row.stock);
-      if (!key || isNaN(stock) || stock < 0) { results.push({ key, status: "skipped" }); continue; }
+      const price = parseFloat(row.price) || 99;
+      const category = row.category?.trim() || "General";
+      // name from CSV or fallback to key formatted nicely
+      const name = row.name?.trim() || key.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      if (!key || isNaN(stock) || stock < 0) { results.push({ key, status: "skipped", reason: "invalid data" }); continue; }
       const item = await Item.findOne({ storeId, key });
-      if (!item) { results.push({ key, status: "not found" }); continue; }
-      await Item.updateOne({ key, storeId }, { $set: { stock } });
-      results.push({ key, name: item.name, stock, status: "updated" });
+      if (!item) {
+        // AUTO-CREATE the item if it doesn't exist
+        await Item.create({
+          storeId, key, name, stock, price, category,
+          salesHistory: [], minStockLevel: 3, unit: "unit",
+          costPrice: 0, rating: 0, viewCount: 0
+        });
+        results.push({ key, name, stock, status: "created" });
+      } else {
+        await Item.updateOne({ key, storeId }, { $set: { stock } });
+        results.push({ key, name: item.name, stock, status: "updated" });
+      }
     }
     const updated = results.filter(r => r.status === "updated").length;
-    await logAudit(req, req.user.email, "admin", "BULK_STOCK_UPDATE", "success", `${updated} items updated`);
-    res.json({ message: `✅ ${updated} items updated successfully`, results });
+    const created = results.filter(r => r.status === "created").length;
+    await logAudit(req, req.user.email, "admin", "BULK_STOCK_UPDATE", "success", `${updated} updated, ${created} created`);
+    res.json({
+      message: `✅ ${updated} items updated, ${created} new items created`,
+      results
+    });
   } catch(err) {
     console.error("Bulk update error:", err.message);
     res.status(500).json({ message: "Server error" });

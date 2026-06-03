@@ -342,6 +342,7 @@
   padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; font-size: 0.85rem; }
 .bulk-result-row.updated { background: var(--success-bg); color: var(--success-text); }
 .bulk-result-row.skipped { background: var(--warning-bg); color: var(--warning-text); }
+.bulk-result-row.created { background: rgba(99,102,241,0.12); color: #a5b4fc; }
 .bulk-result-row.notfound { background: var(--danger-bg); color: var(--danger-text); } 
 .chatbot-fab {
   position: fixed; bottom: 24px; right: 24px;
@@ -3915,9 +3916,9 @@ async function submitBulkUpdate() {
     document.getElementById("bulkResultTitle").innerText = data.message;
     const listEl = document.getElementById("bulkResultsList");
     listEl.innerHTML = data.results.map(r => `
-      <div class="bulk-result-row ${r.status === 'updated' ? 'updated' : r.status === 'not found' ? 'notfound' : 'skipped'}">
+      <div class="bulk-result-row ${r.status === 'updated' ? 'updated' : r.status === 'created' ? 'created' : r.status === 'not found' ? 'notfound' : 'skipped'}">
         <span><strong>${r.name || r.key}</strong></span>
-        <span>${r.status === 'updated' ? `✅ Updated to ${r.stock} units` : r.status === 'not found' ? '❌ Product not found' : '⚠️ Skipped'}</span>
+        <span>${r.status === 'updated' ? `✅ Updated to ${r.stock} units` : r.status === 'created' ? `🆕 Created with ${r.stock} units` : r.status === 'not found' ? '❌ Product not found' : '⚠️ Skipped'}</span>
       </div>`).join("");
 
     document.getElementById("bulkPreview").style.display = "none";
