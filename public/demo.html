@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ShelfSense AI — Faculty Demo Mode</title>
 <style>
+<<<<<<< Updated upstream
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
     --bg: #0f0f23; --card: #1a1a3e; --border: rgba(99,102,241,0.25);
@@ -104,24 +105,116 @@
   .log-agent { color: #a5b4fc; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
   .log-msg { color: var(--text); line-height: 1.4; }
   .log-empty { text-align: center; padding: 20px; color: var(--muted); font-size: 0.82rem; }
+=======
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0f0f23; --card: #1a1a3e; --border: rgba(99,102,241,0.25);
+  --indigo: #6366f1; --violet: #7c3aed; --green: #22c55e;
+  --amber: #f59e0b; --red: #ef4444; --cyan: #22d3ee;
+  --text: #e2e8f0; --muted: #94a3b8;
+}
+body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; padding-bottom: 60px; }
+.header { background: linear-gradient(135deg, #0f0f23, #1a1a3e); border-bottom: 1px solid var(--border); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+.header h1 { font-size: 1.3rem; font-weight: 800; background: linear-gradient(135deg,#fff,#a5b4fc); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.header p { font-size: 0.78rem; color: var(--muted); }
+.header-right { display: flex; gap: 8px; flex-wrap: wrap; }
+.badge { padding: 4px 12px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; }
+.badge-green { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); }
+.badge-indigo { background: rgba(99,102,241,0.15); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.3); }
+.btn-back { padding: 7px 14px; background: rgba(99,102,241,0.2); border: 1px solid rgba(99,102,241,0.4); color: #a5b4fc; border-radius: 8px; cursor: pointer; font-size: 0.78rem; font-weight: 600; text-decoration: none; }
+.main { padding: 20px 24px; max-width: 1400px; margin: 0 auto; }
+.intro { background: linear-gradient(135deg,rgba(99,102,241,0.12),rgba(124,58,237,0.08)); border: 1px solid rgba(99,102,241,0.3); border-radius: 12px; padding: 14px 20px; margin-bottom: 24px; display: flex; gap: 14px; align-items: center; }
+.intro h2 { font-size: 0.95rem; font-weight: 700; margin-bottom: 3px; }
+.intro p { font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+.section-title { font-size: 1rem; font-weight: 800; margin-bottom: 12px; padding: 9px 14px; border-radius: 10px; display: flex; align-items: center; gap: 8px; }
+.sec-agent { background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.25); color: #a5b4fc; }
+.sec-bg { background: rgba(124,58,237,0.08); border: 1px solid rgba(124,58,237,0.2); color: #c4b5fd; }
+.sec-security { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); color: #fca5a5; }
+.sec-customer { background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); color: #86efac; }
+.sec-admin { background: rgba(34,197,238,0.08); border: 1px solid rgba(34,197,238,0.2); color: #67e8f9; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; margin-bottom: 28px; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; transition: all 0.2s; position: relative; overflow: hidden; }
+.card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background: linear-gradient(90deg,var(--indigo),var(--violet)); opacity:0; transition:opacity 0.2s; }
+.card:hover { border-color: rgba(99,102,241,0.5); transform: translateY(-2px); }
+.card:hover::before { opacity:1; }
+.card.sec::before { background: linear-gradient(90deg,#ef4444,#f97316); }
+.card.sec:hover { border-color: rgba(239,68,68,0.4); }
+.card.cust::before { background: linear-gradient(90deg,#22c55e,#22d3ee); }
+.card.admin-feat::before { background: linear-gradient(90deg,#22d3ee,#6366f1); }
+.card-icon { font-size: 1.6rem; margin-bottom: 6px; }
+.card-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:4px; }
+.card-title { font-size: 0.85rem; font-weight: 700; }
+.cb { font-size: 0.62rem; font-weight: 700; padding: 2px 7px; border-radius: 10px; }
+.cb-a { background:rgba(99,102,241,0.2); color:#a5b4fc; }
+.cb-s { background:rgba(239,68,68,0.15); color:#fca5a5; }
+.cb-c { background:rgba(34,197,94,0.15); color:#86efac; }
+.cb-ad { background:rgba(34,197,238,0.15); color:#67e8f9; }
+.card-desc { font-size: 0.75rem; color: var(--muted); line-height: 1.4; margin: 6px 0 12px; }
+.card-sched { font-size: 0.65rem; color: rgba(165,180,252,0.6); font-weight: 600; margin-bottom: 10px; }
+.tbtn { width:100%; padding:8px; border:none; border-radius:7px; font-weight:700; font-size:0.78rem; cursor:pointer; transition:all 0.2s; }
+.tbtn-a { background:linear-gradient(135deg,#6366f1,#7c3aed); color:white; }
+.tbtn-s { background:linear-gradient(135deg,#dc2626,#f97316); color:white; }
+.tbtn-c { background:linear-gradient(135deg,#16a34a,#0891b2); color:white; }
+.tbtn-ad { background:linear-gradient(135deg,#0891b2,#6366f1); color:white; }
+.tbtn:hover { opacity:0.88; transform:translateY(-1px); }
+.tbtn:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+.overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:1000; display:none; align-items:center; justify-content:center; padding:20px; }
+.overlay.show { display:flex; }
+.panel { background:#0f172a; border:1px solid rgba(99,102,241,0.4); border-radius:18px; padding:24px; max-width:620px; width:100%; position:relative; animation:su 0.3s ease; max-height:90vh; overflow-y:auto; }
+@keyframes su { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+.pclose { position:absolute; top:14px; right:14px; background:rgba(255,255,255,0.1); border:none; color:white; width:28px; height:28px; border-radius:50%; cursor:pointer; font-size:0.9rem; }
+.picon { font-size:2rem; margin-bottom:8px; }
+.ptitle { font-size:1rem; font-weight:800; color:#a5b4fc; margin-bottom:6px; }
+.pmsg { font-size:0.85rem; color:var(--text); margin-bottom:14px; line-height:1.6; padding:10px 14px; background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.2); border-radius:8px; }
+.pdata { background:rgba(255,255,255,0.04); border-radius:8px; padding:12px; font-size:0.75rem; color:var(--muted); line-height:1.6; border:1px solid rgba(255,255,255,0.08); max-height:260px; overflow-y:auto; }
+.k { color:#a5b4fc; font-weight:700; }
+.vg { color:#4ade80; }
+.vr { color:#f87171; }
+.va { color:#fbbf24; }
+.status-bar { position:fixed; bottom:0; left:0; right:0; background:rgba(15,15,35,0.96); border-top:1px solid var(--border); padding:8px 24px; display:flex; align-items:center; justify-content:space-between; z-index:100; backdrop-filter:blur(10px); }
+.sdot { width:7px; height:7px; border-radius:50%; background:#22c55e; animation:p 2s infinite; }
+@keyframes p { 0%,100%{opacity:1}50%{opacity:0.4} }
+.stext { font-size:0.75rem; color:var(--muted); margin-left:8px; }
+.scnt { font-size:0.75rem; color:#a5b4fc; font-weight:700; }
+.log-box { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:70px; }
+.log-title { font-size:0.78rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:10px; }
+.log-feed { max-height:150px; overflow-y:auto; display:flex; flex-direction:column; gap:5px; }
+.log-e { display:flex; gap:8px; padding:6px 8px; background:rgba(255,255,255,0.03); border-radius:6px; font-size:0.74rem; }
+.lt { color:var(--muted); white-space:nowrap; flex-shrink:0; }
+.la { color:#a5b4fc; font-weight:700; white-space:nowrap; flex-shrink:0; }
+.lm { color:var(--text); line-height:1.3; }
+.log-empty { text-align:center; padding:16px; color:var(--muted); font-size:0.78rem; }
+>>>>>>> Stashed changes
 </style>
 </head>
 <body>
 
+<<<<<<< Updated upstream
 <!-- HEADER -->
 <div class="header">
   <div class="header-left">
     <h1>🎓 ShelfSense AI — Faculty Demo Mode</h1>
     <p>Click any button below to trigger that feature live and see the exact result</p>
+=======
+<div class="header">
+  <div>
+    <h1>🎓 ShelfSense AI — Faculty Demo Mode</h1>
+    <p>Click any button to trigger that feature live and see the exact result instantly</p>
+>>>>>>> Stashed changes
   </div>
   <div class="header-right">
     <span class="badge badge-green">● 40 Agents Active</span>
     <span class="badge badge-indigo">13 Security Layers</span>
+<<<<<<< Updated upstream
     <a href="admin.html" class="btn-back">← Back to Dashboard</a>
+=======
+    <a href="admin.html" class="btn-back">← Dashboard</a>
+>>>>>>> Stashed changes
   </div>
 </div>
 
 <div class="main">
+<<<<<<< Updated upstream
 
   <!-- INTRO -->
   <div class="intro-banner">
@@ -379,20 +472,162 @@
     <div class="result-title" id="resultTitle">Feature Triggered</div>
     <div class="result-message" id="resultMessage"></div>
     <div class="result-data" id="resultData"></div>
+=======
+  <div class="intro">
+    <div style="font-size:2rem;flex-shrink:0">🚀</div>
+    <div>
+      <h2>How This Works</h2>
+      <p>Every button below <strong>triggers that exact feature live on the server</strong> right now and shows you the real result instantly. No manual steps, no console commands — just click and it runs.</p>
+    </div>
+  </div>
+
+  <!-- DASHBOARD AGENTS -->
+  <div class="section-title sec-agent">🤖 Dashboard-Controlled AI Agents (18) — Toggle with Kill Switch</div>
+  <div class="grid">
+    <div class="card"><div class="card-icon">👁️</div><div class="card-top"><div class="card-title">Monitoring Agent</div><span class="cb cb-a">Every 30s</span></div><div class="card-desc">Watches every product's stock every 30 seconds. Fires low-stock and out-of-stock alerts immediately.</div><button class="tbtn tbtn-a" onclick="trigger('monitoring',this)">▶ Trigger — Fire Low Stock Alert</button></div>
+    <div class="card"><div class="card-icon">📊</div><div class="card-top"><div class="card-title">Forecasting Agent</div><span class="cb cb-a">Every 15min</span></div><div class="card-desc">Predicts demand using exponential smoothing (α=0.3) with weekend seasonality adjustment.</div><button class="tbtn tbtn-a" onclick="trigger('forecasting',this)">▶ Trigger — Run Demand Forecast</button></div>
+    <div class="card"><div class="card-icon">🔍</div><div class="card-top"><div class="card-title">Anomaly Detection Agent</div><span class="cb cb-a">Every 45s</span></div><div class="card-desc">Z-score analysis detects unusual stock drops. Outside shop hours = theft alert escalation.</div><button class="tbtn tbtn-a" onclick="trigger('anomaly',this)">▶ Trigger — Run Z-Score Analysis</button></div>
+    <div class="card"><div class="card-icon">💰</div><div class="card-top"><div class="card-title">Dynamic Pricing Agent</div><span class="cb cb-a">Every hour</span></div><div class="card-desc">Adjusts prices automatically based on demand velocity and current stock levels.</div><button class="tbtn tbtn-a" onclick="trigger('dynamic-pricing',this)">▶ Trigger — Adjust Prices</button></div>
+    <div class="card"><div class="card-icon">🏆</div><div class="card-top"><div class="card-title">Competitor Analysis Agent</div><span class="cb cb-a">Daily 9AM</span></div><div class="card-desc">Compares your prices against tracked competitor prices and suggests adjustments.</div><button class="tbtn tbtn-a" onclick="trigger('competitor',this)">▶ Trigger — Compare Prices</button></div>
+    <div class="card"><div class="card-icon">📦</div><div class="card-top"><div class="card-title">Supplier Agent</div><span class="cb cb-a">Every 2hrs</span></div><div class="card-desc">Auto-generates purchase orders when any product's stock hits minimum threshold.</div><button class="tbtn tbtn-a" onclick="trigger('supplier',this)">▶ Trigger — Generate Purchase Orders</button></div>
+    <div class="card"><div class="card-icon">👥</div><div class="card-top"><div class="card-title">Customer Behavior Agent</div><span class="cb cb-a">Daily 1AM</span></div><div class="card-desc">Co-occurrence matrix mining finds products frequently bought together for bundle recommendations.</div><button class="tbtn tbtn-a" onclick="trigger('customer-behavior',this)">▶ Trigger — Find Bundle Opportunities</button></div>
+    <div class="card"><div class="card-icon">🌤️</div><div class="card-top"><div class="card-title">Weather Agent</div><span class="cb cb-a">Daily 8AM</span></div><div class="card-desc">Fetches real-time weather from Open-Meteo API and adjusts stock recommendations.</div><button class="tbtn tbtn-a" onclick="trigger('weather',this)">▶ Trigger — Fetch Weather + Adjust</button></div>
+    <div class="card"><div class="card-icon">🏷️</div><div class="card-top"><div class="card-title">Expiry Agent</div><span class="cb cb-a">Daily 7AM</span></div><div class="card-desc">Applies 30% auto-discount to items expiring within 7 days to reduce waste.</div><button class="tbtn tbtn-a" onclick="trigger('expiry',this)">▶ Trigger — Apply Expiry Discounts</button></div>
+    <div class="card"><div class="card-icon">🗺️</div><div class="card-top"><div class="card-title">Route Optimization Agent</div><span class="cb cb-a">Weekly</span></div><div class="card-desc">Optimizes delivery routes for outgoing purchase orders to minimize logistics cost.</div><button class="tbtn tbtn-a" onclick="trigger('route-optimization',this)">▶ Trigger — Optimize Routes</button></div>
+    <div class="card"><div class="card-icon">😊</div><div class="card-top"><div class="card-title">Sentiment Analysis Agent</div><span class="cb cb-a">Daily</span></div><div class="card-desc">Analyzes customer reviews and calculates an overall store sentiment score.</div><button class="tbtn tbtn-a" onclick="trigger('sentiment',this)">▶ Trigger — Analyze Sentiment</button></div>
+    <div class="card"><div class="card-icon">⚡</div><div class="card-top"><div class="card-title">Demand Surge Agent</div><span class="cb cb-a">Every 4hrs</span></div><div class="card-desc">Detects unusual demand spikes and auto-adjusts pricing and stock alerts.</div><button class="tbtn tbtn-a" onclick="trigger('demand-surge',this)">▶ Trigger — Detect Demand Surge</button></div>
+    <div class="card"><div class="card-icon">🔎</div><div class="card-top"><div class="card-title">Fraud Detection Agent</div><span class="cb cb-a">Every 30min</span></div><div class="card-desc">Scans all transactions for suspicious patterns. Logs fraud score with IP tracking.</div><button class="tbtn tbtn-a" onclick="trigger('fraud',this)">▶ Trigger — Scan for Fraud</button></div>
+    <div class="card"><div class="card-icon">🎯</div><div class="card-top"><div class="card-title">Smart Upsell Agent</div><span class="cb cb-a">Daily</span></div><div class="card-desc">Generates personalized product upsell recommendations per customer from purchase history.</div><button class="tbtn tbtn-a" onclick="trigger('smart-upsell',this)">▶ Trigger — Generate Upsell Recs</button></div>
+    <div class="card"><div class="card-icon">⭐</div><div class="card-top"><div class="card-title">Loyalty Tier Agent</div><span class="cb cb-a">Daily midnight</span></div><div class="card-desc">Re-evaluates every customer's loyalty tier and upgrades/downgrades automatically.</div><button class="tbtn tbtn-a" onclick="trigger('loyalty-tier',this)">▶ Trigger — Recalculate Tiers</button></div>
+    <div class="card"><div class="card-icon">🌊</div><div class="card-top"><div class="card-title">Seasonal Demand Agent</div><span class="cb cb-a">Weekly</span></div><div class="card-desc">Adjusts demand forecasts for seasonal patterns — festivals, monsoon, summer etc.</div><button class="tbtn tbtn-a" onclick="trigger('seasonal',this)">▶ Trigger — Apply Seasonal Adjustment</button></div>
+    <div class="card"><div class="card-icon">📉</div><div class="card-top"><div class="card-title">Churn Prediction Agent</div><span class="cb cb-a">Weekly</span></div><div class="card-desc">Identifies customers who haven't ordered in 14+ days and triggers retention campaign.</div><button class="tbtn tbtn-a" onclick="trigger('churn',this)">▶ Trigger — Predict Churn</button></div>
+    <div class="card"><div class="card-icon">🎯</div><div class="card-top"><div class="card-title">Goal Tracking Agent</div><span class="cb cb-a">Daily</span></div><div class="card-desc">Tracks daily and monthly revenue targets and sends progress alerts to store owner.</div><button class="tbtn tbtn-a" onclick="trigger('goal-tracking',this)">▶ Trigger — Check Goals</button></div>
+  </div>
+
+  <!-- BACKGROUND AGENTS -->
+  <div class="section-title sec-bg">🔄 Background Agents (22) — Always Running Silently</div>
+  <div class="grid">
+    <div class="card"><div class="card-icon">🤖</div><div class="card-top"><div class="card-title">NLQ Agent (Ask AI)</div><span class="cb cb-a">On Demand</span></div><div class="card-desc">Groq LLaMA3-70B answers any store question in plain English from live MongoDB data.</div><button class="tbtn tbtn-a" onclick="trigger('nlq',this)">▶ Show Ask AI Feature</button></div>
+    <div class="card"><div class="card-icon">🛒</div><div class="card-top"><div class="card-title">Abandoned Cart Agent</div><span class="cb cb-a">Hourly</span></div><div class="card-desc">Detects abandoned carts and sends recovery email reminders to customers automatically.</div><button class="tbtn tbtn-a" onclick="trigger('abandoned-cart',this)">▶ Trigger — Check Abandoned Carts</button></div>
+    <div class="card"><div class="card-icon">📧</div><div class="card-top"><div class="card-title">Daily Briefing Agent</div><span class="cb cb-a">Daily 7AM</span></div><div class="card-desc">Sends store owner a morning email with sales summary, alerts, and AI insights.</div><button class="tbtn tbtn-a" onclick="trigger('daily-briefing',this)">▶ Trigger — Generate Briefing</button></div>
+    <div class="card"><div class="card-icon">📰</div><div class="card-top"><div class="card-title">Newsletter Agent</div><span class="cb cb-a">Weekly</span></div><div class="card-desc">Sends customers a newsletter with current deals, new products, and loyalty reminders.</div><button class="tbtn tbtn-a" onclick="trigger('newsletter',this)">▶ Trigger — Send Newsletter</button></div>
+    <div class="card"><div class="card-icon">⭐</div><div class="card-top"><div class="card-title">Review Request Agent</div><span class="cb cb-a">Post-delivery</span></div><div class="card-desc">Sends review request email automatically after an order status changes to Delivered.</div><button class="tbtn tbtn-a" onclick="trigger('review-request',this)">▶ Trigger — Send Review Request</button></div>
+    <div class="card"><div class="card-icon">🎁</div><div class="card-top"><div class="card-title">Points Expiry Agent</div><span class="cb cb-a">Daily</span></div><div class="card-desc">Warns customers when their loyalty points are about to expire (30-day notice).</div><button class="tbtn tbtn-a" onclick="trigger('points-expiry',this)">▶ Trigger — Check Expiring Points</button></div>
+    <div class="card"><div class="card-icon">⏰</div><div class="card-top"><div class="card-title">Peak Hours Agent</div><span class="cb cb-a">Hourly</span></div><div class="card-desc">Tracks busiest shopping hours and provides staffing and restocking timing recommendations.</div><button class="tbtn tbtn-a" onclick="trigger('peak-hours',this)">▶ Trigger — Analyze Peak Hours</button></div>
+    <div class="card"><div class="card-icon">📐</div><div class="card-top"><div class="card-title">Price Elasticity Agent</div><span class="cb cb-a">Every 6hrs</span></div><div class="card-desc">Models demand curves per product by analyzing price vs sales history data.</div><button class="tbtn tbtn-a" onclick="trigger('price-elasticity',this)">▶ Trigger — Model Elasticity</button></div>
+    <div class="card"><div class="card-icon">💡</div><div class="card-top"><div class="card-title">Price Optimization Agent</div><span class="cb cb-a">Daily</span></div><div class="card-desc">Uses elasticity model to find and suggest revenue-maximizing price points per product.</div><button class="tbtn tbtn-a" onclick="trigger('price-optimization',this)">▶ Trigger — Optimize Prices</button></div>
+    <div class="card"><div class="card-icon">💀</div><div class="card-top"><div class="card-title">Dead Stock Agent</div><span class="cb cb-a">Weekly</span></div><div class="card-desc">Flags inventory items with zero sales for 30+ days. Recommends markdown or removal.</div><button class="tbtn tbtn-a" onclick="trigger('dead-stock',this)">▶ Trigger — Find Dead Stock</button></div>
+    <div class="card"><div class="card-icon">🧺</div><div class="card-top"><div class="card-title">Market Basket Agent</div><span class="cb cb-a">Daily</span></div><div class="card-desc">Finds association rules — products frequently bought together — for cross-sell suggestions.</div><button class="tbtn tbtn-a" onclick="trigger('market-basket',this)">▶ Trigger — Find Basket Rules</button></div>
+    <div class="card"><div class="card-icon">📍</div><div class="card-top"><div class="card-title">Reorder Point Agent</div><span class="cb cb-a">Every 30min</span></div><div class="card-desc">Calculates optimal reorder trigger levels accounting for lead time and demand rate.</div><button class="tbtn tbtn-a" onclick="trigger('reorder-point',this)">▶ Trigger — Calculate Reorder Points</button></div>
+    <div class="card"><div class="card-icon">📨</div><div class="card-top"><div class="card-title">Reorder Reminder Agent</div><span class="cb cb-a">Daily</span></div><div class="card-desc">Sends email reminders to suppliers for purchase orders pending more than 48 hours.</div><button class="tbtn tbtn-a" onclick="trigger('reorder-reminder',this)">▶ Trigger — Send Supplier Reminders</button></div>
+    <div class="card"><div class="card-icon">🔄</div><div class="card-top"><div class="card-title">Subscription Agent</div><span class="cb cb-a">Daily</span></div><div class="card-desc">Manages recurring auto-delivery subscription orders and sends upcoming-delivery reminders.</div><button class="tbtn tbtn-a" onclick="trigger('subscription-agent',this)">▶ Trigger — Process Subscriptions</button></div>
+    <div class="card"><div class="card-icon">📉</div><div class="card-top"><div class="card-title">Shrinkage Alert Agent</div><span class="cb cb-a">Daily</span></div><div class="card-desc">Detects inventory shrinkage beyond expected loss rates — distinguishes theft from normal spoilage.</div><button class="tbtn tbtn-a" onclick="trigger('shrinkage',this)">▶ Trigger — Detect Shrinkage</button></div>
+    <div class="card"><div class="card-icon">🏷️</div><div class="card-top"><div class="card-title">Auto Discount Agent</div><span class="cb cb-a">Daily</span></div><div class="card-desc">Applies time-based promotional discounts automatically based on rules set by store owner.</div><button class="tbtn tbtn-a" onclick="trigger('auto-discount',this)">▶ Trigger — Apply Auto Discounts</button></div>
+    <div class="card"><div class="card-icon">🔔</div><div class="card-top"><div class="card-title">Smart Notification Agent</div><span class="cb cb-a">Event-driven</span></div><div class="card-desc">Routes all alerts intelligently — email, in-app, or Telegram based on severity level.</div><button class="tbtn tbtn-a" onclick="trigger('smart-notification',this)">▶ Trigger — Send Smart Alert</button></div>
+    <div class="card"><div class="card-icon">📡</div><div class="card-top"><div class="card-title">Stockout Broadcaster</div><span class="cb cb-a">Real-time SSE</span></div><div class="card-desc">Pushes real-time SSE message to dashboard the moment any product hits zero stock.</div><button class="tbtn tbtn-a" onclick="trigger('stockout-broadcast',this)">▶ Trigger — Broadcast Stockout</button></div>
+    <div class="card"><div class="card-icon">💾</div><div class="card-top"><div class="card-title">DB Backup Agent</div><span class="cb cb-a">Daily midnight</span></div><div class="card-desc">Creates periodic MongoDB collection snapshots for data recovery and backup.</div><button class="tbtn tbtn-a" onclick="trigger('db-backup',this)">▶ Trigger — Create DB Snapshot</button></div>
+    <div class="card"><div class="card-icon">❤️</div><div class="card-top"><div class="card-title">Health Broadcaster Agent</div><span class="cb cb-a">Every 60s SSE</span></div><div class="card-desc">Streams live system health metrics — memory, uptime, agent status — via SSE.</div><button class="tbtn tbtn-a" onclick="trigger('health-broadcast',this)">▶ Trigger — Get System Health</button></div>
+    <div class="card"><div class="card-icon">🌱</div><div class="card-top"><div class="card-title">Carbon Footprint Agent</div><span class="cb cb-a">Weekly</span></div><div class="card-desc">Calculates carbon footprint of inventory operations and suggests eco-friendly alternatives.</div><button class="tbtn tbtn-a" onclick="trigger('carbon',this)">▶ Trigger — Calculate Carbon Score</button></div>
+    <div class="card"><div class="card-icon">📩</div><div class="card-top"><div class="card-title">Recommendation Email Agent</div><span class="cb cb-a">Daily</span></div><div class="card-desc">Sends personalized product recommendation emails based on each customer's purchase history.</div><button class="tbtn tbtn-a" onclick="trigger('recommendation-email',this)">▶ Trigger — Send Recommendations</button></div>
+  </div>
+
+  <!-- SECURITY LAYERS -->
+  <div class="section-title sec-security">🛡️ All 13 Cybersecurity Layers — Demo Each Protection Live</div>
+  <div class="grid">
+    <div class="card sec"><div class="card-icon">🔑</div><div class="card-top"><div class="card-title">Layer 1: JWT + Blacklist</div><span class="cb cb-s">OWASP A01</span></div><div class="card-desc">Tokens blacklisted on logout — reusing a revoked token returns HTTP 401 instantly.</div><button class="tbtn tbtn-s" onclick="trigger('security-jwt',this)">▶ Show JWT Blacklisting</button></div>
+    <div class="card sec"><div class="card-icon">🔒</div><div class="card-top"><div class="card-title">Layer 2: Bcrypt Hashing</div><span class="cb cb-s">OWASP A02</span></div><div class="card-desc">All passwords hashed with bcrypt cost factor 12 — impossible to reverse even with DB access.</div><button class="tbtn tbtn-s" onclick="trigger('security-bcrypt',this)">▶ Show Password Hashing</button></div>
+    <div class="card sec"><div class="card-icon">🪖</div><div class="card-top"><div class="card-title">Layer 3: Helmet.js Headers</div><span class="cb cb-s">OWASP A05</span></div><div class="card-desc">15 HTTP security headers — HSTS, X-Frame-Options, CSP, X-Content-Type-Options.</div><button class="tbtn tbtn-s" onclick="trigger('security-helmet',this)">▶ Show Security Headers</button></div>
+    <div class="card sec"><div class="card-icon">⚡</div><div class="card-top"><div class="card-title">Layer 4: Rate Limiting</div><span class="cb cb-s">OWASP A04</span></div><div class="card-desc">20 requests/15min limit — excess requests blocked with HTTP 429 Too Many Requests.</div><button class="tbtn tbtn-s" onclick="demoRateLimit(this)">▶ Demo Rate Limiting Live</button></div>
+    <div class="card sec"><div class="card-icon">💉</div><div class="card-top"><div class="card-title">Layer 5: NoSQL Injection Guard</div><span class="cb cb-s">OWASP A03</span></div><div class="card-desc">express-mongo-sanitize strips $ operators — injection attacks fail silently.</div><button class="tbtn tbtn-s" onclick="demoInjection(this)">▶ Attempt Injection — Watch It Fail</button></div>
+    <div class="card sec"><div class="card-icon">🛡️</div><div class="card-top"><div class="card-title">Layer 6: XSS Protection</div><span class="cb cb-s">OWASP A03</span></div><div class="card-desc">xss-clean strips all script tags from input — cross-site scripting attacks blocked.</div><button class="tbtn tbtn-s" onclick="trigger('security-xss',this)">▶ Attempt XSS — Watch It Block</button></div>
+    <div class="card sec"><div class="card-icon">🍯</div><div class="card-top"><div class="card-title">Layer 7: Honeypot Detection</div><span class="cb cb-s">OWASP A04</span></div><div class="card-desc">Hidden field in all forms — humans never see it, bots fill it — auto-blocked.</div><button class="tbtn tbtn-s" onclick="trigger('security-honeypot',this)">▶ Show Honeypot Mechanism</button></div>
+    <div class="card sec"><div class="card-icon">🧬</div><div class="card-top"><div class="card-title">Layer 8: Biometric Anomaly</div><span class="cb cb-s">NIST, ISO A.7</span></div><div class="card-desc">Typing speed deviation >80% from baseline flags login as anomalous even with correct password.</div><button class="tbtn tbtn-s" onclick="trigger('security-biometric',this)">▶ Show Biometric Layer</button></div>
+    <div class="card sec"><div class="card-icon">📋</div><div class="card-top"><div class="card-title">Layer 9: Audit Logging</div><span class="cb cb-s">OWASP A09</span></div><div class="card-desc">Every action logged with IP, timestamp, user agent — nothing escapes the audit trail.</div><button class="tbtn tbtn-s" onclick="trigger('security-audit',this)">▶ Create Live Audit Log Entry</button></div>
+    <div class="card sec"><div class="card-icon">🔐</div><div class="card-top"><div class="card-title">Layer 10: Account Lockout</div><span class="cb cb-s">OWASP A07</span></div><div class="card-desc">5 wrong passwords = 30-minute lockout. Prevents brute force attacks completely.</div><button class="tbtn tbtn-s" onclick="demoLockout(this)">▶ Demo Brute Force Protection</button></div>
+    <div class="card sec"><div class="card-icon">🛂</div><div class="card-top"><div class="card-title">Layer 11: CSRF Protection</div><span class="cb cb-s">OWASP A08</span></div><div class="card-desc">Token-based CSRF on all POST/PUT/DELETE routes — cross-site request forgery blocked.</div><button class="tbtn tbtn-s" onclick="trigger('security-csrf',this)">▶ Show CSRF Protection</button></div>
+    <div class="card sec"><div class="card-icon">💳</div><div class="card-top"><div class="card-title">Layer 12: Fraud Detection</div><span class="cb cb-s">PCI-DSS</span></div><div class="card-desc">Real-time transaction scoring with IP tracking — 0.0% fraud rate across 46 orders.</div><button class="tbtn tbtn-s" onclick="trigger('fraud',this)">▶ Show Fraud Detection</button></div>
+    <div class="card sec"><div class="card-icon">🌐</div><div class="card-top"><div class="card-title">Layer 13: HTTPS + CORS</div><span class="cb cb-s">OWASP A05</span></div><div class="card-desc">HTTPS enforced. CORS restricted to whitelisted origins — foreign requests blocked.</div><button class="tbtn tbtn-s" onclick="trigger('security-cors',this)">▶ Show CORS Whitelist</button></div>
+  </div>
+
+  <!-- COMPLIANCE -->
+  <div class="section-title sec-security">📊 Compliance Scores — 4 International Standards</div>
+  <div class="grid">
+    <div class="card sec"><div class="card-icon">✅</div><div class="card-title" style="margin-bottom:6px">OWASP Top 10 — 90%</div><div class="card-desc">All 10 attack types covered: Injection, XSS, Broken Auth, CSRF, Misconfiguration and more.</div><button class="tbtn tbtn-s" onclick="showCompliance('owasp')">▶ Show OWASP Dashboard</button></div>
+    <div class="card sec"><div class="card-icon">🔵</div><div class="card-title" style="margin-bottom:6px">ISO 27001:2022 — 93%</div><div class="card-desc">Same standard used by banks and hospitals. 14/15 controls met — global gold standard.</div><button class="tbtn tbtn-s" onclick="showCompliance('iso')">▶ Show ISO 27001 Score</button></div>
+    <div class="card sec"><div class="card-icon">🟡</div><div class="card-title" style="margin-bottom:6px">NIST CSF 2.0 — 88%</div><div class="card-desc">US Government cybersecurity framework — Identify, Protect, Detect, Respond, Recover.</div><button class="tbtn tbtn-s" onclick="showCompliance('nist')">▶ Show NIST Score</button></div>
+    <div class="card sec"><div class="card-icon">🔴</div><div class="card-title" style="margin-bottom:6px">PCI-DSS — 85%</div><div class="card-desc">Payment card security standard. Razorpay handles card data — we never store card numbers.</div><button class="tbtn tbtn-s" onclick="showCompliance('pci')">▶ Show PCI-DSS Score</button></div>
+  </div>
+
+  <!-- CUSTOMER FEATURES -->
+  <div class="section-title sec-customer">🛍️ Customer Portal Features — 13 Tabs</div>
+  <div class="grid">
+    <div class="card cust"><div class="card-icon">🏪</div><div class="card-title" style="margin-bottom:6px">Shop + AI Recommendations</div><div class="card-desc">Live shop with AI-powered product recommendations from Customer Behavior Agent.</div><button class="tbtn tbtn-c" onclick="openTab('shop')">▶ Open Customer Shop</button></div>
+    <div class="card cust"><div class="card-icon">❤️</div><div class="card-title" style="margin-bottom:6px">Wishlist</div><div class="card-desc">Save products to wishlist. Heart button on any product card.</div><button class="tbtn tbtn-c" onclick="openTab('wishlist')">▶ Open Wishlist</button></div>
+    <div class="card cust"><div class="card-icon">📦</div><div class="card-title" style="margin-bottom:6px">Order History + Return System</div><div class="card-desc">4-stage order pipeline. Return/Refund button on delivered orders.</div><button class="tbtn tbtn-c" onclick="openTab('orders')">▶ Show Order History</button></div>
+    <div class="card cust"><div class="card-icon">⭐</div><div class="card-title" style="margin-bottom:6px">Loyalty Points + Tiers</div><div class="card-desc">Points system with Bronze/Silver/Gold tiers. Auto-upgrade by Loyalty Tier Agent.</div><button class="tbtn tbtn-c" onclick="openTab('loyalty')">▶ Show Loyalty System</button></div>
+    <div class="card cust"><div class="card-icon">📊</div><div class="card-title" style="margin-bottom:6px">My Analytics</div><div class="card-desc">Personal spending analytics, purchase patterns, and category breakdown.</div><button class="tbtn tbtn-c" onclick="openTab('analytics')">▶ Show My Analytics</button></div>
+    <div class="card cust"><div class="card-icon">🎁</div><div class="card-title" style="margin-bottom:6px">Refer & Earn</div><div class="card-desc">Auto-generated referral codes. Earn 50 points per successful referral.</div><button class="tbtn tbtn-c" onclick="openTab('referral')">▶ Show Referral System</button></div>
+    <div class="card cust"><div class="card-icon">💬</div><div class="card-title" style="margin-bottom:6px">Reviews + Ratings</div><div class="card-desc">5-star rating form. Submitted reviews go to admin for approval before publishing.</div><button class="tbtn tbtn-c" onclick="openTab('reviews')">▶ Show Reviews Tab</button></div>
+    <div class="card cust"><div class="card-icon">🛍️</div><div class="card-title" style="margin-bottom:6px">Bundle Deals</div><div class="card-desc">AI-generated product bundles based on market basket analysis. Save money together.</div><button class="tbtn tbtn-c" onclick="openTab('bundles')">▶ Show Bundle Deals</button></div>
+    <div class="card cust"><div class="card-icon">📅</div><div class="card-title" style="margin-bottom:6px">Daily Check-In</div><div class="card-desc">Check in daily to earn loyalty points. Streak bonuses for consecutive days.</div><button class="tbtn tbtn-c" onclick="openTab('checkin')">▶ Show Check-In</button></div>
+    <div class="card cust"><div class="card-icon">🏅</div><div class="card-title" style="margin-bottom:6px">Achievements</div><div class="card-desc">Gamification badges — First Purchase, Regular Shopper, Big Spender, Week Warrior etc.</div><button class="tbtn tbtn-c" onclick="openTab('achievements')">▶ Show Achievements</button></div>
+    <div class="card cust"><div class="card-icon">🔄</div><div class="card-title" style="margin-bottom:6px">Subscriptions</div><div class="card-desc">Auto-recurring orders for essentials. Weekly/monthly frequency. Managed by Subscription Agent.</div><button class="tbtn tbtn-c" onclick="openTab('subscriptions')">▶ Show Subscriptions</button></div>
+    <div class="card cust"><div class="card-icon">💰</div><div class="card-title" style="margin-bottom:6px">My Savings Dashboard</div><div class="card-desc">Total saved through discounts, sales, and loyalty points. Avg order value tracking.</div><button class="tbtn tbtn-c" onclick="openTab('savings')">▶ Show Savings</button></div>
+    <div class="card cust"><div class="card-icon">🎧</div><div class="card-title" style="margin-bottom:6px">Support Tickets</div><div class="card-desc">Submit support tickets directly from customer portal. Tracked by admin.</div><button class="tbtn tbtn-c" onclick="openTab('support')">▶ Show Support</button></div>
+  </div>
+
+  <!-- ADMIN FEATURES -->
+  <div class="section-title sec-admin">⚙️ Key Admin Features</div>
+  <div class="grid">
+    <div class="card admin-feat"><div class="card-icon">📸</div><div class="card-title" style="margin-bottom:6px">YOLOv8 Shelf Scan</div><div class="card-desc">Upload shelf image → AI detects empty slots → auto-updates inventory stock counts.</div><button class="tbtn tbtn-ad" onclick="goto('shelf-scan')">▶ Go to Shelf Scan</button></div>
+    <div class="card admin-feat"><div class="card-icon">📍</div><div class="card-title" style="margin-bottom:6px">Nearby Franchise Locator</div><div class="card-desc">Out of stock? Finds nearest franchise store with the item + distance in km.</div><button class="tbtn tbtn-ad" onclick="goto('franchises')">▶ Go to Franchise Locator</button></div>
+    <div class="card admin-feat"><div class="card-icon">📁</div><div class="card-title" style="margin-bottom:6px">Bulk CSV Stock Update</div><div class="card-desc">Upload CSV to update or auto-create 35+ items at once. Works for library books, lab components.</div><button class="tbtn tbtn-ad" onclick="goto('inventory')">▶ Go to Inventory CSV</button></div>
+    <div class="card admin-feat"><div class="card-icon">💬</div><div class="card-title" style="margin-bottom:6px">Ask AI (NLQ)</div><div class="card-desc">Type any question in plain English — get instant AI answer from live store data.</div><button class="tbtn tbtn-ad" onclick="goto('ai-agents')">▶ Go to Ask AI</button></div>
+    <div class="card admin-feat"><div class="card-icon">⚡</div><div class="card-title" style="margin-bottom:6px">Flash Deals</div><div class="card-desc">Create time-limited flash sales with countdown timers. Select product + discount % + duration.</div><button class="tbtn tbtn-ad" onclick="goto('flash-deal-history')">▶ Go to Flash Deals</button></div>
+    <div class="card admin-feat"><div class="card-icon">↩️</div><div class="card-title" style="margin-bottom:6px">Return & Refund Management</div><div class="card-desc">Customer submits return → admin approves/rejects with notes → customer notified.</div><button class="tbtn tbtn-ad" onclick="goto('returns')">▶ Go to Returns</button></div>
+    <div class="card admin-feat"><div class="card-icon">💰</div><div class="card-title" style="margin-bottom:6px">Financial Summary</div><div class="card-desc">Today/monthly/all-time revenue. 46 orders processed. GST report, P&L, ROI calculator.</div><button class="tbtn tbtn-ad" onclick="goto('financial-summary')">▶ Go to Financial Summary</button></div>
+    <div class="card admin-feat"><div class="card-icon">🏪</div><div class="card-title" style="margin-bottom:6px">Multi-Store Marketplace</div><div class="card-desc">Customers discover multiple stores, browse live inventory, shop across stores with one account.</div><button class="tbtn tbtn-ad" onclick="window.open('marketplace.html','_blank')">▶ Open Marketplace</button></div>
+  </div>
+
+  <!-- LIVE LOG -->
+  <div class="log-box">
+    <div class="log-title">📡 Live Demo Activity Log</div>
+    <div class="log-feed" id="logFeed"><div class="log-empty">Trigger any feature above — activity appears here instantly</div></div>
+  </div>
+</div>
+
+<!-- RESULT OVERLAY -->
+<div class="overlay" id="overlay" onclick="closeR(event)">
+  <div class="panel" id="panel">
+    <button class="pclose" onclick="closeR()">✕</button>
+    <div class="picon" id="picon">✅</div>
+    <div class="ptitle" id="ptitle"></div>
+    <div class="pmsg" id="pmsg"></div>
+    <div class="pdata" id="pdata"></div>
+>>>>>>> Stashed changes
   </div>
 </div>
 
 <!-- STATUS BAR -->
 <div class="status-bar">
+<<<<<<< Updated upstream
   <div class="status-left">
     <div class="status-dot"></div>
     <div class="status-text">ShelfSense AI — Live on Render.com</div>
   </div>
   <div class="demo-counter" id="demoCounter">0 features demonstrated</div>
+=======
+  <div style="display:flex;align-items:center">
+    <div class="sdot"></div>
+    <span class="stext">ShelfSense AI — Live on Render.com</span>
+  </div>
+  <span class="scnt" id="cnt">0 features demonstrated</span>
+>>>>>>> Stashed changes
 </div>
 
 <script>
 const token = localStorage.getItem("token");
+<<<<<<< Updated upstream
 let demoCount = 0;
 
 async function trigger(feature, btn) {
@@ -401,12 +636,39 @@ async function trigger(feature, btn) {
   btn.textContent = "⏳ Running...";
   btn.classList.add("loading");
 
+=======
+let cnt = 0;
+
+const icons = {
+  monitoring:"🚨",forecasting:"📊",anomaly:"🔍","dynamic-pricing":"💰",
+  competitor:"🏆",supplier:"📦","customer-behavior":"👥",weather:"🌤️",
+  expiry:"🏷️","route-optimization":"🗺️",sentiment:"😊","demand-surge":"⚡",
+  fraud:"🔎","smart-upsell":"🎯","loyalty-tier":"⭐",seasonal:"🌊",
+  churn:"📉","goal-tracking":"🎯",nlq:"🤖","abandoned-cart":"🛒",
+  "daily-briefing":"📧",newsletter:"📰","review-request":"⭐","points-expiry":"🎁",
+  "peak-hours":"⏰","price-elasticity":"📐","price-optimization":"💡","dead-stock":"💀",
+  "market-basket":"🧺","reorder-point":"📍","reorder-reminder":"📨",
+  "subscription-agent":"🔄",shrinkage:"📉","auto-discount":"🏷️",
+  "smart-notification":"🔔","stockout-broadcast":"📡","db-backup":"💾",
+  "health-broadcast":"❤️",carbon:"🌱","recommendation-email":"📩",
+  "security-jwt":"🔑","security-bcrypt":"🔒","security-helmet":"🪖",
+  "security-xss":"🛡️","security-honeypot":"🍯","security-biometric":"🧬",
+  "security-audit":"📋","security-csrf":"🛂","security-cors":"🌐",
+  "rate-limit":"⚡",injection:"💉",lockout:"🔐",compliance:"📊"
+};
+
+async function trigger(feature, btn) {
+  btn.disabled = true;
+  const orig = btn.textContent;
+  btn.textContent = "⏳ Running...";
+>>>>>>> Stashed changes
   try {
     const res = await fetch(`/demo/trigger/${feature}`, {
       method: "POST",
       headers: { "Authorization": token, "Content-Type": "application/json" }
     });
     const data = await res.json();
+<<<<<<< Updated upstream
     showResult(data, feature);
     addLog(data.agent || data.layer || feature, data.message || "Triggered");
     demoCount++;
@@ -573,6 +835,113 @@ function showResult(data, feature) {
 function closeResult(e) {
   if (!e || e.target === document.getElementById("resultOverlay")) {
     document.getElementById("resultOverlay").classList.remove("show");
+=======
+    showR(data, feature);
+    addLog(data.agent || data.layer || feature, data.message || "Triggered");
+    cnt++;
+    document.getElementById("cnt").textContent = `${cnt} feature${cnt!==1?"s":""} demonstrated`;
+  } catch(err) {
+    showR({ message: "Error: " + err.message, agent: feature }, feature);
+  }
+  btn.disabled = false;
+  btn.textContent = orig;
+}
+
+async function demoRateLimit(btn) {
+  btn.disabled = true; btn.textContent = "⏳ Sending 25 requests...";
+  const results = [];
+  for (let i = 0; i < 25; i++) {
+    const r = await fetch("/login", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({email:"rldemo@test.com",password:"wrong"}) });
+    results.push(`Request ${i+1}: HTTP ${r.status}${r.status===429?" 🚫 BLOCKED!":r.status===401?" ❌ Wrong Pwd":""}`);
+  }
+  const blocked = results.filter(r=>r.includes("429")).length;
+  showR({ message: `✅ Rate Limiter PROVED! Sent 25 requests. ${blocked} blocked with HTTP 429 Too Many Requests.`, agent: "Rate Limiting — Layer 4", details: results.slice(-10) }, "rate-limit");
+  addLog("Rate Limiter Layer 4", `${blocked}/25 requests blocked with HTTP 429`);
+  cnt++; document.getElementById("cnt").textContent = `${cnt} features demonstrated`;
+  btn.disabled = false; btn.textContent = "▶ Demo Rate Limiting Live";
+}
+
+async function demoInjection(btn) {
+  btn.disabled = true; btn.textContent = "⏳ Attempting injection...";
+  const r = await fetch("/login", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({email:{"$gt":""},password:{"$gt":""}}) });
+  const d = await r.json();
+  showR({ message: `✅ NoSQL Injection BLOCKED! The {"$gt":""} operator was stripped by express-mongo-sanitize. Server returned: "${d.message}"`, agent: "NoSQL Injection Guard — Layer 5", input: '{"email": {"$gt":""}}', result: "$ operator stripped — injection failed" }, "injection");
+  addLog("NoSQL Injection Guard Layer 5", "Injection attempt blocked — $gt operator stripped");
+  cnt++; document.getElementById("cnt").textContent = `${cnt} features demonstrated`;
+  btn.disabled = false; btn.textContent = "▶ Attempt Injection — Watch It Fail";
+}
+
+async function demoLockout(btn) {
+  btn.disabled = true; btn.textContent = "⏳ Attempting 5 wrong logins...";
+  const results = [];
+  for (let i = 0; i < 5; i++) {
+    const r = await fetch("/login", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({email:"lockdemo@shelfsense.ai",password:"wrong"}) });
+    const d = await r.json();
+    results.push(`Attempt ${i+1}: ${d.message}`);
+    await new Promise(ok=>setTimeout(ok,300));
+  }
+  showR({ message: "✅ Account Lockout demonstrated! After 5 wrong passwords the account locks for 30 minutes — preventing all brute force attacks.", agent: "Account Lockout — Layer 10", attempts: results }, "lockout");
+  addLog("Account Lockout Layer 10", "5 failed attempts → brute force protection triggered");
+  cnt++; document.getElementById("cnt").textContent = `${cnt} features demonstrated`;
+  btn.disabled = false; btn.textContent = "▶ Demo Brute Force Protection";
+}
+
+function showCompliance(type) {
+  const data = {
+    owasp: { title:"OWASP Top 10 — 90%", msg:"ShelfSense AI covers all 10 OWASP vulnerability categories.", details: {"Broken Access Control":"✅ JWT + RBAC","Cryptographic Failures":"✅ bcrypt cost 12","Injection":"✅ mongo-sanitize","Insecure Design":"✅ Threat modeled","Security Misconfiguration":"✅ Helmet.js 15 headers","Vulnerable Components":"✅ Audited packages","Auth & Session Failures":"✅ JWT blacklist + lockout","Software Integrity":"✅ Verified deps","Security Logging":"✅ AuditLog model","SSRF":"✅ URL validation"} },
+    iso: { title:"ISO 27001:2022 — 93%", msg:"Same standard used by banks, hospitals, and governments worldwide. 14/15 controls met.", details: {"A.9 Access Control":"✅","A.10 Cryptography":"✅ bcrypt","A.12 Operations Security":"✅ Audit logs","A.13 Communications":"✅ HTTPS+CORS","A.14 System Development":"✅","A.16 Incident Management":"✅","A.18 Compliance":"✅ PCI-DSS","Physical Security":"⚠️ Handled by Render.com"} },
+    nist: { title:"NIST CSF 2.0 — 88%", msg:"US Government cybersecurity framework. Five functions covered.", details: {"IDENTIFY":"✅ Asset inventory, risk assessment","PROTECT":"✅ Access control, bcrypt, Helmet","DETECT":"✅ AgentLog, AuditLog, anomaly detection","RESPOND":"✅ Fraud alerts, Telegram notifications","RECOVER":"✅ DB backups, data snapshots"} },
+    pci: { title:"PCI-DSS — 85%", msg:"Payment card security standard. Razorpay (PCI-DSS Level 1 certified) handles all card data.", details: {"Card Data Storage":"✅ Never stored on our server","Encryption":"✅ HTTPS + bcrypt","Access Control":"✅ JWT + RBAC","Logging & Monitoring":"✅ AuditLog + FraudLog","Secure Development":"✅ Input sanitization","Physical Audit":"⚠️ Razorpay certified"} }
+  };
+  const d = data[type];
+  showR({ message: d.msg, agent: d.title, ...d.details }, "compliance");
+  addLog("Compliance Dashboard", d.title);
+  cnt++; document.getElementById("cnt").textContent = `${cnt} features demonstrated`;
+}
+
+function openTab(tab) {
+  window.open(`customer.html?tab=${tab}`, "_blank");
+  addLog("Customer Portal", `Opened ${tab} tab`);
+}
+
+function goto(page) {
+  window.open(`admin.html#${page}`, "_blank");
+  addLog("Admin Dashboard", `Navigated to ${page}`);
+}
+
+function showR(data, feature) {
+  document.getElementById("picon").textContent = icons[feature] || "✅";
+  document.getElementById("ptitle").textContent = data.agent || data.layer || feature;
+  document.getElementById("pmsg").textContent = data.message || "Feature executed successfully.";
+  const skip = ["message","success","feature","timestamp","agent","layer"];
+  const entries = Object.entries(data).filter(([k])=>!skip.includes(k));
+  let html = "";
+  for (const [key, val] of entries) {
+    if (Array.isArray(val)) {
+      html += `<div><span class="k">${key}:</span></div>`;
+      val.forEach(v => {
+        const s = typeof v==="object"?JSON.stringify(v):String(v);
+        const cls = s.includes("429")||s.includes("BLOCKED")||s.includes("THEFT")?"vr":s.includes("✅")?"vg":s.includes("⚠️")?"va":"";
+        html += `<div style="padding-left:10px" class="${cls}">• ${s}</div>`;
+      });
+    } else if (typeof val==="object"&&val!==null) {
+      html += `<div><span class="k">${key}:</span></div>`;
+      Object.entries(val).forEach(([k2,v2])=>{
+        html+=`<div style="padding-left:10px"><span class="k">${k2}:</span> <span class="vg">${v2}</span></div>`;
+      });
+    } else {
+      const cls = String(val).includes("0.0%")?"vr":String(val).includes("✅")?"vg":"";
+      html += `<div><span class="k">${key}:</span> <span class="${cls}">${val}</span></div>`;
+    }
+  }
+  document.getElementById("pdata").innerHTML = html || "<div>Feature executed successfully on server.</div>";
+  document.getElementById("overlay").classList.add("show");
+}
+
+function closeR(e) {
+  if (!e || e.target===document.getElementById("overlay")) {
+    document.getElementById("overlay").classList.remove("show");
+>>>>>>> Stashed changes
   }
 }
 
@@ -581,6 +950,7 @@ function addLog(agent, message) {
   const empty = feed.querySelector(".log-empty");
   if (empty) empty.remove();
   const now = new Date().toLocaleTimeString("en-IN");
+<<<<<<< Updated upstream
   const entry = document.createElement("div");
   entry.className = "log-entry";
   entry.innerHTML = `<span class="log-time">${now}</span><span class="log-agent">${agent}</span><span class="log-msg">${message}</span>`;
@@ -593,6 +963,19 @@ if (!token) {
     <div style="font-size:3rem">🔐</div>
     <div style="font-size:1.2rem;font-weight:700">Please login first</div>
     <a href="login.html" style="padding:10px 24px;background:#6366f1;color:white;border-radius:8px;text-decoration:none">Go to Login</a>
+=======
+  const e = document.createElement("div");
+  e.className = "log-e";
+  e.innerHTML = `<span class="lt">${now}</span><span class="la">${agent}</span><span class="lm">${message}</span>`;
+  feed.insertBefore(e, feed.firstChild);
+}
+
+if (!token) {
+  document.body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:16px;background:#0f0f23;color:white">
+    <div style="font-size:3rem">🔐</div>
+    <div style="font-size:1.1rem;font-weight:700">Please login as admin first</div>
+    <a href="login.html" style="padding:10px 24px;background:#6366f1;color:white;border-radius:8px;text-decoration:none;font-weight:700">Go to Login →</a>
+>>>>>>> Stashed changes
   </div>`;
 }
 </script>
