@@ -282,7 +282,10 @@ const upload = multer({ storage, fileFilter, limits: { fileSize: 10 * 1024 * 102
    MONGODB
 ========================= */
 mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log("✅ MongoDB connected"))
+  .then(async () => {
+    console.log("✅ MongoDB connected");
+    await loadPlanogramsFromDB();
+  })
   .catch(err => console.error("❌ Mongo error", err));
 
 /* =========================
@@ -2088,16 +2091,41 @@ app.get("/admin/franchises", auth("admin"), async (req, res) => {
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
+// Restores admin-set planograms after a server restart (Render free tier
+// can restart the process, which would otherwise silently wipe planogram
+// changes back to the hardcoded defaults in slotProductMapper.js)
+async function loadPlanogramsFromDB() {
+  try {
+    const saved = await SystemSettings.find({ key: { $regex: /^PLANOGRAM_/ } });
+    saved.forEach(s => {
+      const shelfId = s.key.replace("PLANOGRAM_", "");
+      try {
+        updatePlanogram(shelfId, JSON.parse(s.value));
+        console.log(`📦 Restored planogram for ${shelfId} from database`);
+      } catch (e) {
+        console.log(`⚠️ Could not parse saved planogram for ${shelfId}`);
+      }
+    });
+  } catch (err) {
+    console.log("⚠️ Could not load planograms from database:", err.message);
+  }
+}
+
 app.get("/admin/planogram", auth("admin"), (req, res) => {
   try { res.json(getPlanogram()); }
   catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
-app.post("/admin/planogram", auth("admin"), (req, res) => {
+app.post("/admin/planogram", auth("admin"), async (req, res) => {
   try {
     const { shelfId, slotMapping } = req.body;
     if (!shelfId || !slotMapping) return res.status(400).json({ message: "shelfId and slotMapping required" });
     updatePlanogram(shelfId, slotMapping);
+    await SystemSettings.findOneAndUpdate(
+      { key: `PLANOGRAM_${shelfId}` },
+      { key: `PLANOGRAM_${shelfId}`, value: JSON.stringify(slotMapping) },
+      { upsert: true, new: true }
+    );
     res.json({ message: `Planogram updated for ${shelfId}` });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
@@ -2122,31 +2150,85 @@ app.post("/admin/scan-shelf", auth("admin"), upload.single("image"), async (req,
     const mlData = await mlResponse.json();
     let presentProducts = mlData.present_products || [];
     let missingProducts = mlData.missing_products || [];
+    let detectionDetails = mlData.detection_details || [];
     try {
       const mapped = mapSlotsToProducts(shelfId, mlData.occupied_slot_numbers, mlData.empty_slot_numbers);
       presentProducts = mapped.present_products;
       missingProducts = mapped.missing_products;
+
+      // The ML service guesses a product name per slot using its own
+      // hardcoded fallback map — override that here with the admin's
+      // REAL planogram, since that's the one the admin actually edits.
+      const layout = getPlanogram(shelfId) || {};
+      detectionDetails = detectionDetails.map(d => ({
+        ...d,
+        product: layout[d.slot] || d.product || "unknown"
+      }));
     } catch (mapErr) { console.log("Planogram note:", mapErr.message); }
-    await ShelfScan.create({
+    const savedScan = await ShelfScan.create({
       storeId, shelf_id: shelfId, imagePath,
       total_slots: mlData.total_slots, occupied_slots: mlData.occupied_slots,
       empty_slots: mlData.empty_slots, occupied_slot_numbers: mlData.occupied_slot_numbers,
       empty_slot_numbers: mlData.empty_slot_numbers, present_products: presentProducts,
-      missing_products: missingProducts, detection_details: mlData.detection_details || [],
+      missing_products: missingProducts, detection_details: detectionDetails,
       stock_counts: mlData.stock_counts || {}, fill_percentage: mlData.fill_percentage || 0,
       detectedAt: new Date().toLocaleString()
     });
     res.json({
-      message: "Shelf scanned!", imagePath, shelf_id: shelfId,
+      message: "Shelf scanned!", imagePath, shelf_id: shelfId, scan_id: savedScan._id,
       total_slots: mlData.total_slots, occupied_slots: mlData.occupied_slots,
       empty_slots: mlData.empty_slots, occupied_slot_numbers: mlData.occupied_slot_numbers,
       empty_slot_numbers: mlData.empty_slot_numbers, present_products: presentProducts,
-      missing_products: missingProducts, detection_details: mlData.detection_details,
+      missing_products: missingProducts, detection_details: detectionDetails,
       stock_counts: mlData.stock_counts, fill_percentage: mlData.fill_percentage,
       low_stock_alert: mlData.low_stock_alert, total_detections: mlData.total_detections
     });
   } catch (err) {
     console.error("Scan error:", err.message);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.post("/admin/scan-shelf/:id/override", auth("admin"), async (req, res) => {
+  try {
+    const { occupied_slot_numbers, empty_slot_numbers } = req.body;
+    if (!Array.isArray(occupied_slot_numbers) || !Array.isArray(empty_slot_numbers)) {
+      return res.status(400).json({ message: "occupied_slot_numbers and empty_slot_numbers arrays required" });
+    }
+    const scan = await ShelfScan.findById(req.params.id);
+    if (!scan) return res.status(404).json({ message: "Scan not found" });
+
+    const mapped = mapSlotsToProducts(scan.shelf_id, occupied_slot_numbers, empty_slot_numbers);
+    const layout = getPlanogram(scan.shelf_id) || {};
+    const detectionDetails = (scan.detection_details || []).map(d => ({
+      ...d, product: layout[d.slot] || d.product || "unknown"
+    }));
+    occupied_slot_numbers.forEach(slotNum => {
+      if (!detectionDetails.find(d => d.slot === slotNum)) {
+        detectionDetails.push({ slot: slotNum, class: "manual_override", product: layout[slotNum] || "unknown", confidence: 1 });
+      }
+    });
+
+    scan.occupied_slots = occupied_slot_numbers.length;
+    scan.empty_slots = empty_slot_numbers.length;
+    scan.occupied_slot_numbers = occupied_slot_numbers;
+    scan.empty_slot_numbers = empty_slot_numbers;
+    scan.present_products = mapped.present_products;
+    scan.missing_products = mapped.missing_products;
+    scan.detection_details = detectionDetails;
+    scan.fill_percentage = Math.round((occupied_slot_numbers.length / scan.total_slots) * 1000) / 10;
+    await scan.save();
+
+    res.json({
+      message: "Slot status updated manually", scan_id: scan._id,
+      total_slots: scan.total_slots, occupied_slots: scan.occupied_slots, empty_slots: scan.empty_slots,
+      occupied_slot_numbers: scan.occupied_slot_numbers, empty_slot_numbers: scan.empty_slot_numbers,
+      present_products: scan.present_products, missing_products: scan.missing_products,
+      detection_details: scan.detection_details, fill_percentage: scan.fill_percentage,
+      low_stock_alert: scan.occupied_slots <= 3
+    });
+  } catch (err) {
+    console.error("Override error:", err.message);
     res.status(500).json({ message: err.message });
   }
 });

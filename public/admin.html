@@ -1164,7 +1164,7 @@
             <div class="fill-bar"><div class="fill-bar-inner" id="fillBarInner" style="width:0%"></div></div>
           </div>
         </div>
-        <div class="card"><h2>🗺️ Shelf Slot Map</h2><p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:12px">🟢 Green = Product Present | 🔴 Red = Empty Slot</p><div class="slot-grid" id="slotGrid"></div></div>
+        <div class="card"><h2>🗺️ Shelf Slot Map</h2><p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:12px">🟢 Green = Product Present | 🔴 Red = Empty Slot &nbsp;·&nbsp; <b>Click any slot to correct it manually</b></p><div class="slot-grid" id="slotGrid"></div><div style="margin-top:12px"><button class="btn-primary" id="saveOverrideBtn" style="display:none" onclick="saveSlotOverride()">✅ Save Corrected Slot Status</button></div></div>
         <div class="row">
           <div class="card"><h2>✅ Products Present</h2><div class="product-tags" id="presentProducts"></div></div>
           <div class="card"><h2>❌ Missing Products</h2><div class="product-tags" id="missingProducts"></div></div>
@@ -4052,15 +4052,13 @@ function renderScanResult(data) {
   const bar = document.getElementById("fillBarInner");
   bar.style.width = pct + "%";
   bar.style.background = pct > 60 ? "var(--success)" : pct > 30 ? "var(--warning)" : "var(--danger)";
-  const grid = document.getElementById("slotGrid"); grid.innerHTML = "";
-  for (let i = 1; i <= data.total_slots; i++) {
-    const isOccupied = data.occupied_slot_numbers.includes(i);
-    const detail = data.detection_details?.find(d => d.slot === i);
-    const div = document.createElement("div");
-    div.className = `slot ${isOccupied ? "occupied" : "empty"}`;
-    div.innerHTML = `<div class="slot-number">Slot ${i}</div><div style="font-size:1.2rem">${isOccupied ? "✅" : "❌"}</div><div style="font-size:0.65rem;margin-top:2px">${isOccupied ? (detail?.product || "") : "Empty"}</div>`;
-    grid.appendChild(div);
-  }
+  // Working copy of occupied slots that the admin can manually correct
+  // before it's finally saved (does not touch the AI's raw result).
+  window.overrideOccupied = new Set(data.occupied_slot_numbers);
+  window.overrideTotalSlots = data.total_slots;
+  window.overrideDetectionDetails = data.detection_details || [];
+  document.getElementById("saveOverrideBtn").style.display = "none";
+  renderSlotGrid();
   document.getElementById("presentProducts").innerHTML = data.present_products.length === 0 ? "<p style='color:var(--text-muted)'>None detected</p>" : data.present_products.map(p => `<span class="product-tag" style="background:var(--success-bg);color:var(--success-text)">✅ ${p}</span>`).join("");
   document.getElementById("missingProducts").innerHTML = data.missing_products.length === 0 ? "<p style='color:var(--text-muted)'>None missing ✅</p>" : data.missing_products.map(p => `<span class="product-tag" style="background:var(--danger-bg);color:var(--danger-text)">❌ ${p}</span>`).join("");
   document.getElementById("missingProductBtns").innerHTML = data.missing_products.length === 0 ? "<p style='color:var(--text-muted)'>No missing products 🎉</p>" : data.missing_products.map(p => `<button class="btn-warning" style="font-size:0.8rem" onclick="findFranchiseForProduct('${p}')">📍 Find ${p} nearby</button>`).join("");
@@ -4081,6 +4079,58 @@ function renderScanResult(data) {
       <div style="margin-bottom:8px"><div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px">Products Present (stock will be confirmed):</div>${presentHtml}</div>
       <div><div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px">Missing Products (stock will be reduced by empty slots):</div>${missingHtml}</div>`;
   }
+}
+
+// Renders the slot grid from window.overrideOccupied so clicking a slot
+// can flip it without needing another AI scan — the AI isn't perfect on
+// every photo, so this lets the admin confirm/correct before saving.
+function renderSlotGrid() {
+  const grid = document.getElementById("slotGrid"); grid.innerHTML = "";
+  for (let i = 1; i <= window.overrideTotalSlots; i++) {
+    const isOccupied = window.overrideOccupied.has(i);
+    const detail = window.overrideDetectionDetails?.find(d => d.slot === i);
+    const div = document.createElement("div");
+    div.className = `slot ${isOccupied ? "occupied" : "empty"}`;
+    div.style.cursor = "pointer";
+    div.title = "Click to correct this slot";
+    div.dataset.slot = i;
+    div.innerHTML = `<div class="slot-number">Slot ${i}</div><div style="font-size:1.2rem">${isOccupied ? "✅" : "❌"}</div><div style="font-size:0.65rem;margin-top:2px">${isOccupied ? (detail?.product || "") : "Empty"}</div>`;
+    div.addEventListener("click", () => toggleSlotOverride(i));
+    grid.appendChild(div);
+  }
+}
+
+function toggleSlotOverride(slotNum) {
+  if (window.overrideOccupied.has(slotNum)) window.overrideOccupied.delete(slotNum);
+  else window.overrideOccupied.add(slotNum);
+  renderSlotGrid();
+  document.getElementById("saveOverrideBtn").style.display = "inline-block";
+}
+
+async function saveSlotOverride() {
+  const data = window.lastScanData;
+  if (!data || !data.scan_id) { ssToast("No scan to correct — run a scan first.", "warning"); return; }
+  const btn = document.getElementById("saveOverrideBtn");
+  btn.disabled = true; btn.innerText = "⏳ Saving...";
+  const occupied_slot_numbers = Array.from(window.overrideOccupied).sort((a, b) => a - b);
+  const allSlots = [];
+  for (let i = 1; i <= window.overrideTotalSlots; i++) allSlots.push(i);
+  const empty_slot_numbers = allSlots.filter(s => !window.overrideOccupied.has(s));
+  try {
+    const res = await fetch(`/admin/scan-shelf/${data.scan_id}/override`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: token },
+      body: JSON.stringify({ occupied_slot_numbers, empty_slot_numbers })
+    });
+    const updated = await res.json();
+    if (!res.ok) throw new Error(updated.message || "Could not save correction");
+    updated.scan_id = data.scan_id;
+    renderScanResult(updated);
+    showToast("✅ Slot status corrected and saved!");
+  } catch (err) {
+    showToast("Could not save correction: " + err.message, "error");
+  }
+  btn.disabled = false; btn.innerText = "✅ Save Corrected Slot Status";
 }
 
 async function applyShelfScanToInventory() {

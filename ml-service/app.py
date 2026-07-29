@@ -4,9 +4,14 @@ from flask import Flask, request, jsonify
 from ultralytics import YOLO
 from PIL import Image
 import os
+import base64
+import uuid
 import numpy as np
 
 app = Flask(__name__)
+
+TEMP_DIR = "temp_uploads"
+os.makedirs(TEMP_DIR, exist_ok=True)
 
 MODEL_PATH = "retail_shelf.pt"
 if not os.path.exists(MODEL_PATH):
@@ -44,17 +49,29 @@ def health():
 @app.route("/process-shelf-image", methods=["POST"])
 def process_shelf_image():
     data = request.json
+    image_base64 = data.get("imageBase64")
     image_path = data.get("imagePath")
     # Admin can now pass total_slots — defaults to auto-detect
     requested_slots = data.get("total_slots", None)
 
-    if not image_path:
-        return jsonify({"error": "imagePath required"}), 400
+    temp_file_created = None
 
-    local_path = image_path.lstrip("/")
-
-    if not os.path.exists(local_path):
-        return jsonify({"error": f"Image not found: {local_path}"}), 404
+    if image_base64:
+        # server.js sends the image as base64 — decode it to a temp file
+        try:
+            image_bytes = base64.b64decode(image_base64)
+        except Exception:
+            return jsonify({"error": "imageBase64 could not be decoded"}), 400
+        local_path = os.path.join(TEMP_DIR, f"{uuid.uuid4().hex}.jpg")
+        with open(local_path, "wb") as f:
+            f.write(image_bytes)
+        temp_file_created = local_path
+    elif image_path:
+        local_path = image_path.lstrip("/")
+        if not os.path.exists(local_path):
+            return jsonify({"error": f"Image not found: {local_path}"}), 404
+    else:
+        return jsonify({"error": "imageBase64 or imagePath required"}), 400
 
     try:
         # Run YOLO detection
@@ -203,6 +220,9 @@ def process_shelf_image():
     except Exception as e:
         print(f"❌ Error: {str(e)}")
         return jsonify({"error": str(e)}), 500
+    finally:
+        if temp_file_created and os.path.exists(temp_file_created):
+            os.remove(temp_file_created)
 
 if __name__ == "__main__":
     print("🚀 Starting Retail Shelf ML service on port 5001")
