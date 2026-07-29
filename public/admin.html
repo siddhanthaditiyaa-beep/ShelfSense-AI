@@ -3690,14 +3690,14 @@ function renderOverviewLogs(monitoring, forecasting) {
   const fEl = document.getElementById("overviewForecasting");
   if (!mEl || !fEl) return;
   const criticalLogs = monitoring.filter(l => l.severity === "critical" || l.severity === "warning").slice(0, 5);
-  mEl.innerHTML = criticalLogs.length === 0 ? "<p style='color:var(--text-muted)'>No alerts</p>" : criticalLogs.map(l => `<div class="log-item ${l.severity === 'critical' ? 'monitoring' : ''}">${l.message || l.item}<div class="log-time">${l.agent || ''} • ${l.time}</div></div>`).join("");
-  fEl.innerHTML = monitoring.slice(0, 5).length === 0 ? "<p style='color:var(--text-muted)'>No actions yet</p>" : monitoring.slice(0, 5).map(l => `<div class="log-item forecasting">${l.message || l.item}<div class="log-time">${l.agent || ''} • ${l.time}</div></div>`).join("");
+  mEl.innerHTML = criticalLogs.length === 0 ? "<p style='color:var(--text-muted)'>No alerts</p>" : criticalLogs.map(l => `<div class="log-item ${l.severity === 'critical' ? 'monitoring' : ''}">${l.action || "Agent activity"}<div class="log-time">${l.agent || ''} • ${l.createdAt ? new Date(l.createdAt).toLocaleString() : ''}</div></div>`).join("");
+  fEl.innerHTML = monitoring.slice(0, 5).length === 0 ? "<p style='color:var(--text-muted)'>No actions yet</p>" : monitoring.slice(0, 5).map(l => `<div class="log-item forecasting">${l.action || "Agent activity"}<div class="log-time">${l.agent || ''} • ${l.createdAt ? new Date(l.createdAt).toLocaleString() : ''}</div></div>`).join("");
 }
 
 function renderLogs(logs, id, type) {
   const el = document.getElementById(id);
   if (!el) return;
-  el.innerHTML = logs.length === 0 ? "<p style='color:var(--text-muted)'>No logs yet</p>" : logs.map(l => `<div class="log-item ${type}">${l.message || l.item}<div class="log-time">${l.agent || ''} • ${l.time}</div></div>`).join("");
+  el.innerHTML = logs.length === 0 ? "<p style='color:var(--text-muted)'>No logs yet</p>" : logs.map(l => `<div class="log-item ${type}">${l.action || "Agent activity"}<div class="log-time">${l.agent || ''} • ${l.createdAt ? new Date(l.createdAt).toLocaleString() : ''}</div></div>`).join("");
 }
 
 /* ===== AGENT DASHBOARD ===== */
