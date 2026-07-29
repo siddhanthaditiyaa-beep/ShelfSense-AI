@@ -368,6 +368,7 @@ const OrderSchema = new mongoose.Schema({
   userEmail: String,
   cart: Object,
   itemNames: Object,
+  items: Array,
   totalItems: Number,
   totalAmount: Number,
   paymentId: String,
@@ -1515,7 +1516,7 @@ app.post("/checkout", auth("customer"), async (req, res) => {
       await logAudit(req, req.user.email, "customer", "FRAUD_DETECTED", "warning", "Too many orders in short time");
     }
 
-    const adjusted = {}, itemNames = {}, notices = [];
+    const adjusted = {}, itemNames = {}, notices = [], orderItems = [];
     let totalItems = 0, totalAmount = 0;
     for (const key in cart) {
       if (!validateInput(key, 50)) continue;
@@ -1532,7 +1533,9 @@ app.post("/checkout", auth("customer"), async (req, res) => {
       const allowed = Math.min(qty, item.stock);
       adjusted[key] = allowed; itemNames[key] = item.name;
       totalItems += allowed;
-      totalAmount += (item.onSale ? item.salePrice : item.price || 99) * allowed;
+      const unitPrice = item.onSale ? item.salePrice : item.price || 99;
+      totalAmount += unitPrice * allowed;
+      if (allowed > 0) orderItems.push({ key, name: item.name, price: unitPrice, qty: allowed, category: item.category });
       if (qty > item.stock) notices.push(`${item.name}: only ${item.stock} available`);
       await Item.updateOne({ key, storeId: item.storeId }, {
         $inc: { stock: -allowed },
@@ -1571,7 +1574,7 @@ app.post("/checkout", auth("customer"), async (req, res) => {
 
     await Order.create({
       storeId, userId: req.user.id, userEmail: req.user.email,
-      cart: adjusted, itemNames, totalItems, totalAmount,
+      cart: adjusted, itemNames, items: orderItems, totalItems, totalAmount,
       paymentStatus: "paid", flaggedAsFraud,
       pointsEarned, couponCode: couponApplied, discountAmount,
       time: new Date().toLocaleString()
@@ -1674,7 +1677,7 @@ app.post("/verify-payment", auth("customer"), async (req, res) => {
     const body = razorpay_order_id + "|" + razorpay_payment_id;
     const expectedSignature = crypto.createHmac("sha256", process.env.RAZORPAY_KEY_SECRET).update(body).digest("hex");
     if (expectedSignature !== razorpay_signature) return res.status(400).json({ message: "Payment verification failed" });
-    const adjusted = {}, itemNames = {}, notices = [];
+    const adjusted = {}, itemNames = {}, notices = [], orderItems = [];
     let totalItems = 0, totalAmount = 0;
     for (const key in cart) {
       if (!validateInput(key, 50)) continue;
@@ -1684,7 +1687,9 @@ app.post("/verify-payment", auth("customer"), async (req, res) => {
       const allowed = Math.min(qty, item.stock);
       adjusted[key] = allowed; itemNames[key] = item.name;
       totalItems += allowed;
-      totalAmount += (item.onSale ? item.salePrice : item.price || 99) * allowed;
+      const unitPrice = item.onSale ? item.salePrice : item.price || 99;
+      totalAmount += unitPrice * allowed;
+      if (allowed > 0) orderItems.push({ key, name: item.name, price: unitPrice, qty: allowed, category: item.category });
       if (qty > item.stock) notices.push(`${item.name}: only ${item.stock} available`);
       await Item.updateOne({ key, storeId: item.storeId }, { $inc: { stock: -allowed }, $push: { salesHistory: { $each: [allowed], $slice: -30 } } });
     }
@@ -1695,7 +1700,7 @@ app.post("/verify-payment", auth("customer"), async (req, res) => {
         { $inc: { loyaltyPoints: pointsEarned, totalPointsEarned: pointsEarned } }
       );
     }
-    await Order.create({ storeId, userId: req.user.id, userEmail: req.user.email, cart: adjusted, itemNames, totalItems, totalAmount, paymentId: razorpay_payment_id, paymentStatus: "paid", pointsEarned, time: new Date().toLocaleString() });
+    await Order.create({ storeId, userId: req.user.id, userEmail: req.user.email, cart: adjusted, itemNames, items: orderItems, totalItems, totalAmount, paymentId: razorpay_payment_id, paymentStatus: "paid", pointsEarned, time: new Date().toLocaleString() });
     await logAudit(req, req.user.email, "customer", "PAYMENT_SUCCESS", "success", `₹${totalAmount}`);
     res.json({ message: "Payment successful!", paymentId: razorpay_payment_id, notices });
   } catch (err) { res.status(500).json({ message: "Payment verification error" }); }
@@ -3852,7 +3857,7 @@ app.post("/admin/nlq", auth("admin"), async (req, res) => {
     // Build structured context
     const lowStock = items.filter(i => i.stock > 0 && i.stock <= i.minStockLevel);
     const outOfStock = items.filter(i => i.stock === 0);
-    const totalRevenue = orders.reduce((sum, o) => sum + (o.total || 0), 0);
+    const totalRevenue = orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
 
     // FIX: Use [...items] spread to avoid mutating the original array when sorting
     const topSelling = [...items]
@@ -4205,7 +4210,7 @@ cron.schedule("0 0 9 * * *", async () => {
 
       const outOfStock = items.filter(i => i.stock === 0).length;
       const lowStock = items.filter(i => i.stock > 0 && i.stock <= i.minStockLevel).length;
-      const revenue = orders.reduce((s, o) => s + (o.total || 0), 0);
+      const revenue = orders.reduce((s, o) => s + (o.totalAmount || 0), 0);
       const criticals = agentLogs.filter(l => l.severity === "critical").length;
 
       const html = `
@@ -4668,9 +4673,9 @@ cron.schedule("0 0 4 * * *", async () => {
     for (const store of stores) {
       const cutoff = new Date(Date.now() - 21*24*60*60*1000);
       const orders = await Order.find({ storeId:store._id, createdAt:{ $gte:cutoff } });
-      const activeEmails = new Set(orders.map(o=>o.customerEmail));
+      const activeEmails = new Set(orders.map(o=>o.userEmail));
       const allOrders = await Order.find({ storeId:store._id });
-      const allEmails = [...new Set(allOrders.map(o=>o.customerEmail))];
+      const allEmails = [...new Set(allOrders.map(o=>o.userEmail))];
       const churned = allEmails.filter(e=>!activeEmails.has(e));
       if (churned.length > 0) {
         await logAgent(store._id, "Churn Prediction Agent", `⚠️ ${churned.length} customer(s) haven't ordered in 21+ days. Consider sending re-engagement offers.`, { churnedCount:churned.length }, "warning");
@@ -4908,7 +4913,7 @@ app.get("/superadmin/platform-stats", auth("superadmin"), async(req,res)=>{
       Item.countDocuments(),
       User.countDocuments()
     ]);
-    const revenue = await Order.aggregate([{ $group:{ _id:null, total:{ $sum:"$total" } } }]);
+    const revenue = await Order.aggregate([{ $group:{ _id:null, total:{ $sum:"$totalAmount" } } }]);
     const totalRevenue = revenue[0]?.total || 0;
     res.json({ stores, orders, items, users, totalRevenue, agents:20*stores, securityLayers:13 });
   } catch(err){ res.status(500).json({message:"Server error"}); }
@@ -5013,7 +5018,7 @@ app.post("/customer/daily-checkin", auth("customer"), async (req, res) => {
 app.post("/customer/scratch-card", auth("customer"), async (req, res) => {
   try {
     const { orderId } = req.body;
-    const order = await Order.findOne({ _id: orderId, customerEmail: req.user.email });
+    const order = await Order.findOne({ _id: orderId, userEmail: req.user.email });
     if (!order) return res.status(404).json({ message: "Order not found" });
     if (order.scratchCardUsed) return res.json({ message: "Scratch card already used", alreadyUsed: true });
     const rewards = [
@@ -5144,7 +5149,7 @@ app.post("/customer/budget-cart", async (req, res) => {
 /* FEATURE 56: REPEAT LAST ORDER */
 app.get("/customer/repeat-last-order", auth("customer"), async (req, res) => {
   try {
-    const lastOrder = await Order.findOne({ customerEmail: req.user.email }).sort({ createdAt: -1 });
+    const lastOrder = await Order.findOne({ userEmail: req.user.email }).sort({ createdAt: -1 });
     if (!lastOrder) return res.status(404).json({ message: "No previous orders found" });
     res.json({ items: lastOrder.items, total: lastOrder.total, orderId: lastOrder._id });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
@@ -5263,7 +5268,7 @@ app.get("/customer/achievements", auth("customer"), async (req, res) => {
 /* FEATURE 62: SMART NOTIFICATION (purchase pattern based) */
 app.get("/customer/smart-nudges", auth("customer"), async (req, res) => {
   try {
-    const orders = await Order.find({ customerEmail: req.user.email }).sort({ createdAt: -1 }).limit(10);
+    const orders = await Order.find({ userEmail: req.user.email }).sort({ createdAt: -1 }).limit(10);
     const nudges = [];
     if (orders.length >= 2) {
       const daysBetween = (new Date(orders[0].createdAt) - new Date(orders[1].createdAt)) / 86400000;
@@ -5353,10 +5358,10 @@ app.get("/admin/customer-ltv", auth("admin"), async (req, res) => {
     const orders = await Order.find({ storeId });
     const byCustomer = {};
     orders.forEach(o => {
-      if (!byCustomer[o.customerEmail]) byCustomer[o.customerEmail] = { email: o.customerEmail, total: 0, orders: 0, lastOrder: o.createdAt };
-      byCustomer[o.customerEmail].total += o.total || 0;
-      byCustomer[o.customerEmail].orders++;
-      if (new Date(o.createdAt) > new Date(byCustomer[o.customerEmail].lastOrder)) byCustomer[o.customerEmail].lastOrder = o.createdAt;
+      if (!byCustomer[o.userEmail]) byCustomer[o.userEmail] = { email: o.userEmail, total: 0, orders: 0, lastOrder: o.createdAt };
+      byCustomer[o.userEmail].total += o.totalAmount || 0;
+      byCustomer[o.userEmail].orders++;
+      if (new Date(o.createdAt) > new Date(byCustomer[o.userEmail].lastOrder)) byCustomer[o.userEmail].lastOrder = o.createdAt;
     });
     const customers = Object.values(byCustomer).map(c => ({
       ...c, total: c.total.toFixed(2), avgOrder: (c.total / c.orders).toFixed(2),
@@ -5376,7 +5381,7 @@ app.get("/admin/cohort-analysis", auth("admin"), async (req, res) => {
     orders.forEach(o => {
       const month = new Date(o.createdAt).toLocaleDateString("en-IN", { month: "short", year: "numeric" });
       if (!cohorts[month]) cohorts[month] = new Set();
-      cohorts[month].add(o.customerEmail);
+      cohorts[month].add(o.userEmail);
     });
     const cohortList = Object.entries(cohorts).slice(-6).map(([month, customers]) => ({
       month, newCustomers: customers.size
@@ -5393,7 +5398,7 @@ app.get("/admin/demand-heatmap-enhanced", auth("admin"), async (req, res) => {
     const heatmap = Array(7).fill(null).map(() => Array(24).fill(0));
     orders.forEach(o => {
       const d = new Date(o.createdAt);
-      heatmap[d.getDay()][d.getHours()] += o.total || 1;
+      heatmap[d.getDay()][d.getHours()] += o.totalAmount || 1;
     });
     const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     res.json({ heatmap, days, maxValue: Math.max(...heatmap.flat()) });
@@ -5411,7 +5416,7 @@ app.get("/superadmin/store-rankings", auth("superadmin"), async (req, res) => {
         Item.countDocuments({ storeId: store._id }),
         AgentLog.countDocuments({ storeId: store._id, createdAt: { $gte: new Date(Date.now() - 7 * 86400000) } })
       ]);
-      const revenue = orders.reduce((s, o) => s + (o.total || 0), 0);
+      const revenue = orders.reduce((s, o) => s + (o.totalAmount || 0), 0);
       const score = Math.min(100, Math.round((revenue / 10000) * 40 + (agents / 100) * 30 + (items / 50) * 30));
       rankings.push({ storeId: store._id, name: store.name, email: store.email, revenue: revenue.toFixed(2), orders: orders.length, items, agentActivity: agents, score, plan: store.plan || "free" });
     }
@@ -5589,7 +5594,7 @@ app.get("/superadmin/compare-stores", auth("superadmin"), async (req, res) => {
       ]);
       return {
         name: store?.name, plan: store?.plan,
-        revenue: orders.reduce((s, o) => s + (o.total || 0), 0).toFixed(2),
+        revenue: orders.reduce((s, o) => s + (o.totalAmount || 0), 0).toFixed(2),
         orders: orders.length, items: items.length,
         outOfStock: items.filter(i => i.stock === 0).length,
         agentActions: agents
@@ -5636,7 +5641,7 @@ app.get("/admin/pl-statement", auth("admin"), async (req, res) => {
       Order.find({ storeId, createdAt: { $gte: month } }),
       PurchaseOrder.find({ storeId, createdAt: { $gte: month } })
     ]);
-    const revenue = orders.reduce((s, o) => s + (o.total || 0), 0);
+    const revenue = orders.reduce((s, o) => s + (o.totalAmount || 0), 0);
     const cogs = reorders.reduce((s, r) => s + (r.quantity * 50), 0);
     const grossProfit = revenue - cogs;
     const operatingCost = 999;
@@ -5830,7 +5835,7 @@ app.get("/admin/benchmark", auth("admin"), async (req, res) => {
     ]);
     const outOfStock = items.filter(i => i.stock === 0).length;
     const stockoutRate = items.length ? ((outOfStock / items.length) * 100).toFixed(1) : 0;
-    const revenue = orders.reduce((s, o) => s + (o.total || 0), 0);
+    const revenue = orders.reduce((s, o) => s + (o.totalAmount || 0), 0);
     res.json({
       yourSystem: {
         stockoutRate: parseFloat(stockoutRate), revenuePerMonth: revenue.toFixed(2),
@@ -5901,9 +5906,9 @@ app.get("/customer/export-my-data", auth("customer"), async (req, res) => {
     const email = req.user.email;
     const [user, orders, ratings, wishlist, priceAlerts, subscriptions] = await Promise.all([
       User.findOne({ email }).select("-password"),
-      Order.find({ customerEmail: email }),
+      Order.find({ userEmail: email }),
       Rating.find({ userEmail: email }),
-      WishlistNotification.find({ customerEmail: email }),
+      WishlistNotification.find({ userEmail: email }),
       PriceAlert.find({ customerEmail: email }),
       Subscription.find({ customerEmail: email })
     ]);
@@ -5929,7 +5934,7 @@ app.delete("/customer/delete-my-data", auth("customer"), async (req, res) => {
     const email = req.user.email;
     await Promise.all([
       Rating.deleteMany({ userEmail: email }),
-      WishlistNotification.deleteMany({ customerEmail: email }),
+      WishlistNotification.deleteMany({ userEmail: email }),
       PriceAlert.deleteMany({ customerEmail: email }),
       Subscription.deleteMany({ customerEmail: email }),
       AbandonedCart.deleteMany({ customerEmail: email }),
@@ -6033,10 +6038,10 @@ app.get("/admin/revenue-attribution", auth("admin"), async (req, res) => {
       organic: 0, coupon: 0, referral: 0, flashSale: 0, bundle: 0, regular: 0
     };
     orders.forEach(o => {
-      if (o.couponCode) attribution.coupon += o.total || 0;
-      else if (o.referralCode) attribution.referral += o.total || 0;
-      else if (o.isBundle) attribution.bundle += o.total || 0;
-      else attribution.regular += o.total || 0;
+      if (o.couponCode) attribution.coupon += o.totalAmount || 0;
+      else if (o.referralCode) attribution.referral += o.totalAmount || 0;
+      else if (o.isBundle) attribution.bundle += o.totalAmount || 0;
+      else attribution.regular += o.totalAmount || 0;
     });
     const total = Object.values(attribution).reduce((s, v) => s + v, 0);
     const result = Object.entries(attribution).map(([source, amount]) => ({
@@ -6802,7 +6807,7 @@ app.get("/admin/performance-timeline", auth("admin"), async (req, res) => {
       const date = new Date(); date.setDate(date.getDate() - i); date.setHours(0, 0, 0, 0);
       const nextDate = new Date(date); nextDate.setDate(nextDate.getDate() + 1);
       const dayOrders = await Order.find({ storeId, createdAt: { $gte: date, $lt: nextDate } });
-      const revenue = dayOrders.reduce((s, o) => s + (o.total || 0), 0);
+      const revenue = dayOrders.reduce((s, o) => s + (o.totalAmount || 0), 0);
       timeline.push({ date: date.toLocaleDateString("en-IN", { day: "2-digit", month: "short" }), revenue: parseFloat(revenue.toFixed(2)), orders: dayOrders.length });
     }
     res.json({ timeline });
@@ -6850,9 +6855,9 @@ app.post("/admin/tickets/:id/reply", auth("admin"), async (req, res) => {
 app.post("/customer/join-waitlist", auth("customer"), async (req, res) => {
   try {
     const { itemKey, itemName, storeId } = req.body;
-    const existing = await WishlistNotification.findOne({ customerEmail: req.user.email, itemKey, storeId });
+    const existing = await WishlistNotification.findOne({ userEmail: req.user.email, itemKey, storeId });
     if (existing) return res.json({ message: "Already on waitlist for this item" });
-    await WishlistNotification.create({ customerEmail: req.user.email, itemKey, itemName, storeId });
+    await WishlistNotification.create({ userEmail: req.user.email, itemKey, itemName, storeId });
     res.json({ message: `✅ Added to waitlist! You'll be notified when ${itemName} is back in stock.` });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
@@ -6863,7 +6868,7 @@ app.get("/admin/waitlist", auth("admin"), async (req, res) => {
     waitlist.forEach(w => {
       if (!byItem[w.itemName]) byItem[w.itemName] = { itemName: w.itemName, itemKey: w.itemKey, count: 0, customers: [] };
       byItem[w.itemName].count++;
-      byItem[w.itemName].customers.push(w.customerEmail);
+      byItem[w.itemName].customers.push(w.userEmail);
     });
     res.json({ waitlist: Object.values(byItem).sort((a, b) => b.count - a.count) });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
@@ -6872,7 +6877,7 @@ app.get("/admin/waitlist", auth("admin"), async (req, res) => {
 /* FEATURE 121: INVOICE GENERATOR */
 app.get("/customer/invoice/:orderId", auth("customer"), async (req, res) => {
   try {
-    const order = await Order.findOne({ _id: req.params.orderId, customerEmail: req.user.email });
+    const order = await Order.findOne({ _id: req.params.orderId, userEmail: req.user.email });
     if (!order) return res.status(404).json({ message: "Order not found" });
     const store = await Store.findById(order.storeId);
     const invoiceNo = `INV-${order._id.toString().slice(-8).toUpperCase()}`;
@@ -6888,11 +6893,11 @@ app.get("/customer/invoice/:orderId", auth("customer"), async (req, res) => {
       <div><div class="logo">🧠 ShelfSense AI</div><div style="font-size:0.82rem;color:#888">${store?.name || "Store"}</div></div>
       <div style="text-align:right"><h2>INVOICE</h2><div style="font-size:0.85rem;color:#888">${invoiceNo}</div><div style="font-size:0.85rem;color:#888">${new Date(order.createdAt).toLocaleDateString("en-IN")}</div></div>
     </div>
-    <div style="margin-bottom:16px"><strong>Bill To:</strong> ${order.customerEmail}</div>
+    <div style="margin-bottom:16px"><strong>Bill To:</strong> ${order.userEmail}</div>
     <table class="items"><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead>
     <tbody>${(order.items || []).map(i => `<tr><td>${i.name}</td><td>${i.qty || 1}</td><td>₹${i.price}</td><td>₹${((i.price) * (i.qty || 1)).toFixed(2)}</td></tr>`).join("")}</tbody>
     </table>
-    <div class="total"><strong>Total: ₹${order.total?.toFixed(2)}</strong></div>
+    <div class="total"><strong>Total: ₹${order.totalAmount?.toFixed(2)}</strong></div>
     <div class="gst">*GST included where applicable</div>
     <div class="footer">Thank you for shopping with ShelfSense AI! 🛒</div>
     </body></html>`;
@@ -6962,7 +6967,7 @@ app.get("/track/:orderId", async (req, res) => {
     if (!order) return res.status(404).json({ message: "Order not found" });
     const steps = ["placed", "confirmed", "packed", "out_for_delivery", "delivered"];
     const currentStep = steps.indexOf(order.status?.toLowerCase()) || 0;
-    res.json({ orderId: req.params.orderId, status: order.status, currentStep, steps, total: order.total, createdAt: order.createdAt, itemCount: order.items?.length || 0 });
+    res.json({ orderId: req.params.orderId, status: order.status, currentStep, steps, total: order.totalAmount, createdAt: order.createdAt, itemCount: order.items?.length || 0 });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
@@ -7009,12 +7014,12 @@ app.get("/admin/fraud-scores", auth("admin"), async (req, res) => {
     const scored = orders.map(order => {
       let score = 0;
       const factors = [];
-      if (order.total > 5000) { score += 20; factors.push("High order value"); }
+      if (order.totalAmount > 5000) { score += 20; factors.push("High order value"); }
       if (order.paymentMethod === "cod") { score += 10; factors.push("Cash on delivery"); }
       if (order.fraudFlag) { score += 40; factors.push("Previously flagged"); }
       const hour = new Date(order.createdAt).getHours();
       if (hour < 6 || hour > 23) { score += 15; factors.push("Unusual hour"); }
-      return { orderId: order._id, customerEmail: order.customerEmail, total: order.total, fraudScore: Math.min(100, score), risk: score >= 50 ? "high" : score >= 25 ? "medium" : "low", factors, createdAt: order.createdAt };
+      return { orderId: order._id, customerEmail: order.userEmail, total: order.totalAmount, fraudScore: Math.min(100, score), risk: score >= 50 ? "high" : score >= 25 ? "medium" : "low", factors, createdAt: order.createdAt };
     }).filter(o => o.fraudScore > 0).sort((a, b) => b.fraudScore - a.fraudScore);
     res.json({ orders: scored.slice(0, 20) });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
@@ -7054,10 +7059,10 @@ app.get("/admin/customer-segments", auth("admin"), async (req, res) => {
     const orders = await Order.find({ storeId });
     const byCustomer = {};
     orders.forEach(o => {
-      if (!byCustomer[o.customerEmail]) byCustomer[o.customerEmail] = { email: o.customerEmail, total: 0, orders: 0, lastOrder: o.createdAt };
-      byCustomer[o.customerEmail].total += o.total || 0;
-      byCustomer[o.customerEmail].orders++;
-      if (new Date(o.createdAt) > new Date(byCustomer[o.customerEmail].lastOrder)) byCustomer[o.customerEmail].lastOrder = o.createdAt;
+      if (!byCustomer[o.userEmail]) byCustomer[o.userEmail] = { email: o.userEmail, total: 0, orders: 0, lastOrder: o.createdAt };
+      byCustomer[o.userEmail].total += o.totalAmount || 0;
+      byCustomer[o.userEmail].orders++;
+      if (new Date(o.createdAt) > new Date(byCustomer[o.userEmail].lastOrder)) byCustomer[o.userEmail].lastOrder = o.createdAt;
     });
     const customers = Object.values(byCustomer);
     const segments = {
@@ -7081,7 +7086,7 @@ app.get("/admin/customer-segments", auth("admin"), async (req, res) => {
 app.post("/customer/check-discount-eligibility", auth("customer"), async (req, res) => {
   try {
     const user = await User.findOne({ email: req.user.email });
-    const orders = await Order.find({ customerEmail: req.user.email });
+    const orders = await Order.find({ userEmail: req.user.email });
     const eligibility = [];
     if ((user?.loyaltyPoints || 0) >= 500) eligibility.push({ type: "loyalty_redeem", label: "Redeem 500 points for ₹50 off", points: 500, discount: 50 });
     if (orders.length >= 10) eligibility.push({ type: "vip", label: "VIP customer: 10% off your next order", discount: 10 });
@@ -7369,7 +7374,7 @@ app.get("/admin/peer-comparison", auth("admin"), async (req, res) => {
       Order.find({ storeId, createdAt: { $gte: new Date(Date.now() - 30 * 86400000) } }),
       Item.find({ storeId })
     ]);
-    const myRevenue = myOrders.reduce((s, o) => s + (o.total || 0), 0);
+    const myRevenue = myOrders.reduce((s, o) => s + (o.totalAmount || 0), 0);
     const myStockout = myItems.filter(i => i.stock === 0).length / Math.max(1, myItems.length) * 100;
     res.json({
       yourStore: { revenue: myRevenue.toFixed(2), orders: myOrders.length, stockoutRate: myStockout.toFixed(1) + "%", avgOrderValue: myOrders.length ? (myRevenue / myOrders.length).toFixed(2) : 0 },
@@ -7430,7 +7435,7 @@ cron.schedule("0 0 9 * * 1", async () => {
         AgentLog.countDocuments({ storeId: store._id, createdAt: { $gte: week } }),
         FraudLog.countDocuments({ storeId: store._id, createdAt: { $gte: week } })
       ]);
-      const revenue = orders.reduce((s, o) => s + (o.total || 0), 0);
+      const revenue = orders.reduce((s, o) => s + (o.totalAmount || 0), 0);
       await sendAlert(
         `📊 Weekly Report — ${store.name}`,
         `<h2>Your Week in Review</h2><p>Revenue: <strong>₹${revenue.toFixed(0)}</strong></p><p>Orders: <strong>${orders.length}</strong></p><p>Agent Actions: <strong>${agentLogs}</strong></p><p>Fraud Flags: <strong>${fraudLogs}</strong></p><p>Your 30 AI agents worked ${agentLogs} times this week to keep your store running smoothly!</p>`,
@@ -7630,7 +7635,7 @@ app.get("/admin/engagement-scores", auth("admin"), async (req, res) => {
     const storeId = req.user.storeId;
     const users = await User.find({ storeId: { $exists: false }, role: "customer" }).limit(50);
     const scores = await Promise.all(users.map(async u => {
-      const orders = await Order.countDocuments({ customerEmail: u.email, storeId });
+      const orders = await Order.countDocuments({ userEmail: u.email, storeId });
       const ratings = await Rating.countDocuments({ userEmail: u.email });
       const score = Math.min(100, orders * 10 + ratings * 5 + (u.loyaltyPoints || 0) / 10 + (u.checkinStreak || 0) * 2);
       return { email: u.email, name: u.name, score: Math.round(score), orders, ratings, loyaltyPoints: u.loyaltyPoints || 0, streak: u.checkinStreak || 0, tier: u.loyaltyTier || "Bronze" };
@@ -7782,10 +7787,10 @@ app.get("/admin/payment-analytics", auth("admin"), async (req, res) => {
       const method = o.paymentMethod || "unknown";
       if (!byMethod[method]) byMethod[method] = { method, count: 0, total: 0 };
       byMethod[method].count++;
-      byMethod[method].total += o.total || 0;
+      byMethod[method].total += o.totalAmount || 0;
     });
     const methods = Object.values(byMethod).map(m => ({ ...m, total: m.total.toFixed(2), avgOrder: (m.total / m.count).toFixed(2), pct: ((m.count / orders.length) * 100).toFixed(1) })).sort((a, b) => b.count - a.count);
-    res.json({ methods, totalOrders: orders.length, totalRevenue: orders.reduce((s, o) => s + (o.total || 0), 0).toFixed(2) });
+    res.json({ methods, totalOrders: orders.length, totalRevenue: orders.reduce((s, o) => s + (o.totalAmount || 0), 0).toFixed(2) });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
@@ -7837,7 +7842,7 @@ app.get("/admin/store-summary-card", auth("admin"), async (req, res) => {
       Item.find({ storeId }),
       Order.find({ storeId, createdAt: { $gte: new Date(Date.now() - 30 * 86400000) } })
     ]);
-    const revenue = orders.reduce((s, o) => s + (o.total || 0), 0);
+    const revenue = orders.reduce((s, o) => s + (o.totalAmount || 0), 0);
     const outOfStock = items.filter(i => i.stock === 0).length;
     const healthScore = items.length > 0 ? Math.round(((items.length - outOfStock) / items.length) * 100) : 100;
     const GROQ_API_KEY = process.env.GROQ_API_KEY;
@@ -7942,7 +7947,7 @@ app.get("/admin/goals", auth("admin"), async (req, res) => {
     const storeId = req.user.storeId;
     const goals = await Goal.find({ storeId }).sort({ createdAt:-1 });
     const orders = await Order.find({ storeId, createdAt:{ $gte: new Date(Date.now()-30*86400000) } });
-    const revenue = orders.reduce((s,o)=>s+(o.total||0),0);
+    const revenue = orders.reduce((s,o)=>s+(o.totalAmount||0),0);
     const updated = await Promise.all(goals.map(async g => {
       let current = 0;
       if (g.metric === "revenue") current = revenue;
@@ -7971,7 +7976,7 @@ cron.schedule("0 0 20 * * *", async () => {
       const goals = await Goal.find({ storeId:store._id, achieved:false });
       for (const goal of goals) {
         const orders = await Order.find({ storeId:store._id, createdAt:{ $gte: new Date(Date.now()-30*86400000) } });
-        const revenue = orders.reduce((s,o)=>s+(o.total||0),0);
+        const revenue = orders.reduce((s,o)=>s+(o.totalAmount||0),0);
         let current = goal.metric==="revenue" ? revenue : goal.metric==="orders" ? orders.length : 0;
         const pct = goal.target > 0 ? Math.round((current/goal.target)*100) : 0;
         if (pct >= 100) {
@@ -8012,18 +8017,18 @@ app.get("/admin/customer-journey/:email", auth("admin"), async (req, res) => {
     const { email } = req.params;
     const storeId = req.user.storeId;
     const [orders, ratings, wishlist, tickets] = await Promise.all([
-      Order.find({ storeId, customerEmail:email }).sort({ createdAt:1 }),
+      Order.find({ storeId, userEmail:email }).sort({ createdAt:1 }),
       Rating.find({ userEmail:email }),
-      WishlistNotification.find({ storeId, customerEmail:email }),
+      WishlistNotification.find({ storeId, userEmail:email }),
       Ticket.find({ storeId, customerEmail:email })
     ]);
     const journey = [
-      ...orders.map(o=>({ type:"order", event:`Placed order ₹${o.total?.toFixed(0)}`, time:o.createdAt, icon:"🛒" })),
+      ...orders.map(o=>({ type:"order", event:`Placed order ₹${o.totalAmount?.toFixed(0)}`, time:o.createdAt, icon:"🛒" })),
       ...ratings.map(r=>({ type:"rating", event:`Rated a product ${r.rating}/5`, time:r.createdAt, icon:"⭐" })),
       ...wishlist.map(w=>({ type:"wishlist", event:`Added ${w.itemName} to wishlist`, time:w.createdAt, icon:"❤️" })),
       ...tickets.map(t=>({ type:"support", event:`Raised support ticket: ${t.subject}`, time:t.createdAt, icon:"🎫" }))
     ].sort((a,b)=>new Date(a.time)-new Date(b.time));
-    res.json({ email, journey, totalOrders:orders.length, totalSpent:orders.reduce((s,o)=>s+(o.total||0),0).toFixed(2) });
+    res.json({ email, journey, totalOrders:orders.length, totalSpent:orders.reduce((s,o)=>s+(o.totalAmount||0),0).toFixed(2) });
   } catch(err) { res.status(500).json({ message:"Server error" }); }
 });
 
@@ -8138,8 +8143,8 @@ app.get("/admin/revenue-live", auth("admin"), async (req, res) => {
       Order.findOne({ storeId }).sort({ createdAt:-1 })
     ]);
     res.json({
-      today: dayOrders.reduce((s,o)=>s+(o.total||0),0).toFixed(2),
-      thisHour: hourOrders.reduce((s,o)=>s+(o.total||0),0).toFixed(2),
+      today: dayOrders.reduce((s,o)=>s+(o.totalAmount||0),0).toFixed(2),
+      thisHour: hourOrders.reduce((s,o)=>s+(o.totalAmount||0),0).toFixed(2),
       todayOrders: dayOrders.length, hourOrders: hourOrders.length,
       lastOrderTime: lastOrder?.createdAt, lastOrderValue: lastOrder?.total?.toFixed(2),
       timestamp: new Date().toISOString()
@@ -8177,7 +8182,7 @@ cron.schedule("*/5 * * * *", async () => {
       let triggered = false;
       if (rule.condition === "revenue_below") {
         const orders = await Order.find({ storeId, createdAt:{ $gte: new Date(Date.now()-86400000) } });
-        const rev = orders.reduce((s,o)=>s+(o.total||0),0);
+        const rev = orders.reduce((s,o)=>s+(o.totalAmount||0),0);
         if (rev < rule.threshold) triggered = true;
       } else if (rule.condition === "oos_above") {
         const oos = await Item.countDocuments({ storeId, stock:0 });
@@ -8348,8 +8353,8 @@ app.get("/admin/analytics-digest", auth("admin"), async (req, res) => {
       Item.find({ storeId }),
       AgentLog.countDocuments({ storeId, createdAt:{ $gte:d7 } })
     ]);
-    const rev7 = w7orders.reduce((s,o)=>s+(o.total||0),0);
-    const rev30 = m30orders.reduce((s,o)=>s+(o.total||0),0);
+    const rev7 = w7orders.reduce((s,o)=>s+(o.totalAmount||0),0);
+    const rev30 = m30orders.reduce((s,o)=>s+(o.totalAmount||0),0);
     const outOfStock = items.filter(i=>i.stock===0).length;
     const highlights = [];
     if (rev7 > rev30/4) highlights.push("📈 Strong week — above monthly average pace");
@@ -8451,7 +8456,7 @@ app.get("/admin/sales-stream", auth("admin"), (req, res) => {
       const storeId = req.user.storeId;
       const latest = await Order.findOne({ storeId }).sort({ createdAt:-1 }).lean();
       if (latest && (Date.now()-new Date(latest.createdAt))<60000) {
-        send({ type:"new_order", total:latest.total, items:latest.items?.length||0, time:latest.createdAt });
+        send({ type:"new_order", total:latest.totalAmount, items:latest.items?.length||0, time:latest.createdAt });
       }
     } catch(err) { clearInterval(interval); }
   }, 10000);
@@ -8486,9 +8491,9 @@ cron.schedule("0 0 18 * * *", async () => {
     const threeDaysAgo = new Date(Date.now()-3*86400000);
     const recentDelivered = await Order.find({ status:"delivered", createdAt:{ $gte:threeDaysAgo, $lt:twoDaysAgo } });
     for (const order of recentDelivered.slice(0,20)) {
-      const alreadyRated = await Rating.findOne({ userEmail:order.customerEmail, createdAt:{ $gte:twoDaysAgo } });
+      const alreadyRated = await Rating.findOne({ userEmail:order.userEmail, createdAt:{ $gte:twoDaysAgo } });
       if (!alreadyRated) {
-        await sendAlert("How was your order? ⭐", `Hi! Your recent order has been delivered. We'd love your feedback! Rate your products to earn 10 loyalty points per review.`, false, order.customerEmail);
+        await sendAlert("How was your order? ⭐", `Hi! Your recent order has been delivered. We'd love your feedback! Rate your products to earn 10 loyalty points per review.`, false, order.userEmail);
       }
     }
     if (recentDelivered.length>0) await logAgent(null, "Review Request Agent", `⭐ Review requests sent for ${recentDelivered.length} delivered orders`, { count:recentDelivered.length }, "info");
@@ -8519,7 +8524,8 @@ app.get("/admin/cross-sell-matrix", auth("admin"), async (req, res) => {
     const orders = await Order.find({ storeId }).limit(200);
     const matrix = {};
     orders.forEach(o => {
-      const names = (o.items||[]).map(i=>i.name);
+      const keys = Object.keys(o.cart || {});
+      const names = keys.map(k => (o.itemNames && o.itemNames[k]) || k);
       names.forEach(a => {
         names.forEach(b => {
           if (a!==b) {
@@ -8548,7 +8554,7 @@ app.get("/admin/system-report", auth("admin"), async (req, res) => {
       FraudLog.countDocuments({ storeId }),
       AuditLog.countDocuments()
     ]);
-    const revenue = orders.reduce((s,o)=>s+(o.total||0),0);
+    const revenue = orders.reduce((s,o)=>s+(o.totalAmount||0),0);
     const report = {
       generated: new Date().toISOString(),
       store: { name:store?.name, plan:store?.plan, city:store?.city },
@@ -8571,7 +8577,7 @@ app.get("/shop/personalized-home", auth("customer"), async (req, res) => {
   try {
     const { storeId } = req.query;
     const email = req.user.email;
-    const orders = await Order.find({ customerEmail: email, storeId }).sort({ createdAt: -1 }).limit(20);
+    const orders = await Order.find({ userEmail: email, storeId }).sort({ createdAt: -1 }).limit(20);
     const allItems = await Item.find({ storeId, stock: { $gt: 0 } });
     const boughtKeys = new Set(orders.flatMap(o => (o.items || []).map(i => i.key)));
     const hour = new Date().getHours();
@@ -8688,7 +8694,7 @@ app.get("/admin/price-history-chart/:key", auth("admin"), async (req, res) => {
 app.get("/customer/milestone-check", auth("customer"), async (req, res) => {
   try {
     const email = req.user.email;
-    const orders = await Order.find({ customerEmail: email });
+    const orders = await Order.find({ userEmail: email });
     const user = await User.findOne({ email });
     const milestones = [
       { orders: 1, reward: 50, label: "First Order Bonus" },
@@ -8785,7 +8791,7 @@ app.get("/admin/store-narrative", auth("admin"), async (req, res) => {
       Item.find({ storeId }),
       AgentLog.countDocuments({ storeId, createdAt: { $gte: new Date(Date.now() - 7 * 86400000) } })
     ]);
-    const rev = orders.reduce((s, o) => s + (o.total || 0), 0);
+    const rev = orders.reduce((s, o) => s + (o.totalAmount || 0), 0);
     const oos = items.filter(i => i.stock === 0).length;
     const GROQ_API_KEY = process.env.GROQ_API_KEY;
     let narrative = `This week, ${store?.name} processed ${orders.length} orders generating ₹${rev.toFixed(0)} in revenue. Your 34 AI agents performed ${agents} actions to keep the store running. ${oos} products are currently out of stock.`;
@@ -8967,16 +8973,16 @@ app.get("/admin/transaction-anomalies", auth("admin"), async (req, res) => {
   try {
     const storeId = req.user.storeId;
     const orders = await Order.find({ storeId }).sort({ createdAt: -1 }).limit(100);
-    const totals = orders.map(o => o.total || 0).filter(t => t > 0);
+    const totals = orders.map(o => o.totalAmount || 0).filter(t => t > 0);
     const avg = totals.reduce((a, b) => a + b, 0) / Math.max(1, totals.length);
     const variance = totals.reduce((s, v) => s + Math.pow(v - avg, 2), 0) / Math.max(1, totals.length);
     const stdDev = Math.sqrt(variance);
     const anomalies = orders.filter(o => {
-      const z = stdDev > 0 ? Math.abs((o.total || 0) - avg) / stdDev : 0;
+      const z = stdDev > 0 ? Math.abs((o.totalAmount || 0) - avg) / stdDev : 0;
       return z > 2.5;
     }).map(o => {
-      const z = stdDev > 0 ? Math.abs((o.total || 0) - avg) / stdDev : 0;
-      return { orderId: o._id, total: o.total, customerEmail: o.customerEmail, zScore: z.toFixed(2), type: o.total > avg ? "unusually_high" : "unusually_low", time: o.createdAt };
+      const z = stdDev > 0 ? Math.abs((o.totalAmount || 0) - avg) / stdDev : 0;
+      return { orderId: o._id, total: o.totalAmount, customerEmail: o.userEmail, zScore: z.toFixed(2), type: o.totalAmount > avg ? "unusually_high" : "unusually_low", time: o.createdAt };
     });
     res.json({ anomalies, avgOrderValue: avg.toFixed(2), stdDev: stdDev.toFixed(2), analysed: orders.length });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
@@ -9039,13 +9045,13 @@ app.get("/admin/cohort-revenue", auth("admin"), async (req, res) => {
     const storeId = req.user.storeId;
     const orders = await Order.find({ storeId }).sort({ createdAt: 1 });
     const firstOrder = {};
-    orders.forEach(o => { if (!firstOrder[o.customerEmail]) firstOrder[o.customerEmail] = new Date(o.createdAt).toLocaleDateString("en-IN", { month: "short", year: "2-digit" }); });
+    orders.forEach(o => { if (!firstOrder[o.userEmail]) firstOrder[o.userEmail] = new Date(o.createdAt).toLocaleDateString("en-IN", { month: "short", year: "2-digit" }); });
     const cohortRevenue = {};
     orders.forEach(o => {
-      const cohort = firstOrder[o.customerEmail];
+      const cohort = firstOrder[o.userEmail];
       if (!cohortRevenue[cohort]) cohortRevenue[cohort] = { cohort, customers: new Set(), revenue: 0, orders: 0 };
-      cohortRevenue[cohort].customers.add(o.customerEmail);
-      cohortRevenue[cohort].revenue += o.total || 0;
+      cohortRevenue[cohort].customers.add(o.userEmail);
+      cohortRevenue[cohort].revenue += o.totalAmount || 0;
       cohortRevenue[cohort].orders++;
     });
     const result = Object.values(cohortRevenue).map(c => ({ cohort: c.cohort, customers: c.customers.size, revenue: c.revenue.toFixed(2), orders: c.orders, avgRevPerCustomer: (c.revenue / c.customers.size).toFixed(2) })).slice(-6);
@@ -9085,7 +9091,7 @@ app.get("/admin/performance-badges", auth("admin"), async (req, res) => {
       AgentLog.countDocuments({ storeId }),
       FraudLog.countDocuments({ storeId })
     ]);
-    const revenue = (await Order.find({ storeId })).reduce((s, o) => s + (o.total || 0), 0);
+    const revenue = (await Order.find({ storeId })).reduce((s, o) => s + (o.totalAmount || 0), 0);
     const badges = [
       { id: "century_orders", name: "Century Club 💯", earned: orders >= 100, desc: "100+ orders processed" },
       { id: "well_stocked", name: "Well Stocked 📦", earned: items >= 20, desc: "20+ products in inventory" },
@@ -9113,7 +9119,7 @@ app.get("/admin/ieee-export", auth("admin"), async (req, res) => {
       AuditLog.find().sort({ createdAt: -1 }).limit(100),
       SessionLog.countDocuments()
     ]);
-    const revenue = orders.reduce((s, o) => s + (o.total || 0), 0);
+    const revenue = orders.reduce((s, o) => s + (o.totalAmount || 0), 0);
     const exportData = {
       exportMeta: { generatedAt: new Date().toISOString(), purpose: "IEEE Paper Research Export", version: "2.0.0" },
       systemOverview: { totalFeatures: 230, totalAgents: 34, securityLayers: 13, apiRoutes: "100+", dbSchemas: 35 },
@@ -9273,7 +9279,7 @@ app.get("/admin/forensics-timeline/:incidentDate", auth("admin"), async (req, re
       ...auditLogs.map(l => ({ time: l.createdAt, type: "audit", actor: l.userEmail, action: l.action, ip: l.ip, severity: l.status === "success" ? "normal" : "warning" })),
       ...secLogs.map(l => ({ time: l.createdAt, type: "security", actor: l.ip, action: l.message, severity: "critical" })),
       ...agentLogs.map(l => ({ time: l.createdAt, type: "agent", actor: l.agent, action: l.action, severity: l.severity })),
-      ...fraudLogs.map(l => ({ time: l.createdAt, type: "fraud", actor: l.customerEmail, action: l.reason, severity: "critical" }))
+      ...fraudLogs.map(l => ({ time: l.createdAt, type: "fraud", actor: l.userEmail, action: l.reason, severity: "critical" }))
     ].sort((a, b) => new Date(a.time) - new Date(b.time));
     res.json({ timeline, incidentDate: req.params.incidentDate, eventCount: timeline.length, criticalEvents: timeline.filter(e => e.severity === "critical").length });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
@@ -9290,7 +9296,7 @@ app.get("/admin/ablation-study", auth("admin"), async (req, res) => {
     ]);
     const outOfStock = items.filter(i => i.stock === 0).length;
     const stockoutRate = items.length > 0 ? (outOfStock / items.length * 100).toFixed(1) : 0;
-    const revenue = orders.reduce((s, o) => s + (o.total || 0), 0);
+    const revenue = orders.reduce((s, o) => s + (o.totalAmount || 0), 0);
     res.json({
       study: [
         { configuration: "No AI (baseline)", agents: 0, stockoutRate: "15.2%", revenue: (revenue * 0.72).toFixed(0), fraudDetected: 0, automationLevel: "0%", note: "Manual management, no automation" },
@@ -9445,7 +9451,7 @@ app.post("/admin/query", auth("admin"), async (req, res) => {
     if (fields.includes("store")) result.store = await Store.findById(storeId).select("name city plan alertEmail").lean();
     if (fields.includes("stats")) {
       const orders = result.orders || await Order.find({ storeId }).lean();
-      result.stats = { totalItems: (result.items || []).length, totalOrders: orders.length, totalRevenue: orders.reduce((s, o) => s + (o.total || 0), 0).toFixed(2) };
+      result.stats = { totalItems: (result.items || []).length, totalOrders: orders.length, totalRevenue: orders.reduce((s, o) => s + (o.totalAmount || 0), 0).toFixed(2) };
     }
     res.json({ data: result, fields, timestamp: new Date().toISOString() });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
@@ -9455,13 +9461,13 @@ app.post("/admin/query", auth("admin"), async (req, res) => {
 app.get("/customer/preferences", auth("customer"), async (req, res) => {
   try {
     const email = req.user.email;
-    const orders = await Order.find({ customerEmail: email }).sort({ createdAt: -1 }).limit(30);
+    const orders = await Order.find({ userEmail: email }).sort({ createdAt: -1 }).limit(30);
     const catFreq = {}, pricePoints = [], timePrefs = {};
     orders.forEach(o => {
       const hour = new Date(o.createdAt).getHours();
       const slot = hour < 12 ? "morning" : hour < 18 ? "afternoon" : "evening";
       timePrefs[slot] = (timePrefs[slot] || 0) + 1;
-      pricePoints.push(o.total || 0);
+      pricePoints.push(o.totalAmount || 0);
       (o.items || []).forEach(i => { catFreq[i.category || "general"] = (catFreq[i.category || "general"] || 0) + 1; });
     });
     const avgSpend = pricePoints.length ? (pricePoints.reduce((a, b) => a + b, 0) / pricePoints.length).toFixed(0) : 0;
@@ -9522,7 +9528,7 @@ app.post("/admin/send-performance-snapshot", auth("admin"), async (req, res) => 
       Item.find({ storeId }),
       Order.find({ storeId, createdAt: { $gte: new Date(Date.now() - 7 * 86400000) } })
     ]);
-    const rev = orders.reduce((s, o) => s + (o.total || 0), 0);
+    const rev = orders.reduce((s, o) => s + (o.totalAmount || 0), 0);
     const oos = items.filter(i => i.stock === 0).length;
     const health = items.length > 0 ? Math.round(((items.length - oos) / items.length) * 100) : 100;
     await sendAlert("📊 Your Store Performance Snapshot",
@@ -9624,7 +9630,7 @@ cron.schedule("0 0 10 * * 3", async () => {
   try {
     const users = await User.find({ role: "customer" }).limit(50);
     for (const user of users) {
-      const orders = await Order.find({ customerEmail: user.email }).sort({ createdAt: -1 }).limit(5);
+      const orders = await Order.find({ userEmail: user.email }).sort({ createdAt: -1 }).limit(5);
       if (!orders.length) continue;
       const boughtKeys = new Set(orders.flatMap(o => (o.items || []).map(i => i.key)));
       const storeId = orders[0]?.storeId;
@@ -9666,14 +9672,14 @@ app.post("/admin/smart-discount-campaign", auth("admin"), async (req, res) => {
     const code = "SMART" + crypto.randomBytes(3).toString("hex").toUpperCase();
     await Coupon.create({ storeId, code, discount: discountPercent, type: "percent", active: true, usageLimit: 100, usedCount: 0, minOrder: 0 });
     const orders = await Order.find({ storeId });
-    const allEmails = [...new Set(orders.map(o => o.customerEmail))];
+    const allEmails = [...new Set(orders.map(o => o.userEmail))];
     let targetEmails = allEmails;
     if (targetSegment === "inactive") {
       const cutoff = new Date(Date.now() - 21 * 86400000);
       const activeEmails = new Set(await Order.distinct("customerEmail", { storeId, createdAt: { $gte: cutoff } }));
       targetEmails = allEmails.filter(e => !activeEmails.has(e));
     } else if (targetSegment === "vip") {
-      const vipEmails = orders.reduce((acc, o) => { acc[o.customerEmail] = (acc[o.customerEmail] || 0) + 1; return acc; }, {});
+      const vipEmails = orders.reduce((acc, o) => { acc[o.userEmail] = (acc[o.userEmail] || 0) + 1; return acc; }, {});
       targetEmails = Object.entries(vipEmails).filter(([, c]) => c >= 5).map(([e]) => e);
     }
     let sent = 0;
@@ -9802,7 +9808,7 @@ app.post("/admin/build-report", auth("admin"), async (req, res) => {
     const report = {};
     if (metrics.includes("revenue")) {
       const orders = await Order.find({ storeId, createdAt: { $gte: since } });
-      report.revenue = { total: orders.reduce((s,o)=>s+(o.total||0),0).toFixed(2), orders: orders.length, avg: orders.length ? (orders.reduce((s,o)=>s+(o.total||0),0)/orders.length).toFixed(2) : 0 };
+      report.revenue = { total: orders.reduce((s,o)=>s+(o.totalAmount||0),0).toFixed(2), orders: orders.length, avg: orders.length ? (orders.reduce((s,o)=>s+(o.totalAmount||0),0)/orders.length).toFixed(2) : 0 };
     }
     if (metrics.includes("inventory")) {
       const items = await Item.find({ storeId });
@@ -9816,7 +9822,7 @@ app.post("/admin/build-report", auth("admin"), async (req, res) => {
     }
     if (metrics.includes("customers")) {
       const orders = await Order.find({ storeId, createdAt: { $gte: since } });
-      report.customers = { unique: new Set(orders.map(o=>o.customerEmail)).size, totalOrders: orders.length };
+      report.customers = { unique: new Set(orders.map(o=>o.userEmail)).size, totalOrders: orders.length };
     }
     report.meta = { dateRange: `Last ${dateRange||30} days`, generatedAt: new Date().toISOString(), metrics };
     res.json({ report });
@@ -9862,7 +9868,7 @@ cron.schedule("0 0 10 * * 5", async () => {
     for (const store of stores) {
       const items = await Item.find({ storeId: store._id, stock: { $gt: 0 } }).sort({ price: 1 }).limit(4);
       const orders = await Order.find({ storeId: store._id, createdAt: { $gte: new Date(Date.now()-7*86400000) } });
-      const revenue = orders.reduce((s,o)=>s+(o.total||0),0);
+      const revenue = orders.reduce((s,o)=>s+(o.totalAmount||0),0);
       const html = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
         <div style="background:linear-gradient(135deg,#6366f1,#a78bfa);padding:24px;text-align:center;border-radius:12px 12px 0 0">
           <h1 style="color:white;margin:0;font-size:1.3rem">🛒 Weekly Deals from ${store.name}</h1>
@@ -10150,7 +10156,7 @@ app.get("/admin/gamification-leaderboard", auth("admin"), async (req, res) => {
     const storeId = req.user.storeId;
     const users = await User.find({ role: "customer" }).limit(100);
     const leaderboard = await Promise.all(users.map(async u => {
-      const orders = await Order.countDocuments({ customerEmail: u.email, storeId });
+      const orders = await Order.countDocuments({ userEmail: u.email, storeId });
       const score = (u.loyaltyPoints||0) + orders*10 + (u.checkinStreak||0)*5;
       return { name: u.name||u.email.split("@")[0], email: u.email, score, tier: u.loyaltyTier||"Bronze", orders, streak: u.checkinStreak||0, points: u.loyaltyPoints||0 };
     }));
@@ -10205,7 +10211,7 @@ app.get("/customer/waitlist-position", auth("customer"), async (req, res) => {
   try {
     const { itemKey, storeId } = req.query;
     const allWaiting = await WishlistNotification.find({ storeId, itemKey }).sort({ createdAt: 1 });
-    const myPosition = allWaiting.findIndex(w => w.customerEmail === req.user.email) + 1;
+    const myPosition = allWaiting.findIndex(w => w.userEmail === req.user.email) + 1;
     res.json({ position: myPosition || null, total: allWaiting.length, onWaitlist: myPosition > 0, message: myPosition ? `You are #${myPosition} of ${allWaiting.length} on the waitlist` : "You are not on this waitlist" });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
@@ -10217,7 +10223,7 @@ app.get("/admin/referral-analytics", auth("admin"), async (req, res) => {
     const users = await User.find({ role: "customer", referralCount: { $gt: 0 } });
     const totalReferrals = users.reduce((s,u)=>s+(u.referralCount||0),0);
     const orders = await Order.find({ storeId, referralCode: { $exists: true, $ne: null } });
-    const revenueFromReferrals = orders.reduce((s,o)=>s+(o.total||0),0);
+    const revenueFromReferrals = orders.reduce((s,o)=>s+(o.totalAmount||0),0);
     res.json({ totalReferrers: users.length, totalReferrals, revenueFromReferrals: revenueFromReferrals.toFixed(2), avgReferralsPerUser: users.length ? (totalReferrals/users.length).toFixed(1) : 0, topReferrer: users.sort((a,b)=>(b.referralCount||0)-(a.referralCount||0))[0]?.email || "None" });
   } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
@@ -10231,7 +10237,7 @@ app.get("/superadmin/export-all", auth("superadmin"), async (req, res) => {
       Item.countDocuments(),
       User.countDocuments()
     ]);
-    const revenue = (await Order.aggregate([{ $group: { _id: null, total: { $sum: "$total" } } }]))[0]?.total || 0;
+    const revenue = (await Order.aggregate([{ $group: { _id: null, total: { $sum: "$totalAmount" } } }]))[0]?.total || 0;
     res.setHeader("Content-Type","application/json");
     res.setHeader("Content-Disposition",`attachment; filename="shelfsense_platform_export_${new Date().toISOString().split("T")[0]}.json"`);
     res.json({ exportDate: new Date().toISOString(), platform: { totalStores: stores.length, totalOrders, totalItems, totalUsers, totalRevenue: revenue.toFixed(2) }, stores: stores.map(s=>({ name:s.name, plan:s.plan, city:s.city, createdAt:s.createdAt })) });
@@ -10283,7 +10289,7 @@ app.get("/customer/milestone-progress", auth("customer"), async (req, res) => {
   try {
     const email = req.user.email;
     const user = await User.findOne({ email });
-    const orders = await Order.find({ customerEmail: email });
+    const orders = await Order.find({ userEmail: email });
     const milestones = [
       { orders: 1, reward: 50, label: "First Order", icon: "🎉" },
       { orders: 5, reward: 100, label: "5 Orders", icon: "🌟" },
@@ -10475,11 +10481,11 @@ app.get("/admin/spend-predictor", auth("admin"), async (req, res) => {
     const orders = await Order.find({ storeId }).sort({ createdAt: -1 });
     const byCustomer = {};
     orders.forEach(o => {
-      if (!byCustomer[o.customerEmail]) byCustomer[o.customerEmail] = { orders:[], email:o.customerEmail };
-      byCustomer[o.customerEmail].orders.push(o);
+      if (!byCustomer[o.userEmail]) byCustomer[o.userEmail] = { orders:[], email:o.userEmail };
+      byCustomer[o.userEmail].orders.push(o);
     });
     const predictions = Object.values(byCustomer).map(c => {
-      const totals = c.orders.map(o=>o.total||0);
+      const totals = c.orders.map(o=>o.totalAmount||0);
       const avg = totals.reduce((a,b)=>a+b,0)/totals.length;
       const lastOrder = new Date(c.orders[0]?.createdAt);
       const daysBetween = c.orders.length > 1 ? Math.floor((new Date(c.orders[0].createdAt)-new Date(c.orders[c.orders.length-1].createdAt))/(86400000*(c.orders.length-1))) : 14;
@@ -10610,12 +10616,12 @@ app.get("/admin/global-search", auth("admin"), async (req, res) => {
     if (!q || q.length < 2) return res.json({ results:[] });
     const [items, orders, logs] = await Promise.all([
       Item.find({ storeId, name:{ $regex:q,$options:"i" } }).limit(5).select("name stock price key"),
-      Order.find({ storeId, customerEmail:{ $regex:q,$options:"i" } }).limit(5).select("customerEmail total status createdAt"),
+      Order.find({ storeId, userEmail:{ $regex:q,$options:"i" } }).limit(5).select("userEmail totalAmount status createdAt"),
       AgentLog.find({ storeId, action:{ $regex:q,$options:"i" } }).limit(5).select("agent action createdAt severity")
     ]);
     const results = [
       ...items.map(i=>({ type:"product",icon:"📦",title:i.name,subtitle:`Stock: ${i.stock} · ₹${i.price}`,id:i.key })),
-      ...orders.map(o=>({ type:"order",icon:"🛒",title:o.customerEmail,subtitle:`₹${o.total} · ${o.status}`,id:o._id })),
+      ...orders.map(o=>({ type:"order",icon:"🛒",title:o.userEmail,subtitle:`₹${o.totalAmount} · ${o.status}`,id:o._id })),
       ...logs.map(l=>({ type:"agent_log",icon:"🤖",title:l.agent,subtitle:l.action.substring(0,60),id:l._id }))
     ];
     res.json({ results, query:q });
@@ -10657,7 +10663,7 @@ app.get("/admin/radar-metrics", auth("admin"), async (req, res) => {
       SessionLog.countDocuments()
     ]);
     const stockHealth = items.length?Math.round(((items.length-items.filter(i=>i.stock===0).length)/items.length)*100):100;
-    const revenueScore = Math.min(100,orders.reduce((s,o)=>s+(o.total||0),0)/1000);
+    const revenueScore = Math.min(100,orders.reduce((s,o)=>s+(o.totalAmount||0),0)/1000);
     const agentScore = Math.min(100,agents/5);
     const securityScore = Math.max(0,100-fraud*10);
     const inventoryScore = Math.min(100,items.length*2);
@@ -10946,7 +10952,7 @@ app.get("/admin/export-analytics-csv", auth("admin"), async (req, res) => {
       const date = new Date(o.createdAt).toLocaleDateString("en-IN");
       if (!byDay[date]) byDay[date]={ orders:0, revenue:0 };
       byDay[date].orders++;
-      byDay[date].revenue+=(o.total||0);
+      byDay[date].revenue+=(o.totalAmount||0);
     });
     Object.entries(byDay).forEach(([date,data])=>{
       rows.push([date, data.orders, data.revenue.toFixed(2), (data.revenue/data.orders).toFixed(2)]);
@@ -11009,7 +11015,7 @@ app.get("/admin/health-score-v2", auth("admin"), async (req, res) => {
     const lowStock = items.filter(i=>i.stock>0&&i.stock<=i.minStockLevel).length;
     const deadStock = items.filter(i=>{ const h=i.salesHistory||[]; return h.slice(-14).reduce((a,b)=>a+b,0)===0&&i.stock>0; }).length;
     const stockScore = items.length?Math.round(((items.length-outOfStock-lowStock*0.5)/items.length)*100):100;
-    const revenueScore = Math.min(100,orders.reduce((s,o)=>s+(o.total||0),0)/5000);
+    const revenueScore = Math.min(100,orders.reduce((s,o)=>s+(o.totalAmount||0),0)/5000);
     const diversityScore = Math.min(100,items.length*2);
     const overallScore = Math.round((stockScore*0.5)+(revenueScore*0.3)+(diversityScore*0.2));
     res.json({ overallScore, stockScore, revenueScore:Math.round(revenueScore), diversityScore:Math.round(diversityScore), breakdown:{ outOfStock, lowStock, deadStock, healthy:items.length-outOfStock-lowStock }, grade:overallScore>=85?"A":overallScore>=70?"B":overallScore>=55?"C":"D", recommendation:outOfStock>0?"Restock out-of-stock items immediately":lowStock>0?"Monitor low stock items closely":"Inventory is in great shape!" });
@@ -11084,7 +11090,7 @@ app.get("/admin/complete-metrics", auth("admin"), async (req, res) => {
       Webhook.countDocuments({storeId}),
       Snapshot.countDocuments({storeId})
     ]);
-    const revenue = (await Order.find({storeId})).reduce((s,o)=>s+(o.total||0),0);
+    const revenue = (await Order.find({storeId})).reduce((s,o)=>s+(o.totalAmount||0),0);
     res.json({
       timestamp:new Date().toISOString(),
       store:{ products:items, orders, revenue:revenue.toFixed(2) },
@@ -11170,14 +11176,20 @@ async function seedDemoData(storeId) {
     const orderDate = new Date(Date.now() - daysAgo * 86400000);
     const numItems = Math.floor(Math.random() * 3) + 1;
     const orderItems = [];
-    let total = 0;
+    const cart = {};
+    const itemNames = {};
+    let totalAmount = 0;
+    let totalItems = 0;
     for (let j = 0; j < numItems; j++) {
       const item = items[Math.floor(Math.random() * items.length)];
       const qty = Math.floor(Math.random() * 3) + 1;
-      orderItems.push({ key: item.key, name: item.name, price: item.price, qty });
-      total += item.price * qty;
+      orderItems.push({ key: item.key, name: item.name, price: item.price, qty, category: item.category });
+      cart[item.key] = (cart[item.key] || 0) + qty;
+      itemNames[item.key] = item.name;
+      totalAmount += item.price * qty;
+      totalItems += qty;
     }
-    await Order.create({ storeId, customerEmail: ["customer1@demo.com","customer2@demo.com","customer3@demo.com","demo@customer.com"][i%4], items: orderItems, total, status: ["delivered","delivered","processing","placed"][i%4], paymentMethod: ["upi","card","cod","upi"][i%4], createdAt: orderDate });
+    await Order.create({ storeId, userEmail: ["customer1@demo.com","customer2@demo.com","customer3@demo.com","demo@customer.com"][i%4], cart, itemNames, items: orderItems, totalItems, totalAmount, status: ["delivered","delivered","processing","placed"][i%4], paymentMethod: ["upi","card","cod","upi"][i%4], createdAt: orderDate });
   }
   // Create NPS responses (using correct schema fields)
   for (let i = 0; i < 12; i++) {
