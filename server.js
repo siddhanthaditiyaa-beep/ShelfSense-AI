@@ -761,6 +761,20 @@ init();
 /* =========================
    JWT AUTH (with blacklist check)
 ========================= */
+// Resolves which store to use when the client didn't send an explicit storeId.
+// Without this, "storeId || {$exists:true}" lets Mongo match ANY store's item
+// with a matching key - meaning the product shown to the customer and the
+// item actually priced at checkout could silently be from two DIFFERENT
+// stores with different prices. This guarantees both always agree.
+let _defaultStoreIdCache = null;
+async function resolveStoreId(storeId) {
+  if (storeId) return storeId;
+  if (_defaultStoreIdCache) return _defaultStoreIdCache;
+  const defaultStore = await Store.findOne().sort({ createdAt: 1 });
+  _defaultStoreIdCache = defaultStore ? defaultStore._id.toString() : null;
+  return _defaultStoreIdCache;
+}
+
 function auth(role) {
   return (req, res, next) => {
     const authHeader = req.headers.authorization;
@@ -1202,7 +1216,7 @@ app.post("/complete-onboarding", auth("admin"), async (req, res) => {
 ========================= */
 app.get("/shop-items", auth("customer"), async (req, res) => {
   try {
-    const storeId = req.query.storeId;
+    const storeId = await resolveStoreId(req.query.storeId);
     const query = storeId ? { storeId } : {};
     const items = await Item.find(query);
     const view = {};
@@ -1494,7 +1508,8 @@ app.post("/save-wishlist", auth("customer"), async (req, res) => {
 ========================= */
 app.post("/checkout", auth("customer"), async (req, res) => {
   try {
-    const { cart, storeId, couponCode } = req.body;
+    const { cart, couponCode } = req.body;
+    const storeId = await resolveStoreId(req.body.storeId);
     if (!cart || typeof cart !== "object") return res.status(400).json({ message: "Invalid cart" });
 
     // FRAUD DETECTION — check for suspicious order patterns
@@ -1520,7 +1535,7 @@ app.post("/checkout", auth("customer"), async (req, res) => {
     let totalItems = 0, totalAmount = 0;
     for (const key in cart) {
       if (!validateInput(key, 50)) continue;
-      const item = await Item.findOne({ key, storeId: storeId || { $exists: true } });
+      const item = await Item.findOne({ key, storeId });
       if (!item) continue;
       const qty = Math.max(0, Math.min(parseInt(cart[key]) || 0, 100));
 
@@ -1563,7 +1578,7 @@ app.post("/checkout", auth("customer"), async (req, res) => {
     let discountAmount = 0;
     let couponApplied = null;
     if (couponCode) {
-      const coupon = await Coupon.findOne({ code: couponCode.toUpperCase(), storeId: storeId || { $exists: true }, isActive: true });
+      const coupon = await Coupon.findOne({ code: couponCode.toUpperCase(), storeId, isActive: true });
       if (coupon && coupon.usedCount < coupon.maxUses && (!coupon.expiresAt || new Date() < coupon.expiresAt)) {
         discountAmount = Math.round(totalAmount * coupon.discountPercent / 100);
         totalAmount = Math.max(0, totalAmount - discountAmount);
@@ -1658,11 +1673,12 @@ app.post("/payment-callback", (req, res) => {
 
 app.post("/create-payment-order", auth("customer"), async (req, res) => {
   try {
-    const { cart, storeId } = req.body;
+    const { cart } = req.body;
     if (!cart) return res.status(400).json({ message: "Invalid cart" });
+    const storeId = await resolveStoreId(req.body.storeId);
     let totalAmount = 0;
     for (const key in cart) {
-      const item = await Item.findOne({ key, storeId: storeId || { $exists: true } });
+      const item = await Item.findOne({ key, storeId });
       if (item && cart[key] > 0) totalAmount += (item.onSale ? item.salePrice : item.price || 99) * cart[key];
     }
     if (totalAmount === 0) return res.status(400).json({ message: "Cart is empty" });
@@ -1673,7 +1689,8 @@ app.post("/create-payment-order", auth("customer"), async (req, res) => {
 
 app.post("/verify-payment", auth("customer"), async (req, res) => {
   try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, cart, storeId } = req.body;
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, cart } = req.body;
+    const storeId = await resolveStoreId(req.body.storeId);
     const body = razorpay_order_id + "|" + razorpay_payment_id;
     const expectedSignature = crypto.createHmac("sha256", process.env.RAZORPAY_KEY_SECRET).update(body).digest("hex");
     if (expectedSignature !== razorpay_signature) return res.status(400).json({ message: "Payment verification failed" });
@@ -1681,7 +1698,7 @@ app.post("/verify-payment", auth("customer"), async (req, res) => {
     let totalItems = 0, totalAmount = 0;
     for (const key in cart) {
       if (!validateInput(key, 50)) continue;
-      const item = await Item.findOne({ key, storeId: storeId || { $exists: true } });
+      const item = await Item.findOne({ key, storeId });
       if (!item) continue;
       const qty = Math.max(0, Math.min(parseInt(cart[key]) || 0, 100));
       const allowed = Math.min(qty, item.stock);
@@ -1738,10 +1755,11 @@ app.get("/customer/referral", auth("customer"), async (req, res) => {
 ========================= */
 app.get("/recommendations", auth("customer"), async (req, res) => {
   try {
-    const { itemKey, storeId } = req.query;
+    const { itemKey } = req.query;
+    const storeId = await resolveStoreId(req.query.storeId);
 
     // Get all orders for this store
-    const orders = await Order.find({ storeId: storeId || { $exists: true } }).limit(200);
+    const orders = await Order.find({ storeId }).limit(200);
     if (orders.length < 3) return res.json([]);
 
     // Build co-occurrence matrix
@@ -1860,9 +1878,10 @@ app.get("/my-orders", auth("customer"), async (req, res) => {
 ========================= */
 app.post("/rate-product", auth("customer"), async (req, res) => {
   try {
-    const { itemKey, rating, storeId } = req.body;
+    const { itemKey, rating } = req.body;
     if (!itemKey || !rating || rating < 1 || rating > 5) return res.status(400).json({ message: "Invalid rating" });
-    const item = await Item.findOne({ key: itemKey, storeId: storeId || { $exists: true } });
+    const storeId = await resolveStoreId(req.body.storeId);
+    const item = await Item.findOne({ key: itemKey, storeId });
     if (!item) return res.status(404).json({ message: "Item not found" });
     const existing = await Rating.findOne({ userId: req.user.id, itemKey, storeId: item.storeId });
     if (existing) { existing.rating = rating; await existing.save(); }
@@ -2378,11 +2397,12 @@ app.delete("/admin/coupons/:id", auth("admin"), async (req, res) => {
 
 app.post("/validate-coupon", auth("customer"), async (req, res) => {
   try {
-    const { code, orderAmount, storeId } = req.body;
+    const { code, orderAmount } = req.body;
     if (!code) return res.status(400).json({ message: "Coupon code required" });
+    const storeId = await resolveStoreId(req.body.storeId);
     const coupon = await Coupon.findOne({
       code: code.toUpperCase().trim(),
-      storeId: storeId || { $exists: true },
+      storeId,
       isActive: true
     });
     if (!coupon) return res.status(404).json({ message: "Invalid coupon code" });
