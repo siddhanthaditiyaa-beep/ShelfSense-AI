@@ -773,7 +773,8 @@ function auth(role) {
 
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      if (role && decoded.role !== role && decoded.role !== "superadmin") {
+      const allowedRoles = Array.isArray(role) ? role : (role ? [role] : null);
+      if (allowedRoles && !allowedRoles.includes(decoded.role) && decoded.role !== "superadmin") {
         return res.status(403).json({ message: "Forbidden" });
       }
       req.user = decoded;
@@ -3072,7 +3073,7 @@ app.get("/bundle-deals", auth("customer"), async (req, res) => {
 /* =========================
    NEARBY FRANCHISES
 ========================= */
-app.get("/nearby-franchises", auth("customer"), async (req, res) => {
+app.get("/nearby-franchises", auth(["customer", "admin"]), async (req, res) => {
   try {
     const { product, lat, lng } = req.query;
     if (!product || !lat || !lng) return res.status(400).json({ message: "product, lat, lng required" });

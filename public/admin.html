@@ -4237,10 +4237,18 @@ async function findFranchise() {
 }
 
 async function findFranchiseForProduct(product, targetEl) {
-  const res = await fetch(`/nearby-franchises?product=${product}&lat=19.0760&lng=72.8777`, { headers: { Authorization: token } });
-  const results = await res.json();
   const el = targetEl || document.getElementById("franchiseResults");
-  el.innerHTML = results.length === 0 ? `<p style='color:var(--text-muted)'>No nearby stores have ${product} in stock</p>` : results.map(f => `<div class="franchise-card"><div><h3>🏪 ${f.name}</h3><p>📍 ${f.address}</p><p style="color:var(--success);margin-top:4px">📦 ${f.stock} units</p></div><div class="distance-badge">📏 ${f.distance} km</div></div>`).join("");
+  try {
+    const res = await fetch(`/nearby-franchises?product=${product}&lat=19.0760&lng=72.8777`, { headers: { Authorization: token } });
+    const results = await res.json();
+    if (!res.ok || !Array.isArray(results)) {
+      el.innerHTML = `<p style='color:var(--danger)'>Could not load nearby franchises: ${results.message || "unknown error"}</p>`;
+      return;
+    }
+    el.innerHTML = results.length === 0 ? `<p style='color:var(--text-muted)'>No nearby stores have ${product} in stock</p>` : results.map(f => `<div class="franchise-card"><div><h3>🏪 ${f.name}</h3><p>📍 ${f.address}</p><p style="color:var(--success);margin-top:4px">📦 ${f.stock} units</p></div><div class="distance-badge">📏 ${f.distance} km</div></div>`).join("");
+  } catch (err) {
+    el.innerHTML = `<p style='color:var(--danger)'>Could not load nearby franchises: ${err.message}</p>`;
+  }
 }
 
 /* ===== DOWNLOAD STOCK ===== */
